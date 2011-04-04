@@ -1,0 +1,48 @@
+digraph "source tree" {
+    overlap=scale;
+    size="8,10";
+    ratio="fill";
+    fontsize="16";
+    fontname="Helvetica";
+	clusterrank="local";
+	"HRI_tasks.cpp" -> "hri_bitmap_bin_heap.h"
+	"HRI_tasks.cpp" -> "hri_bitmap_cost.h"
+	"hri_bitmap.h" -> "Mightability_Analysis.h"
+	"hri_agent.h" -> "hri_knowledge.h"
+	"HRP2_gik.cpp" -> "hri_bitmap_draw.h"
+	"Mightability_Analysis.cpp" -> "hri_bitmap_draw.h"
+	"HRI_tasks.h" -> "Mightability_Analysis.h"
+	"hri_bitmap_bin_heap.c" -> "hri_bitmap_bin_heap.h"
+	"hri_bitmap.c" -> "hri_bitmap_draw.h"
+	"HRI_tasks.cpp" -> "Mightability_Analysis.h"
+	"HRI_tasks.cpp" -> "HRI_tasks.h"
+	"Mightability_Analysis.cpp" -> "hri_bitmap_util.h"
+	"hri_gik.c" -> "hri_gik_proto.h"
+	"hri_affordance_include_proto.h" -> "FORM_HRI_affordance_proto.h"
+	"HRP2_gik.cpp" -> "hri_bitmap_cost.h"
+	"hri_distance.h" -> "hri_agent.h"
+	"hri_bitmap_cost.c" -> "hri_bitmap_cost.h"
+	"Mightability_Analysis.cpp" -> "hri_bitmap_cost.h"
+	"Mightability_Analysis.cpp" -> "gpPlacement.h"
+	"hri_affordance_proto.h" -> "ManipulationPlanner.hpp"
+	"hri_bitmap.c" -> "hri_bitmap_bin_heap.h"
+	"hri_bitmap_util.c" -> "hri_bitmap_util.h"
+	"Mightability_Analysis.cpp" -> "Mightability_Analysis.h"
+	"hri_agent.c" -> "hri_gik_proto.h"
+	"hri_affordance_include_proto.h" -> "hri_affordance_proto.h"
+	"hri_agent.h" -> "hri_bitmap.h"
+	"Mightability_Analysis.cpp" -> "hri_bitmap_bin_heap.h"
+	"HRP2_gik.cpp" -> "hri_bitmap_util.h"
+	"hri_bitmap.c" -> "hri_bitmap_util.h"
+	"HRI_tasks.cpp" -> "hri_bitmap_util.h"
+	"hri_agent.c" -> "hri_agent_proto.h"
+	"hri_bitmap_draw.c" -> "hri_bitmap_draw.h"
+	"hri_affordance_proto.h" -> "ManipulationUtils.hpp"
+	"hri_kinect.h" -> "hri_agent.h"
+	"hri_bitmap_cost.h" -> "hri_bitmap_util.h"
+	"hri_bitmap.c" -> "hri_bitmap_cost.h"
+	"hri_agent.h" -> "hri_manip.h"
+	"HRP2_gik.cpp" -> "hri_bitmap_bin_heap.h"
+	"HRI_tasks.cpp" -> "hri_bitmap_draw.h"
+	"Mightability_Analysis.cpp" -> "HRI_tasks.h"
+}

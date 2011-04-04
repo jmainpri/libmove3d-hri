@@ -52,24 +52,6 @@ ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
 ##########################################
 
 
-INCLUDE(src/SourceList.cmake)
-
-ADD_LIBRARY (hri ${HRI_SRC})
-#set_target_properties(hri
-#                      PROPERTIES PUBLIC_HEADER "${HRI_HEADERS}"
-#)
-
-
-INSTALL (TARGETS hri
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-#	PUBLIC_HEADER DESTINATION include/hri
-)
-
-INSTALL(FILES
-	${PUBLIC_HEADERS}
-	DESTINATION include/hri
-)
-
+ADD_SUBDIRECTORY(src)
 
 
