@@ -1,12 +1,12 @@
-# The name of the project is "LIBORO". CMakeLists files in this project can
-# refer to the root source directory of the project as ${LIBORO_SOURCE_DIR} and
-# to the root binary directory of the project as ${LIBORO_BINARY_DIR}.
+# The name of the project is "LIBHRI". CMakeLists files in this project can
+# refer to the root source directory of the project as ${LIBHRI_SOURCE_DIR} and
+# to the root binary directory of the project as ${LIBHRI_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.6)
 
 PROJECT(LIBHRI CXX)
 
-set(PACKAGE_NAME libhri)
-set(PACKAGE_VERSION 3.10.99)
+set( PACKAGE_NAME libhri )
+set( PACKAGE_VERSION 3.10.99 )
 
 #Uncomment next line to get verbose makefiles.
 #SET(CMAKE_VERBOSE_MAKEFILE true)
@@ -15,21 +15,40 @@ set(PACKAGE_VERSION 3.10.99)
 SET(LIBHRI_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 SET(CMAKE_MODULE_PATH ${LIBHRI_MODULE_PATH})
 
+#--------------------- Move3D -------------------------------------------------
+FIND_PACKAGE (Pkgconfig)
+pkg_check_modules(MOVE3D REQUIRED "libmove3d")
+
+#MESSAGE( "${MOVE3D_INCLUDE_DIRS}" )
+#MESSAGE( "${MOVE3D_LIBRARY_DIRS}" )
+
+MESSAGE( "${MOVE3D_CFLAGS}" )
+MESSAGE( "${MOVE3D_LDFLAGS}" )
+
+#INCLUDE_DIRECTORIES(${MOVE3D_INCLUDE_DIRS})
+#LINK_DIRECTORIES( ${MOVE3D_LIBRARY_DIRS} )
+#set(LIBS ${LIBS} ${MOVE3D_LIBRARIES})
+#------------------------------------------------------------------------------
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
-find_package(PkgConfig REQUIRED)
-
-pkg_check_modules(MOVE3D REQUIRED libmove3d)
-include_directories(${MOVE3D_INCLUDE_DIRS})
-LINK_DIRECTORIES( ${MOVE3D_LIBRARY_DIRS} )
-set(LIBS ${LIBS} ${MOVE3D_LIBRARIES})
+INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 
 SET(BUILD_SHARED_LIBS true)
 
 # Get the current libhri version
 ADD_DEFINITIONS(${MOVE3D_CFLAGS} -DUNIX -DHRI_VERSION="${PACKAGE_VERSION}")
 
-INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
+# La target ne link absolument pas contre libmove3d
+# si tu compile sans HRI_PLANNER il y a plein d'erreures
+# les lignes suivantes sont celles que j'utilise dans mon
+# projet pour linker un pkg issue de pkgconfig, bonne chance et bon courage
+# pour le linker avec ce projet là (j'y ai passé une heure j'ai
+# pas réussit, il y aurait une target par default qui a le même nom )
+
+#ADD_LIBRARY(hri SHARED ${PROJECT_SOURCE_DIR}/src)
+#SET_TARGET_PROPERTIES(hri PROPERTIES COMPILE_FLAGS ${MOVE3D_CFLAGS})
+#TARGET_LINK_LIBRARIES(hri ${MOVE3D_LDFLAGS})
 
 ##########################################
 ##       PKGCONFIG file                ###
@@ -58,6 +77,6 @@ OPTION (USE_MIGHTABILITY_MAPS "Enable Mightability Maps support" OFF)
 ##########################################
 
 
-ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY (src)
 
 
