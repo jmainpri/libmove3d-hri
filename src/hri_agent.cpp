@@ -1,17 +1,21 @@
-#include "Util-pkg.h"
-#include "P3d-pkg.h"
-#include "Planner-pkg.h"
-#include "Localpath-pkg.h"
-#include "Collision-pkg.h"
-#include "Graphic-pkg.h"
 
+// System includes
+#include <Util-pkg.h>
+#include <P3d-pkg.h>
+#include <Planner-pkg.h>
+#include <Localpath-pkg.h>
+#include <Collision-pkg.h>
+#include <Graphic-pkg.h>
+
+#include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
+#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
+
+// libhri public headers
 #include "Hri_planner-pkg.h"
 
 #include "proto/hri_agent_proto.h"
 #include "proto/hri_gik_proto.h"
 
-#include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
-#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
 
 HRI_AGENTS * GLOBAL_AGENTS = NULL;
 
