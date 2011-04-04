@@ -6,8 +6,8 @@
  */
 #ifndef __CEXTRACT__
 
-#include "../../lightPlanner/proto/ManipulationPlanner.hpp"
-#include "../../lightPlanner/proto/ManipulationUtils.hpp"
+#include <libmove3d/lightPlanner/proto/ManipulationPlanner.hpp>
+#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
 
 extern int find_affordance();
 extern int show_affordance();

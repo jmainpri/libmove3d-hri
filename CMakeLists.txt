@@ -48,6 +48,12 @@ IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
 ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
 
 ##########################################
+##           Options                   ###
+##########################################
+
+OPTION (USE_MIGHTABILITY_MAPS "Enable Mightability Maps support" OFF)
+
+##########################################
 ##       HRI library                 ###
 ##########################################
 

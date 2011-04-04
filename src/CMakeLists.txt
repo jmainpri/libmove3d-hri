@@ -10,14 +10,18 @@ FOREACH (srcfile
 	hri_knowledge.cpp
 	hri_kinect.cpp
 	)
-	LIST(APPEND HRI_SRC ${CMAKE_CURRENT_SOURCE_DIR}/${srcfile})
+	LIST(APPEND HRI_SRC ${srcfile})
 ENDFOREACH(srcfile)
 
 IF(USE_MIGHTABILITY_MAPS)
-    LIST (INSERT SPARK_SRC 
-    Mightability_Analysis.cpp 
-    HRI_tasks.cpp
+    MESSAGE("Mightability Maps enabled")
+    LIST (APPEND HRI_SRC 
+                 Mightability_Analysis.cpp 
+			     HRI_tasks.cpp
     )
+
+	ADD_DEFINITIONS(-DUSE_MIGHTABILITY_MAPS)
+
 ENDIF(USE_MIGHTABILITY_MAPS)
 
 FILE(GLOB HRIBITMAP_SRC "hri_bitmap/*.cpp")
@@ -27,7 +31,7 @@ ENDFOREACH(srcfile)
 
 IF(HRI_PLANNER_GUI)
 
-    LIST (INSERT SPARK_SRC 
+    LIST (APPEND HRI_SRC 
     FORMgikjointselection.c 
     FORMhri_planner.c 
     FORMpsp_parameters.c 
@@ -36,13 +40,13 @@ IF(HRI_PLANNER_GUI)
     )
 
     IF(USE_MIGHTABILITY_MAPS)
-        LIST (INSERT SPARK_SRC 
+        LIST (APPEND HRI_SRC 
         FORM_HRI_affordance.c
         )
     ENDIF(USE_MIGHTABILITY_MAPS)
     
     IF(USE_HRP2_GIK)
-        LIST (INSERT SPARK_SRC 
+        LIST (APPEND HRI_SRC 
         HRP2_gik.cpp
         )
     ENDIF(USE_HRP2_GIK)
