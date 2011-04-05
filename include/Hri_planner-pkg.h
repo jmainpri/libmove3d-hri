@@ -37,7 +37,6 @@
 
 #include "Graphic-pkg.h"
 
-#if defined(HRI_PLANNER)
 #include "../src/include/hri_agent.h"
 #include "../src/include/hri_manip.h"
 #include "../src/include/hri_graphic.h"
@@ -66,7 +65,6 @@
 #include "../src/graphic/proto/hri_graphic_proto.h"
 #include "../src/proto/p3d_perspective_proto.h"
 
-#endif
 #endif
 
 #ifdef USE_MIGHTABILITY_MAPS
