@@ -17,7 +17,8 @@ SET(CMAKE_MODULE_PATH ${LIBHRI_MODULE_PATH})
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
-pkg_check_modules(MOVE3D REQUIRED libmove3d)
+FIND_PACKAGE (PkgConfig REQUIRED)
+PKG_CHECK_MODULES(MOVE3D REQUIRED libmove3d)
 INCLUDE_DIRECTORIES(${MOVE3D_INCLUDE_DIRS})
 LINK_DIRECTORIES( ${MOVE3D_LIBRARY_DIRS} )
 SET(LIBS ${LIBS} ${MOVE3D_LIBRARIES})
@@ -26,6 +27,12 @@ SET(BUILD_SHARED_LIBS true)
 
 # Get the current libhri version
 ADD_DEFINITIONS(${MOVE3D_CFLAGS} -DUNIX -DHRI_VERSION="${PACKAGE_VERSION}")
+
+########################################
+##          Documentation             ##
+########################################
+
+INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 
 ##########################################
 ##       PKGCONFIG file                ###

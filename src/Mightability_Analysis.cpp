@@ -10,29 +10,33 @@
 //
 //
 
-#include "Util-pkg.h"
-#include "P3d-pkg.h"
-#include "Rrt-pkg.h"
-#include "Planner-pkg.h"
-#include "Move3d-pkg.h"
-#include "Localpath-pkg.h"
-#include "Collision-pkg.h"
-#include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
-#include "math.h"
+#include <list>
+#include <string>
+#include <iostream>
+#include <math.h>
+
+#include <Util-pkg.h>
+#include <P3d-pkg.h>
+#include <Rrt-pkg.h>
+#include <Planner-pkg.h>
+#include <Move3d-pkg.h>
+#include <Localpath-pkg.h>
+#include <Collision-pkg.h>
+#include <Graphic-pkg.h>
+
+#include <libmove3d/graspPlanning/include/gpPlacement.h>
+#include <libmove3d/graspPlanning/proto/gp_geometry_proto.h>
+
 #include "include/hri_bitmap_util.h"
 #include "include/hri_bitmap_draw.h"
 #include "include/hri_bitmap_cost.h"
 #include "include/hri_bitmap_bin_heap.h"
 #include "include/HRI_tasks.h"
 #include "include/Mightability_Analysis.h"
-#include "../graspPlanning/include/gpPlacement.h"
-#include "./graspPlanning/proto/gp_geometry_proto.h"
 
-#include <list>
-#include <string>
-#include <iostream>
+#include "proto/hri_affordance_proto.h"
 
+#include "Hri_planner-pkg.h"
 
 #define COMMENT_TMP
 

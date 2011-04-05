@@ -12,33 +12,34 @@
  cd /home/akpandey/AKP_modules/BioMove3D_New3/build/;
  /home/akpandey/AKP_modules/BioMove3D_New3/build/Debug/bin/i386-linux/move3d-studio -f /home/akpandey/AKP_modules/mhp_new/BioMove3DDemos_new3/GS/gsJidoKukaSAHandSM_MA_new.p3d -sc /home/akpandey/AKP_modules/mhp_new/BioMove3DDemos_new3/GS/SCENARIO/ManipulationTestSAHand_MA_new4.sce -dmax 0.01
 */
+#include <list>
+#include <string>
+#include <iostream>
+#include <map>
 
-#include "Util-pkg.h"
-#include "P3d-pkg.h"
-#include "Rrt-pkg.h"
-#include "Planner-pkg.h"
-#include "Move3d-pkg.h"
-#include "Localpath-pkg.h"
-#include "Collision-pkg.h"
-#include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
-#include "math.h"
+#include <Util-pkg.h>
+#include <P3d-pkg.h>
+#include <Rrt-pkg.h>
+#include <Planner-pkg.h>
+#include <Move3d-pkg.h>
+#include <Localpath-pkg.h>
+#include <Collision-pkg.h>
+#include <Graphic-pkg.h>
+#include <Hri_planner-pkg.h>
+#include <math.h>
+#include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
+#include <libmove3d/lightPlanner/proto/ManipulationPlanner.hpp>
+#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
+#include <libmove3d/lightPlanner/proto/ManipulationStruct.h>
+#include <libmove3d/lightPlanner/proto/robotPos.h>
+
 #include "include/hri_bitmap_util.h"
 #include "include/hri_bitmap_draw.h"
 #include "include/hri_bitmap_cost.h"
 #include "include/hri_bitmap_bin_heap.h"
 #include "include/HRI_tasks.h"
 #include "include/Mightability_Analysis.h"
-#include "lightPlanner/proto/lightPlannerApi.h"
 
-#include "ManipulationPlanner.hpp"
-#include "ManipulationUtils.hpp"
-#include "ManipulationStruct.h"
-#include "robotPos.h"
-#include <list>
-#include <string>
-#include <iostream>
-#include <map>
 using namespace std;
 HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;
 //candidate_poins_for_task candidate_points_to_put;
