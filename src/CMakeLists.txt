@@ -19,9 +19,7 @@ IF(USE_MIGHTABILITY_MAPS)
                  Mightability_Analysis.cpp 
 			     HRI_tasks.cpp
     )
-
-	ADD_DEFINITIONS(-DUSE_MIGHTABILITY_MAPS)
-
+	ADD_DEFINITIONS("-DUSE_MIGHTABILITY_MAPS")
 ENDIF(USE_MIGHTABILITY_MAPS)
 
 FILE(GLOB HRIBITMAP_SRC "hri_bitmap/*.cpp")
@@ -55,6 +53,10 @@ IF(HRI_PLANNER_GUI)
 
 ENDIF(HRI_PLANNER_GUI)
 
+########################################
+##       HRI library                  ##
+########################################
+
 
 FILE(GLOB_RECURSE HRI_HEADERS "include/*.h")
 
@@ -63,6 +65,7 @@ ADD_LIBRARY (hri ${HRI_SRC})
 #                      PROPERTIES PUBLIC_HEADER "${HRI_HEADERS}"
 #)
 
+TARGET_LINK_LIBRARIES(hri ${LIBS})
 
 INSTALL (TARGETS hri
 	LIBRARY DESTINATION lib
