@@ -13,8 +13,8 @@
 // libhri public headers
 #include "Hri_planner-pkg.h"
 
-#include "proto/hri_agent_proto.h"
-#include "proto/hri_gik_proto.h"
+#include "hri_agent_proto.h"
+#include "hri_gik_proto.h"
 
 
 HRI_AGENTS * GLOBAL_AGENTS = NULL;

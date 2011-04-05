@@ -6,7 +6,7 @@
 #include "Graphic-pkg.h"
 #include "Hri_planner-pkg.h"
 
-#include "proto/hri_gik_proto.h"
+#include "hri_gik_proto.h"
 
 hri_gik * HRI_GIK = NULL;
 int HRI_GIK_CONTINUOUS = TRUE;

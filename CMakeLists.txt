@@ -60,6 +60,14 @@ OPTION (USE_MIGHTABILITY_MAPS "Enable Mightability Maps support" OFF)
 ##       HRI library                 ###
 ##########################################
 
+FILE(GLOB_RECURSE HRI_HEADERS "include/*.h")
+
+INSTALL(FILES
+	${HRI_HEADERS}
+	DESTINATION include/hri
+)
+
+
 
 ADD_SUBDIRECTORY (src)
 

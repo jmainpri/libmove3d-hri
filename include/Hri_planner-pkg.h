@@ -36,45 +36,45 @@
 #include "arm_models/pa10Const.h"
 
 #include "Graphic-pkg.h"
+#include "libmove3d/util/proto/gnuplot_proto.h"
 
-#include "../src/include/hri_agent.h"
-#include "../src/include/hri_manip.h"
-#include "../src/include/hri_graphic.h"
-#include "../src/include/hri_distance.h"
-#include "../src/include/hri_agent.h"
-#include "../src/include/hri_bitmap.h"
-#include "../src/include/hri_kinect.h"
+#include "hri_agent.h"
+#include "hri_manip.h"
+#include "hri_graphic.h"
+#include "hri_distance.h"
+#include "hri_agent.h"
+#include "hri_bitmap.h"
+#include "hri_kinect.h"
 
-#include "../util/proto/gnuplot_proto.h"
-#include "../src/proto/hri_bitmap_proto.h"
-#include "../src/proto/hri_agent_proto.h"
-#include "../src/proto/hri_visibility_proto.h"
-#include "../src/proto/hri_manip_proto.h"
-#include "../src/proto/hri_gik_proto.h"
-#include "../src/proto/hri_knowledge_proto.h"
+#include "hri_bitmap_proto.h"
+#include "hri_agent_proto.h"
+#include "hri_visibility_proto.h"
+#include "hri_manip_proto.h"
+#include "hri_gik_proto.h"
+#include "hri_knowledge_proto.h"
 
-#include "../src/proto/hri_graphic_proto.h"
+#include "hri_graphic_proto.h"
 
 #ifdef HRI_PLANNER_GUI
-#include "../src/include/perspective.h"
+#include "perspective.h"
 
-#include"../src/proto/FORMhri_planner_proto.h"
-#include"../src/proto/FORMpsp_parameters_proto.h"
-#include"../src/proto/FORMgikjointselection_proto.h"
-#include"../src/proto/hri_wave_exp_proto.h"
-#include "../src/graphic/proto/hri_graphic_proto.h"
-#include "../src/proto/p3d_perspective_proto.h"
+#include"FORMhri_planner_proto.h"
+#include"FORMpsp_parameters_proto.h"
+#include"FORMgikjointselection_proto.h"
+#include"hri_wave_exp_proto.h"
+#include "graphic/hri_graphic_proto.h"
+#include "p3d_perspective_proto.h"
 
 #endif
 
 #ifdef USE_MIGHTABILITY_MAPS
-#include "../src/include/Mightability_Analysis.h"
-#include "../src/include/HRI_tasks.h"
+#include "Mightability_Analysis.h"
+#include "HRI_tasks.h"
 #endif
 
 #ifdef USE_HRP2_GIK
-#include "../src/include/hrp2_gik.h"
-#include "../src/include/Geo_Sym_Sys.h"
+#include "hrp2_gik.h"
+#include "Geo_Sym_Sys.h"
 #endif
 
 extern hri_gik * HRI_GIK;
@@ -117,11 +117,11 @@ extern struct SOLUTION_CONFIGS_FOR_HRP2 cur_gik_sol_configs;//It will store the 
 /* proto */
 
 #ifdef USE_MIGHTABILITY_MAPS
-#include "../src/proto/hri_affordance_include_proto.h"
+#include "hri_affordance_include_proto.h"
 #endif
 
 #ifdef USE_HRP2_GIK
-#include "../src/proto/HRP2_gik_proto.h"
+#include "HRP2_gik_proto.h"
 #endif
 
 

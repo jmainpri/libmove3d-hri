@@ -58,7 +58,7 @@ ENDIF(HRI_PLANNER_GUI)
 ########################################
 
 
-FILE(GLOB_RECURSE HRI_HEADERS "include/*.h")
+#FILE(GLOB_RECURSE HRI_HEADERS "include/*.h")
 
 ADD_LIBRARY (hri ${HRI_SRC})
 #set_target_properties(hri
@@ -73,9 +73,9 @@ INSTALL (TARGETS hri
 #	PUBLIC_HEADER DESTINATION include/hri
 )
 
-INSTALL(FILES
-	${PUBLIC_HEADERS}
-	DESTINATION include/hri
-)
+#INSTALL(FILES
+#	${HRI_HEADERS}
+#	DESTINATION include/hri
+#)
 
 
