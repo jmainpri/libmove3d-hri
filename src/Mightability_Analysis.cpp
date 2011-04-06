@@ -35,7 +35,11 @@
 #include "Mightability_Analysis.h"
 
 #include "hri_affordance_proto.h"
+
+//TODO Amit: remove dependency on graphical interface
+#if false
 #include "graphic/g3d_perspective_window_proto.h"
+#endif
 
 #include "hri.h"
 
@@ -4623,6 +4627,8 @@ int check_inside_polygon(int no_vertices, point_co_ordi *vertices, point_co_ordi
 
 }
 
+//TODO Amit: remove dependency on graphical interface
+#if false
 #if defined(WITH_XFORMS)
 int is_point_in_fov(p3d_rob* robot, p3d_vector4 p)
 {
@@ -4661,6 +4667,7 @@ int is_point_in_fov(p3d_rob* robot, p3d_vector4 p)
   
   return is_in_FOV;
 }
+#endif
 #endif
 
 int initialize_surfaces_in_env()
