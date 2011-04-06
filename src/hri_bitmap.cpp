@@ -4,7 +4,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "math.h"
 
 #include "hri_bitmap_util.h"
@@ -234,7 +234,7 @@ int hri_bt_create_obstacles( hri_bitmapset* btset )
   safe_expand_rate = getRotationBoundingCircleRadius(btset->robot);
 
 
-  // defined in Move3d/include/Hri_planner-pkg.h
+  // defined in Move3d/include/hri.h
 #ifdef HRI_JIDO
   minimum_expand_rate = 0.40 - 1 * btset->pace;  /* THIS IS FOR JIDO  - NEEDS TO BE DONE PROPERLY*/
 #else

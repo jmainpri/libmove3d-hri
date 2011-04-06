@@ -3,7 +3,7 @@
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
 #include "Planner-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 
 #ifdef __cplusplus

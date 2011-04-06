@@ -5,7 +5,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "include/hri_bitmap_util.h"
 #include "include/hri_bitmap_draw.h"
 #include "include/hri_bitmap_cost.h"

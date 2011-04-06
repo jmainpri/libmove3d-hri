@@ -5,7 +5,7 @@
 #include "Util-pkg.h"
 #include "P3d-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "math.h"

@@ -1,7 +1,7 @@
 #include "Util-pkg.h"
 #include "P3d-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 void g3d_hri_display_visible_objects(HRI_AGENT *agent)
 {

@@ -4,7 +4,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "Planner-pkg.h"
 
 #ifdef __cplusplus

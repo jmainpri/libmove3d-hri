@@ -5,7 +5,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 
 FL_FORM  *PSP_PARAMETERS_FORM = NULL;

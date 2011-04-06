@@ -1,6 +1,6 @@
 #include "Util-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "GL/glx.h"
 
 // Function pointer to link with a draw function working on the openGL backbuffer

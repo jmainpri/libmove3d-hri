@@ -5,7 +5,7 @@
 #include "Util-pkg.h"
 //#include "Util-pkg.h"
 #ifdef HRI_PLANNER
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #endif
 
 

@@ -5,7 +5,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 #ifdef USE_SYM_GEO_PLAN
 #include "include/Geo_Sym_Sys.h"

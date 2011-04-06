@@ -4,7 +4,7 @@
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
 #include "GroundHeight-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 /*
  * Play the current trajectory of the robot with his bitmap

@@ -4,7 +4,7 @@
 #include "Localpath-pkg.h"
 #include "Collision-pkg.h"
 #include "Graphic-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 #define MAX_ROW_INDEX 44 //10 centimeters
 #define MAX_COL_INDEX 79

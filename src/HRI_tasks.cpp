@@ -25,7 +25,7 @@
 #include <Localpath-pkg.h>
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
-#include <Hri_planner-pkg.h>
+#include <hri.h>
 #include <math.h>
 #include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
 #include <libmove3d/lightPlanner/proto/ManipulationPlanner.hpp>

@@ -1,6 +1,6 @@
 #include "P3d-pkg.h"
 #include "Collision-pkg.h"
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 HRI_ENTITIES * GLOBAL_ENTITIES = NULL;
 

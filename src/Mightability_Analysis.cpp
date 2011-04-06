@@ -36,7 +36,7 @@
 
 #include "proto/hri_affordance_proto.h"
 
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 #define COMMENT_TMP
 

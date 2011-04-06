@@ -8,7 +8,7 @@
  *
  */
 
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 #include "P3d-pkg.h"
 
 //! human kinect information

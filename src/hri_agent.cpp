@@ -11,7 +11,7 @@
 #include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
 
 // libhri public headers
-#include "Hri_planner-pkg.h"
+#include "hri.h"
 
 #include "hri_agent_proto.h"
 #include "hri_gik_proto.h"
