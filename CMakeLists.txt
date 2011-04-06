@@ -53,6 +53,13 @@ INCLUDE_DIRECTORIES(${GSL_INCLUDE_DIRS})
 LINK_DIRECTORIES( ${GSL_LIBRARY_DIRS} )
 SET(LIBS ${LIBS} ${GSL_LIBRARIES})
 
+## GL ###
+
+FIND_PACKAGE(OpenGL REQUIRED)
+INCLUDE_directories(${OPENGL_INCLUDE_DIR})
+SET(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
+SET(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+
 ########################################
 ##          Documentation             ##
 ########################################
