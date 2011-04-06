@@ -58,9 +58,6 @@
 #ifdef HRI_PLANNER_GUI
 #include "perspective.h"
 
-#include"FORMhri_planner_proto.h"
-#include"FORMpsp_parameters_proto.h"
-#include"FORMgikjointselection_proto.h"
 #include"hri_wave_exp_proto.h"
 #include "graphic/hri_graphic_proto.h"
 #include "p3d_perspective_proto.h"
