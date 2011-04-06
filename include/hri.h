@@ -55,15 +55,6 @@
 
 #include "hri_graphic_proto.h"
 
-#ifdef HRI_PLANNER_GUI
-#include "perspective.h"
-
-#include"hri_wave_exp_proto.h"
-#include "graphic/hri_graphic_proto.h"
-#include "p3d_perspective_proto.h"
-
-#endif
-
 #ifdef USE_MIGHTABILITY_MAPS
 #include "Mightability_Analysis.h"
 #include "HRI_tasks.h"

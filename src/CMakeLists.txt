@@ -29,14 +29,6 @@ ENDFOREACH(srcfile)
 
 IF(HRI_PLANNER_GUI)
 
-    LIST (APPEND HRI_SRC 
-    FORMgikjointselection.c 
-    FORMhri_planner.c 
-    FORMpsp_parameters.c 
-    hri_wave_exp.c 
-    p3d_perspective.c
-    )
-
     IF(USE_MIGHTABILITY_MAPS)
         LIST (APPEND HRI_SRC 
         FORM_HRI_affordance.c
@@ -49,7 +41,6 @@ IF(HRI_PLANNER_GUI)
         )
     ENDIF(USE_HRP2_GIK)
     
-	ADD_SUBDIRECTORY(graphic)
 
 ENDIF(HRI_PLANNER_GUI)
 
