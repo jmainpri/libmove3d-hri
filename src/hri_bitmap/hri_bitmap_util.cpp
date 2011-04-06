@@ -1,4 +1,4 @@
-#include "../include/hri_bitmap_util.h"
+#include "hri_bitmap_util.h"
 /**
  * hri_bitmap_util.c
  * used for small independent functions related to bitmap handling

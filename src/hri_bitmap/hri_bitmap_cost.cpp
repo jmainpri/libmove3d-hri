@@ -1,4 +1,4 @@
-#include "../include/hri_bitmap_cost.h"
+#include "hri_bitmap_cost.h"
 /*
  * hri_bitmap_cost.c
  *

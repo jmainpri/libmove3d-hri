@@ -7,10 +7,10 @@
 #include "hri.h"
 #include "math.h"
 
-#include "hri_bitmap_util.h"
-#include "hri_bitmap_draw.h"
-#include "hri_bitmap_cost.h"
-#include "hri_bitmap_bin_heap.h"
+#include "hri_bitmap/hri_bitmap_util.h"
+#include "hri_bitmap/hri_bitmap_draw.h"
+#include "hri_bitmap/hri_bitmap_cost.h"
+#include "hri_bitmap/hri_bitmap_bin_heap.h"
 
 #ifndef MAX
 #define MAX(a,b)  ( (a) > (b) ? (a) : (b) )

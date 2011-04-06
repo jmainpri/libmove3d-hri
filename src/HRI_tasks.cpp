@@ -33,12 +33,12 @@
 #include <libmove3d/lightPlanner/proto/ManipulationStruct.h>
 #include <libmove3d/lightPlanner/proto/robotPos.h>
 
-#include "include/hri_bitmap_util.h"
-#include "include/hri_bitmap_draw.h"
-#include "include/hri_bitmap_cost.h"
-#include "include/hri_bitmap_bin_heap.h"
-#include "include/HRI_tasks.h"
-#include "include/Mightability_Analysis.h"
+#include "hri_bitmap/hri_bitmap_util.h"
+#include "hri_bitmap/hri_bitmap_draw.h"
+#include "hri_bitmap/hri_bitmap_cost.h"
+#include "hri_bitmap/hri_bitmap_bin_heap.h"
+#include "HRI_tasks.h"
+#include "Mightability_Analysis.h"
 
 using namespace std;
 HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;

@@ -27,14 +27,15 @@
 #include <libmove3d/graspPlanning/include/gpPlacement.h>
 #include <libmove3d/graspPlanning/proto/gp_geometry_proto.h>
 
-#include "include/hri_bitmap_util.h"
-#include "include/hri_bitmap_draw.h"
-#include "include/hri_bitmap_cost.h"
-#include "include/hri_bitmap_bin_heap.h"
-#include "include/HRI_tasks.h"
-#include "include/Mightability_Analysis.h"
+#include "hri_bitmap/hri_bitmap_util.h"
+#include "hri_bitmap/hri_bitmap_draw.h"
+#include "hri_bitmap/hri_bitmap_cost.h"
+#include "hri_bitmap/hri_bitmap_bin_heap.h"
+#include "HRI_tasks.h"
+#include "Mightability_Analysis.h"
 
-#include "proto/hri_affordance_proto.h"
+#include "hri_affordance_proto.h"
+#include "graphic/g3d_perspective_window_proto.h"
 
 #include "hri.h"
 
