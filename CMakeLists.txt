@@ -15,6 +15,20 @@ set( PACKAGE_VERSION 0.0.99 )
 SET(LIBHRI_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 SET(CMAKE_MODULE_PATH ${LIBHRI_MODULE_PATH})
 
+#--------------- Platform -------------
+#--------------------------------------
+
+IF(UNIX)
+  ADD_DEFINITIONS(-DUNIX)
+  IF(APPLE)
+    ADD_DEFINITIONS(-DMACOSX)
+  ELSE(APPLE)
+    ADD_DEFINITIONS(-DLINUX)
+  ENDIF(APPLE)
+ELSE(UNIX)
+ MESSAGE (FATAL_ERROR "Not supported Platform")
+ENDIF(UNIX)
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 ########################################
@@ -30,7 +44,6 @@ INCLUDE_DIRECTORIES(${MOVE3D_INCLUDE_DIRS})
 LINK_DIRECTORIES( ${MOVE3D_LIBRARY_DIRS} )
 SET(LIBS ${LIBS} ${MOVE3D_LIBRARIES})
 
-# Get the current libhri version
 ADD_DEFINITIONS(${MOVE3D_CFLAGS})
 
 ### GSL ###
@@ -72,17 +85,19 @@ OPTION (USE_MIGHTABILITY_MAPS "Enable Mightability Maps support" OFF)
 ##       HRI library                 ###
 ##########################################
 
-ADD_DEFINITIONS(-DUNIX -DHRI_VERSION="${PACKAGE_VERSION}")
+ADD_DEFINITIONS(-DHRI_VERSION="${PACKAGE_VERSION}")
 
 SET(BUILD_SHARED_LIBS true)
 
 INSTALL(DIRECTORY
-	"include/"
-	DESTINATION include/hri
+       "include/"
+       DESTINATION include/hri
 )
 
-MESSAGE("Linking with ${LIBS}")
+#MESSAGE("Linking with ${LIBS}")
 
 ADD_SUBDIRECTORY (src)
+
+
 
 

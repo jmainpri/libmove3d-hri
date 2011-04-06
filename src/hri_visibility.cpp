@@ -6,6 +6,11 @@
 // Function pointer to link with a draw function working on the openGL backbuffer
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 
+void g3d_draw_win_back_buffer(g3d_win *)
+{
+  
+}
+
 void hri_initialize_visibility()
 {
   ext_g3d_draw_allwin_active_backbuffer = (void (*)())(g3d_draw_allwin_active_back_buffer);
