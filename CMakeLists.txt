@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 2.6)
 PROJECT(LIBHRI C CXX)
 
 set( PACKAGE_NAME libhri )
-set( PACKAGE_VERSION 0.0.99 )
+set( PACKAGE_VERSION 1.0 )
 
 #Uncomment next line to get verbose makefiles.
 #SET(CMAKE_VERBOSE_MAKEFILE true)
