@@ -27,22 +27,14 @@ FOREACH (srcfile ${HRIBITMAP_SRC})
 	LIST(APPEND HRI_SRC ${srcfile})
 ENDFOREACH(srcfile)
 
-IF(HRI_PLANNER_GUI)
-
-    IF(USE_MIGHTABILITY_MAPS)
-        LIST (APPEND HRI_SRC 
-        FORM_HRI_affordance.c
-        )
-    ENDIF(USE_MIGHTABILITY_MAPS)
-    
-    IF(USE_HRP2_GIK)
-        LIST (APPEND HRI_SRC 
-        HRP2_gik.cpp
-        )
-    ENDIF(USE_HRP2_GIK)
-    
-
-ENDIF(HRI_PLANNER_GUI)
+IF(USE_HRP2_GIK)
+	MESSAGE("HRP2_gik.cpp can not be compiled for now since it badly \
+			mix algorithmic part with GUI parts. Please untangle them, and move \
+			the GUI parts in the move3d-studio project.")
+	#LIST (APPEND HRI_SRC 
+	#HRP2_gik.cpp
+	#)
+ENDIF(USE_HRP2_GIK)
 
 ########################################
 ##       HRI library                  ##

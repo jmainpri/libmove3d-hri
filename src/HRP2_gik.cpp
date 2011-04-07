@@ -1,15 +1,17 @@
-#include "Util-pkg.h"
-#include "P3d-pkg.h"
-#include "Planner-pkg.h"
-#include "Move3d-pkg.h"
-#include "Localpath-pkg.h"
-#include "Collision-pkg.h"
-#include "Graphic-pkg.h"
+#include <Util-pkg.h>
+#include <P3d-pkg.h>
+#include <Planner-pkg.h>
+#include <Move3d-pkg.h>
+#include <Localpath-pkg.h>
+#include <Collision-pkg.h>
+#include <Graphic-pkg.h>
+
 #include "hri.h"
-#include "include/hri_bitmap_util.h"
-#include "include/hri_bitmap_draw.h"
-#include "include/hri_bitmap_cost.h"
-#include "include/hri_bitmap_bin_heap.h"
+
+#include "hri_bitmap/hri_bitmap_util.h"
+#include "hri_bitmap/hri_bitmap_draw.h"
+#include "hri_bitmap/hri_bitmap_cost.h"
+#include "hri_bitmap/hri_bitmap_bin_heap.h"
 //#include "hrp2_gik.h"
 
 
@@ -10980,3 +10982,4 @@ return total_no_pts;
 
 }
 /////////////// END AKP: Cut from Mightability_Maps.c
+
