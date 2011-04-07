@@ -21,17 +21,17 @@
 #include <P3d-pkg.h>
 #include <Rrt-pkg.h>
 #include <Planner-pkg.h>
-#include <Move3d-pkg.h>
 #include <Localpath-pkg.h>
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
-#include <hri.h>
 #include <math.h>
 #include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
 #include <libmove3d/lightPlanner/proto/ManipulationPlanner.hpp>
 #include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
 #include <libmove3d/lightPlanner/proto/ManipulationStruct.h>
 #include <libmove3d/lightPlanner/proto/robotPos.h>
+
+#include "hri.h"
 
 #include "hri_bitmap/hri_bitmap_util.h"
 #include "hri_bitmap/hri_bitmap_draw.h"

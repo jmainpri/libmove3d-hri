@@ -19,10 +19,11 @@
 #include <P3d-pkg.h>
 #include <Rrt-pkg.h>
 #include <Planner-pkg.h>
-#include <Move3d-pkg.h>
 #include <Localpath-pkg.h>
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
+
+#include <move3d.h>
 
 #include <libmove3d/graspPlanning/include/gpPlacement.h>
 #include <libmove3d/graspPlanning/proto/gp_geometry_proto.h>
