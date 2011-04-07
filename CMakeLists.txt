@@ -3,7 +3,7 @@
 # to the root binary directory of the project as ${LIBHRI_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.6)
 
-PROJECT(LIBHRI CXX)
+PROJECT(LIBHRI C CXX)
 
 set( PACKAGE_NAME libhri )
 set( PACKAGE_VERSION 0.0.99 )
