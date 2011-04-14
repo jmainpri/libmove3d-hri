@@ -41,6 +41,10 @@ FIND_PACKAGE (PkgConfig REQUIRED)
 
 SET(MOVE3D "")
 
+IF(DEFINED LIBMOVE3D_PC)
+        SET(ENV{PKG_CONFIG_PATH} ${LIBMOVE3D_PC}:$ENV{PKG_CONFIG_PATH})
+ENDIF()
+
 IF(NOT USE_QT_LIBMOVE3D_VIEWER)
     	MESSAGE(libmove3d)
     	PKG_CHECK_MODULES(MOVE3D REQUIRED libmove3d)
@@ -104,6 +108,10 @@ OPTION (USE_QT_LIBMOVE3D_VIEWER "Enable Linking with libmove3d-veiwer" OFF)
 ##########################################
 ##       HRI library                 ###
 ##########################################
+
+IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  SET(CMAKE_INSTALL_PREFIX "${LIBHRI_BINARY_DIR}/install" CACHE PATH "LibHri install prefix" FORCE)
+ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ADD_DEFINITIONS(-DHRI_VERSION="${PACKAGE_VERSION}")
 
