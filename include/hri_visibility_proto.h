@@ -1,3 +1,4 @@
+extern void (*ext_g3d_draw_allwin_active_backbuffer)();
 extern void hri_initialize_visibility();
 extern int hri_is_object_visible(HRI_AGENT * agent,p3d_rob *object, int threshold, int save, int draw_at_end);
 extern int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera_fov, p3d_rob *object, double *result, int save);
@@ -25,4 +26,3 @@ extern int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents,H
 extern int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * ents, int suspect_undetected_entity_index,HRI_AGENT * agent,HRI_AGENTS * agents);
 
 extern double hri_simple_is_point_visible_by_robot(p3d_vector3 point,p3d_rob* robotPt);
-
