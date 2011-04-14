@@ -23,7 +23,7 @@
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
 
-#include <move3d.h>
+#include <libmove3d/graphic/move3d-gui.h>
 
 #include <libmove3d/graspPlanning/include/gpPlacement.h>
 #include <libmove3d/graspPlanning/proto/gp_geometry_proto.h>
