@@ -25,11 +25,11 @@
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
 #include <math.h>
-#include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
-#include <libmove3d/lightPlanner/proto/ManipulationPlanner.hpp>
-#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
-#include <libmove3d/lightPlanner/proto/ManipulationStruct.h>
-#include <libmove3d/lightPlanner/proto/robotPos.h>
+#include <lightPlanner/proto/lightPlannerApi.h>
+#include <lightPlanner/proto/ManipulationPlanner.hpp>
+#include <lightPlanner/proto/ManipulationUtils.hpp>
+#include <lightPlanner/proto/ManipulationStruct.h>
+#include <lightPlanner/proto/robotPos.h>
 
 #include "hri.h"
 

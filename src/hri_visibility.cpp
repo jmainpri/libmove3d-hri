@@ -3,6 +3,7 @@
 #include "hri.h"
 #include "GL/glx.h"
 
+
 // Function pointer to link with a draw function working on the openGL backbuffer
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 

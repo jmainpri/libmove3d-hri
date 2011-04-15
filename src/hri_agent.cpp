@@ -7,8 +7,8 @@
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
 
-#include <libmove3d/lightPlanner/proto/lightPlannerApi.h>
-#include <libmove3d/lightPlanner/proto/ManipulationUtils.hpp>
+#include <../lightPlanner/proto/lightPlannerApi.h>
+#include <../lightPlanner/proto/ManipulationUtils.hpp>
 
 // libhri public headers
 #include "hri.h"

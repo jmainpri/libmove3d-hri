@@ -4,7 +4,6 @@
  *  these prototypes.
  */
 
-
 #ifdef UNIX
 #ifdef __cplusplus
 //extern "C" {
@@ -36,7 +35,7 @@
 #include "arm_models/pa10Const.h"
 
 #include "Graphic-pkg.h"
-#include "libmove3d/util/proto/gnuplot_proto.h"
+#include "../util/proto/gnuplot_proto.h"
 
 #include "hri_agent.h"
 #include "hri_manip.h"
