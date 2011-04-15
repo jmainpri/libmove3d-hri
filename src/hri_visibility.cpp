@@ -4,12 +4,18 @@
 #include "GL/glx.h"
 
 
-// Function pointer to link with a draw function working on the openGL backbuffer
+// Function pointer to link with a draw function 
+// Working on the OpenGL backbuffer
+// this function is set by the different OpenGL
+// display manager
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 
+// This function is a wrapper to older version
+// of the functions which enables retro compatibility
+// It is still used in spark, this should be changed carfully
 void g3d_draw_win_back_buffer(g3d_win *)
 {
-  
+  ext_g3d_draw_allwin_active_backbuffer();
 }
 
 void hri_initialize_visibility()
@@ -750,7 +756,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
       if(pixel_value_to_array_index<objects_nb)
 	visiblepixels[pixel_value_to_array_index]++;
       else
-	printf("Wrong image for visibility calculation in BackBuffer in g3d_get_given_entities_pixelpresence_in_current_viewpoint");
+	printf("Wrong image for visibility calculation in BackBuffer in g3d_get_given_entities_pixelpresence_in_current_viewpoint\n");
     }
   }
 
