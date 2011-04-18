@@ -22,11 +22,11 @@
 #include <Localpath-pkg.h>
 #include <Collision-pkg.h>
 #include <Graphic-pkg.h>
+#include <GraspPlanning-pkg.h>
 
-#include <graphic/move3d-gui.h>
+#include <move3d-gui.h>
 
-#include <graspPlanning/include/gpPlacement.h>
-#include <graspPlanning/proto/gp_geometry_proto.h>
+
 
 #include "hri_bitmap/hri_bitmap_util.h"
 #include "hri_bitmap/hri_bitmap_draw.h"
