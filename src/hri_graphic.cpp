@@ -25,7 +25,7 @@ void g3d_hri_main()
 	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
 
 #ifdef USE_MIGHTABILITY_MAPS
-		  printf("Inside g3d_draw_env_custom() \n");
+		  ////printf("Inside g3d_draw_env_custom() \n");
 		  execute_Mightability_Map_functions();
 #endif
 	  

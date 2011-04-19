@@ -6,8 +6,8 @@
  */
 #ifndef __CEXTRACT__
 
-#include <../lightPlanner/proto/ManipulationPlanner.hpp>
-#include <../lightPlanner/proto/ManipulationUtils.hpp>
+#include "../lightPlanner/proto/ManipulationPlanner.hpp"
+#include "../lightPlanner/proto/ManipulationUtils.hpp"
 
 extern int find_affordance();
 extern int show_affordance();
@@ -114,7 +114,7 @@ extern int JIDO_find_candidate_points_to_show_obj();
 /*extern int test_geometric_plan_creation_for_JIDO();*/
 extern int JIDO_give_obj_to_human (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> &graspList, std::list<gpPlacement> &curr_placementList);
 extern int JIDO_find_candidate_points_to_give_obj();
-extern int assign_weights_on_candidte_points_to_give_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent);
+extern int assign_weights_on_candidte_points_to_give_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
 
 extern int show_weighted_candidate_points_to_give_obj(int show_weight);
 extern int JIDO_find_candidate_points_on_plane_to_hide_obj();
@@ -159,7 +159,7 @@ extern int JIDO_give_obj_to_human( char *obj_to_manipulate );
 extern int find_candidate_points_for_current_HRI_task(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, candidate_poins_for_task *resultant_candidate_point);
 extern int reverse_sort_HRI_task_weighted_candidate_points(candidate_poins_for_task *candidate_points);
 extern int JIDO_find_HRI_task_solution(HRI_TASK_TYPE CURR_TASK, HRI_TASK_AGENT for_agent, char *obj_to_manipulate);
-extern int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, candidate_poins_for_task *curr_resultant_candidate_points);
+extern int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points);
 extern object_Symbolic_Mightability_Maps_Relation* create_object_oriented_Mightability_obj();
 extern int delete_object_oriented_Mightability_obj(object_Symbolic_Mightability_Maps_Relation *OOM);
 extern int copy_current_object_oriented_Mightability_into(object_Symbolic_Mightability_Maps_Relation* target);
@@ -167,10 +167,10 @@ extern int print_object_oriented_Mightability(object_Symbolic_Mightability_Maps_
 extern int store_OOM_before_task();
 extern int print_object_oriented_Mightability_for_object(object_Symbolic_Mightability_Maps_Relation* OOM, int obj_index);
 extern int print_object_oriented_Mightability_for_object_by_agent(object_Symbolic_Mightability_Maps_Relation* OOM, int obj_index, HRI_TASK_AGENT agent);
-extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, candidate_poins_for_task *resultant_candidate_point, char *object);
+
 extern int init_visibility_acceptance_for_tasks();
 extern int JIDO_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, traj_for_HRI_task &res_trajs);
-extern int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id);
+extern int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info);
 extern int show_traj_for_this_HRI_task(HRI_task_node &for_task,int show_traj);
 extern int show_desired_HRI_task_plan();
 extern int show_plan_for_this_sub_task(HRI_task_node &for_task, traj_for_HRI_sub_task &sub_task_traj, int sub_task_index, int show_traj);
@@ -184,5 +184,14 @@ extern int g3d_is_object_visible_from_robot(p3d_matrix4 camera_frame, double cam
 extern int init_manipulation_planner();
 extern int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_hand_name for_hand, int for_state);
 extern int get_human_head_relative_yaw_pitch_for(HRI_TASK_AGENT for_agent, point_co_ordi for_point, double &relative_yaw, double &relative_pitch);
+extern int find_MA_Agent_visibility(HRI_TASK_AGENT for_agent, char *obj_name, double &visibility_val);
+extern int JIDO_find_solution_to_take(char *obj_to_manipulate, HRI_TASK_TYPE task,  HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
+extern int find_human_give_candidate_points(HRI_TASK_AGENT performed_by);
+extern int get_robot_proactive_solution_info( HRI_task_desc curr_task, traj_for_HRI_task &res_traj);
+extern int show_hand_grasps_of_list(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList);
+extern int get_grasp_list_for_object(char *obj_to_manipulate, std::list<gpGrasp> &graspList);
+extern int show_all_how_to_placements_in_3D(point_co_ordi at_place, int use_random_colors, int skip, int semi_transparent, std::list<gpPlacement> *placement_config_list);
+extern int get_placements_in_3D(char *obj_to_manipulate,  std::list<gpPlacement> &placementListOut);
+extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE_ENUM curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object);
 #endif /* __CEXTRACT__ */
 

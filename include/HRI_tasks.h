@@ -15,6 +15,8 @@
 
 #include "Mightability_Analysis.h"
 ////#define SECOND_HUMAN_EXISTS
+extern void* (*XFORM_update_func)();
+extern int (*default_drawtraj_fct_ptr)(p3d_rob* robot, p3d_localpath* curLp);
 
 typedef enum HRI_TASK_TYPE_ENUM
 {
@@ -26,6 +28,7 @@ PUT_AWAY_OBJECT,
 HIDE_AWAY_OBJECT,
 MAKE_SPACE_FREE_OF_OBJECT_OBJ,
 PUT_INTO_OBJECT,
+REACH_TO_POINT,
 //NOTE: Don't forget to add any new task in init_HRI_task_name_ID_map() also
 //Add new tasks here before the last line
 
@@ -71,6 +74,7 @@ typedef struct world_state_configs
 
 typedef struct traj_for_HRI_sub_task
 {
+  HRI_TASK_AGENT traj_for_agent;
 int armID;
 HRI_SUB_TASK_TYPE sub_task_type;
 p3d_traj* traj;
