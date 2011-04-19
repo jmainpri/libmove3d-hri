@@ -54,7 +54,10 @@ HRI_AGENT* hri_assign_source_agent(char *agent_name, HRI_AGENTS *agents)
 HRI_AGENTS * hri_create_agents()
 {
   std::cout << "hri_create_agents" << std::endl;
-  
+
+  // set the drawing function of the libhri
+ ext_g3d_draw_hri_features = g3d_hri_main;
+
   int i, i_r=0, i_h=0;
   HRI_AGENTS * agents;
   HRI_AGENT * new_agent;
