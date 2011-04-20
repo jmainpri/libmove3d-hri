@@ -9,8 +9,7 @@ FOREACH (srcfile
 	hri_manip.cpp
 	hri_knowledge.cpp
 	hri_kinect.cpp
-        Agent_State_Analysis.cpp
-	)
+        )
 	LIST(APPEND HRI_SRC ${srcfile})
 ENDFOREACH(srcfile)
 
@@ -19,6 +18,7 @@ IF(USE_MIGHTABILITY_MAPS)
     LIST (APPEND HRI_SRC 
                  Mightability_Analysis.cpp 
 			     HRI_tasks.cpp
+		  Agent_State_Analysis.cpp
     )
   ADD_DEFINITIONS("-DUSE_MIGHTABILITY_MAPS")
 ENDIF(USE_MIGHTABILITY_MAPS)
