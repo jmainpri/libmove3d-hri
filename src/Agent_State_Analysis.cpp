@@ -37,9 +37,16 @@ agents_activity_facts Ag_Activity_Fact[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 int agents_for_ASA_initialized=0;
 
-int execute_Agent_State_Analysis_functions()
+// Internal functions
+static int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent);
+static int init_agent_state_analysis();
+static int init_enable_agents_for_facts();
+static int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
+static int init_thresholds_for_ASA();
+
+int hri_execute_Agent_State_Analysis_functions()
 {
-  printf(" Inside execute_Agent_State_Analysis_functions()\n");
+  printf(" Inside hri_execute_Agent_State_Analysis_functions()\n");
   if(agents_for_ASA_initialized==0)
   {
     get_indices_for_MA_agents();

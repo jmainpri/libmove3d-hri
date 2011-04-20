@@ -57,7 +57,7 @@ void g3d_hri_main()
 
 	  hri_draw_kinect_points();
 	  
-	  execute_Agent_State_Analysis_functions();
+	  hri_execute_Agent_State_Analysis_functions();
 //#endif
 }
 
