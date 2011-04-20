@@ -1,9 +1,8 @@
 #ifndef _AGENT_STATE_ANALYSIS_H
 #define _AGENT_STATE_ANALYSIS_H
 
-#include "Agent_State_Analysis_proto.h"
-#include "Mightability_Analysis.h"
-
+#include <vector>
+#include <P3d-pkg.h>
 
 extern int get_index_of_robot_by_name(char *rob_name);
 

@@ -9,18 +9,18 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-
 #include <list>
 #include <string>
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>
 
-
 #include <Util-pkg.h>
 #include <P3d-pkg.h>
 
 #include "Agent_State_Analysis.h"
+#include "Agent_State_Analysis_proto.h"
+#include "Mightability_Analysis.h"
 
 extern int indices_of_MA_agents[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern int get_indices_for_MA_agents();

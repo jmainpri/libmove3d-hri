@@ -1,3 +1,5 @@
+#ifndef _AGENT_STATE_ANALYSIS_PROTO_H
+#define _AGENT_STATE_ANALYSIS_PROTO_H
 
 #include "Agent_State_Analysis.h"
 #include "Mightability_Analysis.h"
@@ -8,3 +10,5 @@ extern int init_agent_state_analysis();
 extern int init_enable_agents_for_facts();
 extern int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
 extern int init_thresholds_for_ASA();
+
+#endif
