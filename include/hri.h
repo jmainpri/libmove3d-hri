@@ -109,6 +109,7 @@ extern struct SOLUTION_CONFIGS_FOR_HRP2 cur_gik_sol_configs;//It will store the 
 #include "HRP2_gik_proto.h"
 #endif
 
+#include "Agent_State_Analysis_proto.h"
 
 #ifdef UNIX
 #ifdef __cplusplus

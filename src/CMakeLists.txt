@@ -9,6 +9,7 @@ FOREACH (srcfile
 	hri_manip.cpp
 	hri_knowledge.cpp
 	hri_kinect.cpp
+        Agent_State_Analysis.cpp
 	)
 	LIST(APPEND HRI_SRC ${srcfile})
 ENDFOREACH(srcfile)

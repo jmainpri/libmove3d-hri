@@ -3819,6 +3819,8 @@ int init_accepted_states_of_agents_for_tasks()
 
 int get_indices_for_MA_agents()
 {
+  envPt_MM = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
+  printf(" Inside get_indices_for_MA_agents\n");
   for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
   {
     switch(i)

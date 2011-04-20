@@ -193,5 +193,7 @@ extern int get_grasp_list_for_object(char *obj_to_manipulate, std::list<gpGrasp>
 extern int show_all_how_to_placements_in_3D(point_co_ordi at_place, int use_random_colors, int skip, int semi_transparent, std::list<gpPlacement> *placement_config_list);
 extern int get_placements_in_3D(char *obj_to_manipulate,  std::list<gpPlacement> &placementListOut);
 extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE_ENUM curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object);
+extern int get_indices_for_MA_agents();
+
 #endif /* __CEXTRACT__ */
 
