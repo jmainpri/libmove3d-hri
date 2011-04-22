@@ -68,19 +68,26 @@ typedef enum agents_motion_status
 {
   AGENT_MOVING=0,
   AGENT_STATIC,
-  AGENT_HAS_MOVED,
+  AGENT_HAS_MOVED, 
+  AGENT_DID_NOT_MOVE,
   
-  AGENT_MOTION_STATUS_UNKNOWN
+  AGENT_MOTION_STATUS_UNKNOWN,//NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_MOTION_STATUS
   
 }agents_motion_status;
 
 typedef enum agents_head_status
 {
-  AGENT_HEAD_MOVING=0,
+  AGENT_HEAD_TURNING=0,
   AGENT_HEAD_STATIC,
-  AGENT_HEAD_HAS_MOVED,
+  AGENT_HEAD_HAS_TURNED,
+  AGENT_HEAD_DID_NOT_TURN,
   
-  AGENT_HEAD_STATUS_UNKNOWN
+  AGENT_HEAD_STATUS_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_HEAD_STATUS
+  
 }agents_head_status;
 
 
@@ -89,25 +96,34 @@ typedef enum agents_hand_status
   AGENT_HAND_MOVING=0,
   AGENT_HAND_STATIC,
   AGENT_HAND_HAS_MOVED,
+  AGENT_HAND_DID_NOT_MOVE,
   
-  AGENT_HAND_STATUS_UNKNOWN
+  AGENT_HAND_STATUS_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_HAND_STATUS
 }agents_hand_status;
 
-typedef enum agents_static_hand_mode
+typedef enum agents_hand_config_mode
 {
   AGENT_HAND_AT_REST_MODE=0,
   AGENT_HAND_AT_MANIPULATION_MODE, //due to the limited perception it would be difficult to distinguish between pointing, reaching to grasp, waiting to take etc.It would be better that based on the current context and task such facts would be computed at higher level
   
-  AGENT_HAND_STATIC_MODE_UNKNOWN
-}agents_static_hand_mode;
+  AGENT_HAND_CONFIG_MODE_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_HAND_CONFIG_MODE
+  
+}agents_hand_config_mode;
 
 typedef enum agents_torso_status
 {
-  AGENT_TORSO_MOVING=0,
+  AGENT_TORSO_TURNING=0,
   AGENT_TORSO_STATIC,
-  AGENT_TORSO_HAS_MOVED,
+  AGENT_TORSO_HAS_TURNED,
+  AGENT_TORSO_DID_NOT_TURN,
   
-  AGENT_TORSO_STATUS_UNKNOWN
+  AGENT_TORSO_STATUS_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_TORSO_STATUS
   
 }agents_torso_status;
 
@@ -125,8 +141,16 @@ typedef struct agents_joint_indices_for_ASA
  int head_roll;
  
  int R_hand_jnt;
+ int R_shoulder_x_jnt;
+ int R_shoulder_y_jnt;
+ int R_shoulder_z_jnt;
+ int R_elbow_jnt;
  
  int L_hand_jnt;
+ int L_shoulder_x_jnt;
+ int L_shoulder_y_jnt;
+ int L_shoulder_z_jnt;
+ int L_elbow_jnt;
   
 }agents_joint_indices_for_ASA;
 
@@ -161,6 +185,17 @@ typedef struct agents_Q_indices_for_ASA
  int L_hand_Q_pitch;
  int L_hand_Q_roll;
   */
+ 
+ int R_shoulder_x_Q;
+ int R_shoulder_y_Q;
+ int R_shoulder_z_Q;
+ int R_elbow_Q;
+ 
+ int L_shoulder_x_Q;
+ int L_shoulder_y_Q;
+ int L_shoulder_z_Q;
+ int L_elbow_Q;
+ 
 }agents_Q_indices_for_ASA;
 
 
@@ -178,15 +213,15 @@ typedef struct agents_activity_facts
 {
    
    int agent_index; //in env list
-   char agent_name[50];
+   ////char agent_name[50];
   
    agents_motion_status whole_body;
    agents_torso_status torso;
    agents_head_status head;
    agents_hand_status right_hand;
    agents_hand_status left_hand;
-   agents_static_hand_mode right_hand_mode;
-   agents_static_hand_mode left_hand_mode;
+   agents_hand_config_mode right_hand_mode;
+   agents_hand_config_mode left_hand_mode;
    
 }agents_activity_facts;
 
@@ -208,7 +243,7 @@ typedef struct agents_config_info_at_time
 
 typedef struct agents_prev_conf_info
 { 
-  agents_info_for_ASA *for_agent;
+  ////////agents_info_for_ASA *for_agent;
   std::vector <agents_config_info_at_time> agents_config_info;
   
 }agents_prev_conf_info;

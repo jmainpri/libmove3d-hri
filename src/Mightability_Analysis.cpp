@@ -3836,13 +3836,13 @@ int get_indices_for_MA_agents()
 #endif
 
       case HUMAN1_MA:
-	 indices_of_MA_agents[i]=get_index_of_robot_by_name("ACHILE_HUMAN1");
+	 indices_of_MA_agents[i]=get_index_of_robot_by_name("HUMAN1");
 	 indices_of_eye_joint_MA_agents[i]=p3d_get_robot_jnt_index_by_name(envPt_MM->robot[indices_of_MA_agents[i]], (char*) "Eyes");
       break;
 
 #ifdef HUMAN2_EXISTS_FOR_MA
       case HUMAN2_MA:
-	 indices_of_MA_agents[i]=get_index_of_robot_by_name("ACHILE_HUMAN2");
+	 indices_of_MA_agents[i]=get_index_of_robot_by_name("HUMAN2");
 	 indices_of_eye_joint_MA_agents[i]=p3d_get_robot_jnt_index_by_name(envPt_MM->robot[indices_of_MA_agents[i]], (char*) "Eyes");
       break;
 #endif
@@ -18040,7 +18040,8 @@ int get_index_of_robot_by_name(char *rob_name)
     {
        
 		////printf(" comparing %s and %s \n",envPt_MM->robot[i]->name,rob_name);
-      if (strcmp(envPt_MM->robot[i]->name,rob_name)==0)
+      ////////if (strcmp(envPt_MM->robot[i]->name,rob_name)==0)
+      if (strcasestr(envPt_MM->robot[i]->name,rob_name))
 	{
 	  return i;
 	}
