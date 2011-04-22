@@ -6,7 +6,7 @@
 
 extern int get_index_of_robot_by_name(char *rob_name);
 
-
+/*
 typedef struct Agent_State_Analysis_thresholds
 {
  double maxi_num_prev_states_to_store;
@@ -34,8 +34,38 @@ typedef struct Agent_State_Analysis_thresholds
  double min_period_for_agent_hand_is_not_moving;// in ms, will be used to calculate based on continuous not-change for this period
  
 }Agent_State_Analysis_thresholds;
+*/
 
-
+typedef enum Agent_State_Analysis_thresholds
+{
+  ASA_maxi_num_prev_states_to_store=0,
+ //// Following will be used for comparing two successive configurations
+ ASA_agents_whole_body_pos_tolerance,//in m, will be used for x,y,z
+ ASA_agents_whole_body_orient_tolerance,//in rad, will be used for yaw, pitch, roll
+ 
+ ASA_agents_torso_orient_tolerance,//in rad,will be used for yaw, pitch, roll
+ 
+ ASA_agents_head_orient_tolerance,//in rad, will be used for yaw, pitch, roll
+ 
+ ASA_agents_hand_pos_tolerance,//in m, will be used for x,y,z
+ 
+ // Following will be used for temporal reasoning 
+ ASA_min_period_for_agent_is_moving,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_is_not_moving,// in ms, will be used to calculate based on continuous not-change for this period
+ 
+ ASA_min_period_for_agent_is_turning,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
+ 
+ ASA_min_period_for_agent_head_is_turning,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_head_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
+ 
+ ASA_min_period_for_agent_hand_is_moving,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_hand_is_not_moving,// in ms, will be used to calculate based on continuous not-change for this period
+ //NOTE : Add any new threshold here, before the last element
+ 
+ 
+ MAXI_NUM_OF_THRESHOLDS_FOR_ASA
+}Agent_State_Analysis_thresholds;
 
 typedef struct agents_state_diff
 {
@@ -203,7 +233,8 @@ typedef struct agents_info_for_ASA
 {
   int agent_index;
   char agent_name[50]; 
-  Agent_State_Analysis_thresholds ASA_threshold;
+  ////Agent_State_Analysis_thresholds ASA_threshold[MAXI_NUM_OF_THRESHOLDS_FOR_ASA];
+  double ASA_threshold[MAXI_NUM_OF_THRESHOLDS_FOR_ASA];
   agents_joint_indices_for_ASA joint_indx;
   agents_Q_indices_for_ASA Q_indx;
   

@@ -54,7 +54,7 @@ static int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent);
 static int init_agent_state_analysis();
 static int init_enable_agents_for_facts();
 static int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
-static int init_thresholds_for_ASA();
+static int init_thresholds_for_ASA(char *file_name_with_path);
 static int init_all_agents_activity_facts();
 static int alloc_agents_tmp_config_for_ASA();
 static int create_agents_facts_name_maps();
@@ -62,13 +62,15 @@ static int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_
 
 int hri_execute_Agent_State_Analysis_functions()
 {
+  
   printf(" Inside hri_execute_Agent_State_Analysis_functions()\n");
   if(agents_for_ASA_initialized==0)
   {
+    char *threshold_file_path="/home/akpandey/Human_State_Analysis_Thresholds.txt";
     get_indices_for_MA_agents();
     init_enable_agents_for_facts();
     init_agent_state_analysis();
-    init_thresholds_for_ASA();
+    init_thresholds_for_ASA(threshold_file_path);
     init_all_agents_activity_facts();
     index_test_cube_ASA=get_index_of_robot_by_name("VISBALL_MIGHTABILITY");
      alloc_agents_tmp_config_for_ASA();
@@ -171,22 +173,44 @@ int init_all_agents_activity_facts()
   
 }
 
-int init_thresholds_for_ASA()
+FILE *Thr_FP; 
+int init_thresholds_for_ASA(char *file_name_with_path)
 {
+  char line[200];
+  char th_name[100];
+  double th_val;
+  char req_conversion_type[50];
+  int j=0;
   for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
   {
     switch(i)
     {
       case HUMAN1_MA:
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.maxi_num_prev_states_to_store=100;
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.agents_whole_body_pos_tolerance=0.01;//in m
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.agents_whole_body_orient_tolerance=DTOR(1);//rad
+	Thr_FP = fopen (file_name_with_path, "r"); 
+	for( j=0; j<MAXI_NUM_OF_THRESHOLDS_FOR_ASA; j++)
+	{
+	  if(fgets(line, 150, Thr_FP) != NULL)
+	  {
+	    sscanf (line, "%s %lf %s", &th_name, &th_val, &req_conversion_type);
+	    if(strcmp("DTOR", req_conversion_type)==0)
+	    {
+	      printf(" Got %s, conv type= %s \n",line, req_conversion_type);
+	      th_val=DTOR(th_val);
+	    }
+	    agents_for_ASA[HUMAN1_MA].ASA_threshold[j]=th_val;
+	    printf(" Setting %s = % lf\n", th_name, agents_for_ASA[HUMAN1_MA].ASA_threshold[j]);
+	  }
+	}
+	/*
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_maxi_num_prev_states_to_store]=100;
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_agents_whole_body_pos_tolerance]=0.01;//in m
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_agents_whole_body_orient_tolerance]=DTOR(1);//rad
 	
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.agents_torso_orient_tolerance=DTOR(1);//rad
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_agents_torso_orient_tolerance]=DTOR(1);//rad
 	
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.agents_head_orient_tolerance=DTOR(0.2);//rad
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_agents_head_orient_tolerance]=DTOR(0.2);//rad
 	
-	agents_for_ASA[HUMAN1_MA].ASA_threshold.agents_hand_pos_tolerance=0.005;//in m
+	agents_for_ASA[HUMAN1_MA].ASA_threshold[ASA_agents_hand_pos_tolerance]=0.005;//in m
 	
 	agents_for_ASA[HUMAN1_MA].ASA_threshold.min_period_for_agent_is_moving=1000;//in ms
 	agents_for_ASA[HUMAN1_MA].ASA_threshold.min_period_for_agent_is_not_moving=1000;//in ms
@@ -197,7 +221,7 @@ int init_thresholds_for_ASA()
 	agents_for_ASA[HUMAN1_MA].ASA_threshold.min_period_for_agent_hand_is_moving=1000;//in ms
 	agents_for_ASA[HUMAN1_MA].ASA_threshold.min_period_for_agent_hand_is_not_moving=1000;//in ms
 	
-	
+	*/
 	break;
       case JIDO_MA:
 	
@@ -555,7 +579,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     return 0;
   }
   
-  if(human1_prev_configs.agents_config_info.size()>=agents_for_ASA[for_agent].ASA_threshold.maxi_num_prev_states_to_store)
+  if(human1_prev_configs.agents_config_info.size()>=agents_for_ASA[for_agent].ASA_threshold[ASA_maxi_num_prev_states_to_store])
   {
     ////////printf(" Forgetting the oldest configuration of human \n");  
     agents_config_info_at_time prev_config=human1_prev_configs.agents_config_info.front();
@@ -594,7 +618,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     int Q_index_y=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_y;
     int Q_index_z=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_z;
     
-    curr_threshold=agents_for_ASA[for_agent].ASA_threshold.agents_whole_body_pos_tolerance;
+    curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_pos_tolerance];
     ////////printf(" curr_threshold for whole body moved = %lf\n",curr_threshold);
     
     
@@ -611,7 +635,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     Ag_Activity_Fact[for_agent].whole_body=AGENT_DID_NOT_MOVE;
   }
   
-  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_is_moving;
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_moving];
   
   if(curr_config.diff_prev_config.agent_has_moved==1)
   {
@@ -634,7 +658,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   else
   {
     curr_config.conti_diff_info.agent_has_moved_conti_for_period=0;
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_is_not_moving;
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_not_moving];
   
     if(prev_config.diff_prev_config.agent_has_moved==0)
     {
@@ -656,7 +680,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    int Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_pitch;
    int Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_roll;
    
-   curr_threshold=agents_for_ASA[for_agent].ASA_threshold.agents_whole_body_orient_tolerance;
+   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_orient_tolerance];
    
   curr_config.diff_prev_config.agent_torso_has_turned=0;
   Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_DID_NOT_TURN;
@@ -672,7 +696,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_pitch;
     Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
     
-    curr_threshold=agents_for_ASA[for_agent].ASA_threshold.agents_torso_orient_tolerance;
+    curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
    
     
   if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold||fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
@@ -683,7 +707,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   }
   
   
-  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_is_turning;
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_turning];
   
   if(curr_config.diff_prev_config.agent_torso_has_turned==1)
   {
@@ -708,7 +732,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   {
     curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=0;
     
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_is_not_turning;
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_not_turning];
     if(prev_config.diff_prev_config.agent_torso_has_turned==0)
     {
       curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
@@ -731,7 +755,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.head_Q_pitch;
    Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.head_Q_roll;
     
-   curr_threshold=agents_for_ASA[for_agent].ASA_threshold.agents_head_orient_tolerance;
+   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_head_orient_tolerance];
    
   
    ////printf(" Prev val of Head not turned continuously for period = %lf \n",prev_config.conti_diff_info.agent_head_has_not_turned_conti_for_period);
@@ -749,7 +773,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     ////printf(">>>>>>>> Human head has not turned \n");
   }
   
-   curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_head_is_turning;
+   curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_head_is_turning];
   if(curr_config.diff_prev_config.agent_head_has_turned==1)
   {
     curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=0;
@@ -775,7 +799,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   {
     curr_config.conti_diff_info.agent_head_has_turned_conti_for_period=0;
     
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_head_is_not_turning;
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_head_is_not_turning];
     
     if(prev_config.diff_prev_config.agent_head_has_turned==0)
     {
@@ -796,7 +820,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   }
    
   /////Now for the hand movement
-   curr_threshold=agents_for_ASA[for_agent].ASA_threshold.agents_hand_pos_tolerance;
+   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_hand_pos_tolerance];
    
   
   ////printf(" R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
@@ -813,7 +837,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     Ag_Activity_Fact[for_agent].right_hand=AGENT_HAND_DID_NOT_MOVE;
   }
   
-  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_hand_is_moving;
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_moving];
   
   if(curr_config.diff_prev_config.agent_R_hand_has_moved==1)
   {
@@ -836,7 +860,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   else
   {
     curr_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period=0;
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_hand_is_not_moving;
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_not_moving];
     if(prev_config.diff_prev_config.agent_R_hand_has_moved==0)
     {
       curr_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period=prev_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
@@ -871,7 +895,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
   }
   
-  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_hand_is_moving;
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_moving];
   
   if(curr_config.diff_prev_config.agent_L_hand_has_moved==1)
   {
@@ -894,7 +918,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   else
   {
     curr_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period=0;
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold.min_period_for_agent_hand_is_not_moving;
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_not_moving];
     if(prev_config.diff_prev_config.agent_L_hand_has_moved==0)
     {
       curr_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period=prev_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
