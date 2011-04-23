@@ -6,5 +6,5 @@ includedir=${prefix}/include
 Name: libhri
 Description: the LAAS Human-Robot Interaction libraries  
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lhri
+Libs: -Wl,-rpath,${libdir} -L${libdir} -lhri
 Cflags: -I${includedir}
