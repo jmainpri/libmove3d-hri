@@ -801,6 +801,8 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 		  ents->entities[e_i]->is_pl_state_transition_new = TRUE;
 		  ents->entities[e_i]->pl_state_transition = HRI_DISAPPEAR;
 		  printf("%s HAS DISAPPEAR\n",ents->entities[e_i]->name);  
+		  // Put all facts at unknown value
+		  hri_delete_all_facts_for_disappeared_entity(agents,ents,e_i);
 		  // put object in 0,0,0 if disappear. 	
 		  objectQ = MY_ALLOC(double, ents->entities[e_i]->robotPt->nb_dof); /* ALLOC */
 		  p3d_get_robot_config_into(ents->entities[e_i]->robotPt, &objectQ);
@@ -881,6 +883,103 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
   
   
 }
+
+
+// Function that put to unknown value every fact for disappeared entity
+// 
+
+int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIES * ents,int disappearedEntityIndex)
+{
+  int a_i, e_i, e_j, ge_j;
+  HRI_ENTITY * ent, ** present_ents;
+  int * present_ents_global_idxs;
+  int present_ents_nb;
+  HRI_AGENT * agent;
+  HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+ 
+
+  if(agents == NULL || ents == NULL) {
+    printf("Not Initialized\n");
+    return FALSE;
+  }
+
+     for(a_i=0; a_i<agents->all_agents_no; a_i++) {
+       agent = agents->all_agents[a_i];
+       
+       if(agent->is_present == FALSE)
+	 continue;
+       
+       kn_on_ent = &agent->knowledge->entities[disappearedEntityIndex];
+       //visibility
+       kn_on_ent->visibility =  HRI_UK_VIS;
+       kn_on_ent->visibility_ischanged = TRUE;
+       kn_on_ent->visibility_isexported = FALSE;	  
+
+       kn_on_ent->motion = HRI_UK_MOTION;
+       kn_on_ent->motion_ischanged = TRUE;
+       kn_on_ent->motion_isexported = FALSE;
+
+       kn_on_ent->is_looked_at = HRI_UK_V;
+       kn_on_ent->is_looked_at_ischanged = TRUE;
+       kn_on_ent->is_looked_at_isexported = FALSE;
+
+       kn_on_ent->is_pointed_at = HRI_UK_V;
+       kn_on_ent->is_pointed_at_ischanged = TRUE;
+       kn_on_ent->is_pointed_at_isexported = FALSE;
+
+       kn_on_ent->reachability = HRI_UK_REACHABILITY;
+       kn_on_ent->reachability_ischanged = TRUE;
+       kn_on_ent->reachability_isexported = FALSE;
+
+       kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
+       kn_on_ent->spatial_relation_ischanged = TRUE;
+       kn_on_ent->spatial_relation_isexported = FALSE;       
+
+       // PLACEMENT RELATION
+       // Pick entities that exist 
+       present_ents_nb = 0;
+       present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
+       present_ents_global_idxs = MY_ALLOC(int, ents->entities_nb); // ALLOC
+       for(e_i=0; e_i<ents->entities_nb; e_i++) {
+	 // If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of view
+	 // TODO: Or does it?
+	 if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
+	   if( agent == agents->all_agents[ents->entities[e_i]->agent_idx] )
+	     continue;
+	 }
+	 if(ents->entities[e_i]->is_present) {
+	   present_ents[present_ents_nb] = ents->entities[e_i];
+	   present_ents_global_idxs[present_ents_nb] = e_i;
+	   present_ents_nb++;
+	 }
+       }
+       // PLACEMENT RELATION
+       for(e_j=0; e_j<present_ents_nb; e_j++) {
+	 ge_j = present_ents_global_idxs[e_j];
+	 // do not compute placement relations that involve an agent or an agent part
+	 /* if( ((ent->type == HRI_AGENT_PART) || (ent->type == HRI_ISAGENT)) || !ent->can_disappear_and_move || ((ents->entities[ge_j]->type == HRI_AGENT_PART) || (ents->entities[ge_j]->type == HRI_ISAGENT)) ) { */
+	 /*   continue; */
+	 /* } */
+
+	 // We want to know wether objects are on furniture, on placemat or inside a container
+	 // Wa also want to know on which furnitures are placemat
+	 if( ((ents->entities[disappearedEntityIndex]->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ent->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
+	      
+	   if( e_j != disappearedEntityIndex) {
+	     kn_on_ent->is_placed[ge_j] = HRI_UK_PLR;
+	     kn_on_ent->placement_relation_ischanged[ge_j] = TRUE;
+	     kn_on_ent->placement_relation_isexported[ge_j] = FALSE;   
+	   }
+	 }
+       }
+       MY_FREE(present_ents, HRI_ENTITY*, ents->entities_nb); // FREE
+       MY_FREE(present_ents_global_idxs, int, ents->entities_nb); // FREE       
+     }
+}
+
+ 
+    
+
 
 
 // Function computing geometric facts between agents and objects

@@ -11,6 +11,7 @@ extern HRI_SPATIAL_RELATION hri_spatial_relation(p3d_rob * object, p3d_rob * rob
 extern HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent);
 extern void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES * ents,int robotMyselfIndex , int hasDisappearFilterLength);
 extern int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int robotMyselfIndex);
+extern int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIES * ents,int disappearedEntityIndex);
 extern int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * entities, HRI_AGENTS * agents);
 extern int hri_initialize_all_agents_knowledge(HRI_ENTITIES * entities, HRI_AGENTS * agents);
 extern void hri_display_agent_knowledge(HRI_AGENT * agent);
