@@ -873,6 +873,7 @@ static int image_compress = 100;
 
 int AKP_record_movie_frames()
 {
+  #if defined(WITH_XFORMS)
   char str[512];
   char file[64];
   int count;
@@ -889,6 +890,7 @@ int AKP_record_movie_frames()
   }
 
   return 1;
+  #endif
 }
 ////#endif
 
