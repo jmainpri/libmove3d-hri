@@ -85,6 +85,9 @@ INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 ##########################################
 ##       PKGCONFIG file                ###
 ##########################################
+IF(USE_MIGHTABILITY_MAPS)
+SET(LIBHRI_COMPILATION_FLAGS "-DUSE_MIGHTABILITY_MAPS")
+ENDIF()
 
 IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
     MESSAGE(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/libhri.pc")

@@ -2,9 +2,10 @@ prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
+Flags=@LIBHRI_COMPILATION_FLAGS@
 
 Name: libhri
 Description: the LAAS Human-Robot Interaction libraries  
 Version: @PACKAGE_VERSION@
-Libs: -Wl,-rpath,${libdir} -L${libdir} -lhri
-Cflags: -I${includedir}
+Libs: -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -L${libdir} -lhri
+Cflags: -I${includedir} ${Flags}
