@@ -57,6 +57,11 @@ HRI_ENTITIES * hri_create_entities()
 	entities->entities[ent_i]->visibility_percentage = 0.0;
         entities->entities[ent_i]->can_disappear_and_move = FALSE;
         entities->entities[ent_i]->disappeared = FALSE;
+        entities->entities[ent_i]->allow_disappear = TRUE;
+        entities->entities[ent_i]->hasInferrence = FALSE;
+	entities->entities[ent_i]->inferrenceType = HRI_NO_INFERRENCE;
+	strcpy(entities->entities[ent_i]->inferrenceObjectOrAgentPartName,"");
+	entities->entities[ent_i]->inferrenceValidity = HRI_NO_PROBABILITY;
 	entities->entities[ent_i]->last_ismoving_iter = 0;
 	entities->entities[ent_i]->filtered_motion = HRI_UK_MOTION;
 	entities->entities[ent_i]->is_pl_state_transition_new = FALSE;
@@ -653,6 +658,115 @@ HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent
 }
 
 
+int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity){
+  double vecX;
+  double vecY;
+  double vecZ;
+
+  //Compute vector between the two bounding box center.
+  if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
+    vecX += (firstEntity->partPt->BB.xmax + firstEntity->partPt->BB.xmin)/2;
+    vecY += (firstEntity->partPt->BB.ymax + firstEntity->partPt->BB.ymin)/2;
+    vecZ += (firstEntity->partPt->BB.zmax + firstEntity->partPt->BB.zmin)/2;
+  }
+  else {
+    vecX += (firstEntity->robotPt->BB.xmax + firstEntity->robotPt->BB.xmin)/2;
+    vecY += (firstEntity->robotPt->BB.ymax + firstEntity->robotPt->BB.ymin)/2;
+    vecZ += (firstEntity->robotPt->BB.zmax + firstEntity->robotPt->BB.zmin)/2;
+  }
+
+  if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
+    vecX -= (otherEntity->partPt->BB.xmax + otherEntity->partPt->BB.xmin)/2;
+    vecY -= (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
+    vecZ -= (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
+  }
+  else {
+    vecX -= (otherEntity->robotPt->BB.xmax + otherEntity->robotPt->BB.xmin)/2;
+    vecY -= (otherEntity->robotPt->BB.ymax + otherEntity->robotPt->BB.ymin)/2;
+    vecZ -= (otherEntity->robotPt->BB.zmax + otherEntity->robotPt->BB.zmin)/2;
+  }
+
+  //Apply this vector to x,y,z of object
+  firstEntity->robotPt->joints[1]->abs_pos[0][3] = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
+  firstEntity->robotPt->joints[1]->abs_pos[1][3] = firstEntity->robotPt->joints[1]->abs_pos[1][3] +vecY;
+  firstEntity->robotPt->joints[1]->abs_pos[2][3] = firstEntity->robotPt->joints[1]->abs_pos[2][3] +vecZ;   
+  return TRUE;
+}
+
+int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity,double xPerception,double yPerception,double zPerception){
+  double deltaX;
+  double deltaY;
+  double deltaZ;
+  double deltaMaxFirst;
+  double deltaMaxOther;
+  double deltaSum;
+  double xInferred;
+  double yInferred;
+  double zInferred;
+  double distPerceptInferrence;
+
+  //Compute deltator between the two bounding box center.
+  if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
+    deltaX = (firstEntity->partPt->BB.xmax - firstEntity->partPt->BB.xmin)/2;
+    deltaY = (firstEntity->partPt->BB.ymax - firstEntity->partPt->BB.ymin)/2;
+    deltaZ = (firstEntity->partPt->BB.zmax - firstEntity->partPt->BB.zmin)/2;
+  }
+  else {
+    deltaX = (firstEntity->robotPt->BB.xmax - firstEntity->robotPt->BB.xmin)/2;
+    deltaY = (firstEntity->robotPt->BB.ymax - firstEntity->robotPt->BB.ymin)/2;
+    deltaZ = (firstEntity->robotPt->BB.zmax - firstEntity->robotPt->BB.zmin)/2;
+  }
+
+  if(deltaX > deltaY)
+    deltaMaxFirst = deltaX;
+  else
+    deltaMaxFirst = deltaY;
+
+  if(deltaMaxFirst < deltaZ)
+    deltaMaxFirst = deltaZ;
+
+
+  if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
+    deltaX = (otherEntity->partPt->BB.xmax - otherEntity->partPt->BB.xmin)/2;
+    deltaY = (otherEntity->partPt->BB.ymax - otherEntity->partPt->BB.ymin)/2;
+    deltaZ = (otherEntity->partPt->BB.zmax - otherEntity->partPt->BB.zmin)/2;
+  }
+  else {
+    deltaX = (otherEntity->robotPt->BB.xmax - otherEntity->robotPt->BB.xmin)/2;
+    deltaY = (otherEntity->robotPt->BB.ymax - otherEntity->robotPt->BB.ymin)/2;
+    deltaZ = (otherEntity->robotPt->BB.zmax - otherEntity->robotPt->BB.zmin)/2;
+  }
+
+  if(deltaX > deltaY)
+    deltaMaxOther = deltaX;
+  else
+    deltaMaxOther = deltaY;
+
+  if(deltaMaxOther < deltaZ)
+    deltaMaxOther = deltaZ;
+
+  deltaSum =  deltaMaxFirst + deltaMaxOther;
+
+  //To be sure that x,y,z is the inferred value and not the last perceived value
+  hri_set_XYZ_of_entity_at_center_of_other_entity(firstEntity,otherEntity);
+  xInferred = firstEntity->robotPt->joints[1]->abs_pos[0][3]; 
+  yInferred = firstEntity->robotPt->joints[1]->abs_pos[1][3];
+  zInferred = firstEntity->robotPt->joints[1]->abs_pos[2][3];  
+  distPerceptInferrence = DISTANCE3D(xInferred, yInferred, zInferred, xPerception, yPerception, zPerception );
+  if(distPerceptInferrence < deltaSum/2)
+    firstEntity->inferrenceValidity = HRI_HIGHLY_PROBABLE;
+  else if(distPerceptInferrence < deltaSum)
+    firstEntity->inferrenceValidity = HRI_PROBABLE;
+  else if(distPerceptInferrence < deltaSum*2)
+    firstEntity->inferrenceValidity = HRI_AVERAGE;
+  else if(distPerceptInferrence < deltaSum*3)
+    firstEntity->inferrenceValidity = HRI_UNPROBABLE;
+  else
+    firstEntity->inferrenceValidity = HRI_HIGHLY_UNPROBABLE;
+  return TRUE;
+}
+
+
 void hri_display_entities(HRI_ENTITIES * ents)
 {
   int i;
@@ -773,58 +887,65 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 	  if(!ents->entities[e_i]->disappeared && ((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)) && (kn_on_ent->visibility == HRI_VISIBLE)){
 	    if(ents->isWorldStatic){
 
-	      // specific test for this entity to assess percentage visibility 
-	      // Todo : when to recompute it. Not all the time but often enough.
-	      if( ents->entities[e_i]->visibility_percentage == 0 ){
-		g3d_compute_visibility_in_fov_for_suspect_undetected_entity( ents, e_i, agent,agents);	    
-		printf("Disappear Management - Visibility percentage : %f for entity %s\n" ,ents->entities[e_i]->visibility_percentage , ents->entities[e_i]->name);
-	      }
+	      if(ents->entities[e_i]->allow_disappear){
+		// specific test for this entity to assess percentage visibility 
+		// Todo : when to recompute it. Not all the time but often enough.
+		if( ents->entities[e_i]->visibility_percentage == 0 ){
+		  g3d_compute_visibility_in_fov_for_suspect_undetected_entity( ents, e_i, agent,agents);	    
+		  printf("Disappear Management - Visibility percentage : %f for entity %s\n" ,ents->entities[e_i]->visibility_percentage , ents->entities[e_i]->name);
+		}
 
-	      // We will consider that the object should be detected above a certain threshold
-	      if( ents->entities[e_i]->visibility_percentage > visibility_percentage_threshold){
+		// We will consider that the object should be detected above a certain threshold
+		if( ents->entities[e_i]->visibility_percentage > visibility_percentage_threshold){
 	      
-		// iter on unexplained detection
-		if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter < hasDisappearFilterLength))
-		  ents->entities[e_i]->undetection_iter++;
-		//  reach maximum number of unexplained detection
-		else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter == hasDisappearFilterLength))
-		  ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_MAX;
-		//  initialize iteration on maximum unexplained detection
-		else if((ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_MAX)){
-		  ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_ITER;
-		  ents->entities[e_i]->undetection_iter = 0;
+		  // iter on unexplained detection
+		  if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter < hasDisappearFilterLength))
+		    ents->entities[e_i]->undetection_iter++;
+		  //  reach maximum number of unexplained detection
+		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter == hasDisappearFilterLength))
+		    ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_MAX;
+		  //  initialize iteration on maximum unexplained detection
+		  else if((ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_MAX)){
+		    ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_ITER;
+		    ents->entities[e_i]->undetection_iter = 0;
+		  }
+		  // Object has disappeared
+		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_MAX)){
+		    ents->entities[e_i]->disappeared = TRUE;
+		    ents->eventsInTheWorld = TRUE;
+		    ents->entities[e_i]->is_pl_state_transition_new = TRUE;
+		    ents->entities[e_i]->pl_state_transition = HRI_DISAPPEAR;
+		    printf("%s HAS DISAPPEAR\n",ents->entities[e_i]->name);  
+		    // Put all facts at unknown value
+		    hri_delete_all_facts_for_disappeared_entity(agents,ents,e_i);
+		    // put object in 0,0,0 if disappear. 
+		    // Do it in spark to update the Spark Poster.
+		    // objectQ = MY_ALLOC(double, ents->entities[e_i]->robotPt->nb_dof); /* ALLOC */
+		    // p3d_get_robot_config_into(ents->entities[e_i]->robotPt, &objectQ);
+		    // objectQ[6] = objectQ[7] = objectQ[8] = 0;      
+		    // p3d_set_and_update_this_robot_conf(ents->entities[e_i]->robotPt, objectQ);
+		    // MY_FREE(objectQ, double, ents->entities[e_i]->robotPt->nb_dof); /* FREE */
+		  }
+		  else
+		    printf("Unmanaged state for undetected objects in  hri_manage_object_disappearance_and_move function\n");
 		}
-		// Object has disappeared
-		else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_MAX)){
-		  ents->entities[e_i]->disappeared = TRUE;
-		  ents->eventsInTheWorld = TRUE;
-		  ents->entities[e_i]->is_pl_state_transition_new = TRUE;
-		  ents->entities[e_i]->pl_state_transition = HRI_DISAPPEAR;
-		  printf("%s HAS DISAPPEAR\n",ents->entities[e_i]->name);  
-		  // Put all facts at unknown value
-		  hri_delete_all_facts_for_disappeared_entity(agents,ents,e_i);
-		  // put object in 0,0,0 if disappear. 	
-		  objectQ = MY_ALLOC(double, ents->entities[e_i]->robotPt->nb_dof); /* ALLOC */
-		  p3d_get_robot_config_into(ents->entities[e_i]->robotPt, &objectQ);
-		  objectQ[6] = objectQ[7] = objectQ[8] = 0;      
-		  p3d_set_and_update_this_robot_conf(ents->entities[e_i]->robotPt, objectQ);
-		  MY_FREE(objectQ, double, ents->entities[e_i]->robotPt->nb_dof); /* FREE */
+		else {
+		  /** low percentage can explain undetection */	    
+		  if(!ents->entities[e_i]->disappeared)
+		    ents->entities[e_i]->undetection_status = HRI_EXPLAINED_UNDETECTION;
 		}
-		else
-		  printf("Unmanaged state for undetected objects in  hri_manage_object_disappearance_and_move function\n");
 	      }
 	      else {
-		/** low percentage can explain undetection */	    
-		if(!ents->entities[e_i]->disappeared)
-		  ents->entities[e_i]->undetection_status = HRI_EXPLAINED_UNDETECTION;
+		/// we inhibit disappearance		    
+		ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_ITER;
+		ents->entities[e_i]->undetection_iter = 0;
 	      }
-	    }
+	    }	    
 	    else {
 	      // World is not Static
 	      // need to update visibility precentage for this entity for next disappear management.
 	      ents->entities[e_i]->visibility_percentage = 0;
 	    }
-	    
 	  }
 	  else {
 	    if(!ents->entities[e_i]->disappeared)
