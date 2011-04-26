@@ -203,9 +203,9 @@ int show_obstacle_cells_belonging_to(int object_index);
 point_co_ordi point_to_put;
 int MM_RECORD_MOVIE_FRAMES=0;
 int AKP_RECORD_WINDOW_MOVEMENT=0;
-#if defined(WITH_XFORMS)
+////#if defined(WITH_XFORMS)
 int AKP_record_movie_frames();
-#endif
+////#endif
 point_co_ordi human1_curr_eye_pos; //To store the eye pos used in calculating the 3D grid visibility from the current head orientation
 
 ////Tmp for testing
@@ -270,6 +270,9 @@ extern std::list<gpGrasp> *CURRENT_CANDIDATE_GRASP_FOR_TASK;
 
 extern std::list<gpPlacement> *CURRENT_CANDIDATE_PLACEMENT_LIST;
 
+int SHOW_HOW_TO_PLACE_AT=0;
+int SHOW_GRASP_FOR_HOW_TO_PLACE_AT=0;
+
 //TODO Put into proto file
 int get_current_FOV_vertices(HRI_AGENT *agent, int camera_joint_index);
 int draw_current_FOV_vertices(); 
@@ -331,7 +334,9 @@ double maxi_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
 std::vector<int> rob_index_list;
 
 //================================
-
+int reach_effort_to_give=0;
+std::list<gpGrasp> grasps_for_object;
+	 gpHand_properties armHandProp;
 int execute_Mightability_Map_functions()
 {
    
@@ -357,21 +362,18 @@ int execute_Mightability_Map_functions()
       ////g3d_drawDisc(standing_human_eye_pos.x,standing_human_eye_pos.y,standing_human_eye_pos.z,.1,Green,NULL); 
       //follow_human_head_to_object(HUMAN2_MA, "YELLOW_BOTTLE");
       ////g3d_drawDisc(agent_eye_pos.x,agent_eye_pos.y,agent_eye_pos.z,.1,Green,NULL); 
-      ////find_human_give_candidate_points(HUMAN1_MA);
-      //////**** TO SHOW GRASP LIST *****/////
-      /*
-      static p3d_rob* hand=NULL;
-      hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
-      if(hand!=NULL)
-      {
-	init_manipulation_planner();
-	std::list<gpGrasp> grasps_for_object;
-        get_grasp_list_for_object("GREY_TAPE", grasps_for_object);
-	CURRENT_CANDIDATE_GRASP_FOR_TASK=&grasps_for_object;
-	show_hand_grasps_of_list(hand,p3d_get_robot_by_name("GREY_TAPE"),CURRENT_CANDIDATE_GRASP_FOR_TASK);
-      }
-      */
-      //////**** TO SHOW PLACEMENT CONFIGURATION LIST *****/////
+      
+     /* Showing and saving the different effort level of give
+     if(reach_effort_to_give<=5)
+     {
+      AKP_record_movie_frames();
+      find_human_give_candidate_points(HUMAN1_MA, reach_effort_to_give);
+      reach_effort_to_give++;
+      AKP_record_movie_frames();
+     }
+     */
+     
+     //////**** TO SHOW PLACEMENT CONFIGURATION LIST *****/////
       /*
       point_co_ordi curr_point_to_place;
       curr_point_to_place.x=4.0;
@@ -380,8 +382,82 @@ int execute_Mightability_Map_functions()
       std::list<gpPlacement> curr_placementList;
        get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
        CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
-       show_all_how_to_placements_in_3D(curr_point_to_place,1,10,0,CURRENT_CANDIDATE_PLACEMENT_LIST);
+       show_all_how_to_placements_in_3D(curr_point_to_place,0,10,0,CURRENT_CANDIDATE_PLACEMENT_LIST);
        */
+      //////**** TO SHOW GRASP LIST *****/////
+      
+//       static p3d_rob* hand=NULL;
+//       hand=p3d_get_robot_by_name("JIDO_GRIPPER");
+//       ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+//       if(hand!=NULL)
+//       {
+// 	gpHand_properties armHandProp;
+// 	armHandProp.initialize(GP_GRIPPER);
+// 
+// // 	init_manipulation_planner();
+// 	std::list<gpGrasp> grasps_for_object;
+// 	gpGet_grasp_list ( "GREY_TAPE", armHandProp.type, grasps_for_object );
+//         ////get_grasp_list_for_object("GREY_TAPE", grasps_for_object);
+// 	CURRENT_CANDIDATE_GRASP_FOR_TASK=&grasps_for_object;
+// 	show_hand_grasps_of_list(hand,p3d_get_robot_by_name("GREY_TAPE"),CURRENT_CANDIDATE_GRASP_FOR_TASK);
+//       }
+      
+      //////**** TO SHOW GRASP LIST of Human hand*****/////
+     /* static p3d_rob* hum_hand=NULL;
+      hum_hand=p3d_get_robot_by_name("SAHandRight2");
+      ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+      if(hum_hand!=NULL)
+      {
+	gpHand_properties armHandProp_human;
+	armHandProp_human.initialize(GP_SAHAND_RIGHT);
+
+// 	init_manipulation_planner();
+	std::list<gpGrasp> hum_grasps_for_object;
+	gpGet_grasp_list ( "GREY_TAPE", armHandProp_human.type, hum_grasps_for_object );
+        ////get_grasp_list_for_object("GREY_TAPE", grasps_for_object);
+	CURRENT_CANDIDATE_GRASP_FOR_TASK=&hum_grasps_for_object;
+	show_hand_grasps_of_list(hum_hand,p3d_get_robot_by_name("GREY_TAPE"),CURRENT_CANDIDATE_GRASP_FOR_TASK);
+      }
+     */
+      if(CANDIDATE_POINTS_FOR_TASK_FOUND==1)
+      {
+       
+	////gpHand_properties armHandProp;
+	////armHandProp.initialize(GP_GRIPPER);
+	if(SHOW_HOW_TO_PLACE_AT==1)
+	{
+        std::list<gpPlacement> curr_placementList;
+         get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
+       CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+	
+         ////AKP_record_movie_frames();
+	 show_all_how_to_placements_in_3D(CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0],0,10,0,CURRENT_CANDIDATE_PLACEMENT_LIST);
+	}
+	 ////AKP_record_movie_frames();
+	////show_all_grasps_for_this_placement_list_at_place(hand, p3d_get_robot_by_name("GREY_TAPE"),  &grasps_for_object, CURRENT_CANDIDATE_PLACEMENT_LIST, CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0]);
+	 //gpPlacement cur_plac=CURRENT_CANDIDATE_PLACEMENT_LIST->front();
+	 
+      ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+      
+	if(SHOW_GRASP_FOR_HOW_TO_PLACE_AT==1)
+	{
+	  
+	armHandProp.initialize(GP_GRIPPER);
+	p3d_rob *hand=p3d_get_robot_by_name("JIDO_GRIPPER");
+	if(hand!=NULL)
+       {
+	 grasps_for_object.clear();
+	gpGet_grasp_list ( "GREY_TAPE", armHandProp.type, grasps_for_object );
+	if(grasps_for_object.size()>0)
+	{
+	  printf(" Calling show all %d grasps \n",grasps_for_object.size());
+	 show_all_grasps_for_this_placement_at_place(hand, p3d_get_robot_by_name("GREY_TAPE"),  &grasps_for_object, CURRENT_CANDIDATE_PLACEMENT_LIST->front(), CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0]);
+	}
+	}
+	 /////AKP_record_movie_frames();
+       }
+      }
+	
       ////return 1;
      
 
@@ -393,7 +469,7 @@ int execute_Mightability_Map_functions()
       ////store_OOM_before_task();
       ////return 1;
       
-      ////MM_RECORD_MOVIE_FRAMES=1;
+      ////MM_RECORD_MOVIE_FRAMES=0;
       // printf(" Inside Affordances_Found==1\n");
       if(UPDATE_MIGHTABILITY_MAP_INFO==1)
 	{
@@ -487,7 +563,7 @@ int execute_Mightability_Map_functions()
 	g3d_drawDisc(hum_R_shoulder_pos[0], hum_R_shoulder_pos[1], hum_R_shoulder_pos[2], 0.05, 4, NULL);
       */ 
       ////g3d_drawDisc(point_to_look[0], point_to_look[1], point_to_look[2], 0.1, 4, NULL);
-#if defined(WITH_XFORMS)
+////#if defined(WITH_XFORMS)
       if(MM_RECORD_MOVIE_FRAMES==1)
 	{
 	  AKP_record_movie_frames();
@@ -496,7 +572,7 @@ int execute_Mightability_Map_functions()
 	{
 	  AKP_record_movie_frames();
 	}
-#endif
+////#endif
     }
    
     
@@ -508,6 +584,7 @@ int execute_Mightability_Map_functions()
 	{
 	  ////show_current_task_candidate_points(SHOW_WEIGHT_BY_COLOR_FOR_CANDIDATE_POINTS, SHOW_WEIGHT_BY_LENGTH_FOR_CANDIDATE_POINTS);
 	  show_candidate_points_for_current_task(SHOW_WEIGHT_BY_COLOR_FOR_CANDIDATE_POINTS, SHOW_WEIGHT_BY_LENGTH_FOR_CANDIDATE_POINTS);
+	  
 	}
 
       //Tmp for test
@@ -787,12 +864,13 @@ int get_current_FOV_vertices(HRI_AGENT *agent, int camera_joint_index)
     }
 }
 
+////#if defined(WITH_XFORMS)
 static int movie_count = 0;
 /* static int movie_count_real = 0; */
 static int image_rate = 1;
 static int image_compress = 100;
 
-#if defined(WITH_XFORMS)
+
 int AKP_record_movie_frames()
 {
   char str[512];
@@ -812,7 +890,7 @@ int AKP_record_movie_frames()
 
   return 1;
 }
-#endif
+////#endif
 
 int move_object_on_a_path()
 {
@@ -20859,13 +20937,17 @@ int find_MA_Agent_visibility(HRI_TASK_AGENT for_agent, char *obj_name, double &v
    return 1;
 }
 
-int find_human_give_candidate_points(HRI_TASK_AGENT performed_by)//Based on mightabilities of human only
+
+int find_human_give_candidate_points(HRI_TASK_AGENT performed_by, int cur_reach_state)//Based on mightabilities of human only
 {
   double radius=grid_around_HRP2.GRID_SET->pace/3.0;
   int need_placement_on_plane=0;
   int x,y,z;
   double cell_x_world, cell_y_world, cell_z_world;
   
+	     
+   ////for(;cur_reach_state<=maxi_reach_state;cur_reach_state++)
+   {
    for(x=0;x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;x++)
     {
       y=0;
@@ -20876,7 +20958,6 @@ int find_human_give_candidate_points(HRI_TASK_AGENT performed_by)//Based on migh
 	    {
              if(need_placement_on_plane==1&& grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_map_cell_obj_info.is_horizontal_surface!=1)
 	     {
-	      
 	       continue;
 	     }
 	     cell_x_world = grid_around_HRP2.GRID_SET->realx + (x * grid_around_HRP2.GRID_SET->pace);
@@ -20897,24 +20978,27 @@ int find_human_give_candidate_points(HRI_TASK_AGENT performed_by)//Based on migh
 		    {
 		    if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[test_for_agent][0]==1||grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[test_for_agent][1]==1||grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[test_for_agent][2]==1)
 		     {
-		       if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][0][0]==1&&grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][0][1]==1)
+		     
+		       if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][cur_reach_state][0]==1&&grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][cur_reach_state][1]==1)
 		       {
 			 g3d_drawDisc(cell_x_world,cell_y_world,cell_z_world+0.02,radius,Yellow,NULL);
 		       }
 		       else
 		       {
-			  if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][0][0]==1)
+			if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][cur_reach_state][0]==1)
 		        {
 			 g3d_drawDisc(cell_x_world,cell_y_world,cell_z_world+0.02,radius,Green,NULL);
 		        }
 		        else
 			{
-			  if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][0][1]==1)
+			  if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][cur_reach_state][1]==1)
 		         {
 			 g3d_drawDisc(cell_x_world,cell_y_world,cell_z_world+0.02,radius,Red,NULL);
 		         }
 			}
 		       }
+		       
+		     
 		     }
  
 		    }
@@ -20923,7 +21007,12 @@ int find_human_give_candidate_points(HRI_TASK_AGENT performed_by)//Based on migh
 	       }
 	    }
 	}
-    }
+      }
+      //printf(" calling Draw for cur_reach_state= %d\n",cur_reach_state);
+      //g3d_draw_allwin_active();
+      //printf(" Calling recordfor cur_reach_state= %d\n",cur_reach_state);
+      //AKP_record_movie_frames();
+     }//end for (i)
 		   
 }
 
@@ -21044,6 +21133,149 @@ MY_FREE(actual_config, double, ACBTSET->robot->nb_dof);
 }
 */
 
+int show_all_grasps_for_this_placement_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, gpPlacement placement, point_co_ordi at_point)
+{
+  
+	point_co_ordi goal_pos;
+     ////for ( int i1=0;i1<CANDIDATE_POINTS_FOR_CURRENT_TASK->no_points;i1++ )
+                     ////{
+                        ////printf ( "checking for place %d and grasp id= %d\n",i1, igrasp->ID );
+                        goal_pos.x=at_point.x;
+                        goal_pos.y=at_point.y;
+                        goal_pos.z=at_point.z;
+
+					 printf(" Inside show_all_grasps_for_this_placement_at_place \n");
+  if(graspList==NULL)
+  {
+    
+    return 0;
+  }
+    printf(" with grasp list size= %d\n",graspList->size());
+int ctr= 0;
+p3d_rob *cur_robot= envPt_MM->cur_robot;
+G3D_Window *win;
+win= g3d_get_cur_win();
+
+envPt_MM->cur_robot= hand;
+
+configPt actual_config=MY_ALLOC(double,hand->nb_dof); /* Allocation of temporary robot configuration */
+
+p3d_get_robot_config_into(hand,&actual_config);
+
+glPushAttrib(GL_ENABLE_BIT);
+glEnable(GL_LIGHTING);
+
+                      int plac_ctr=0 ;
+                       //// for ( std::list<gpPlacement>::iterator iplacement=placement_list->begin(); iplacement!=placement_list->end(); ++iplacement )
+                        {
+			  
+                           placement.position[0]= goal_pos.x;
+                           placement.position[1]= goal_pos.y;
+                           placement.position[2]= goal_pos.z;
+
+			
+                           p3d_matrix4 Tplacement;
+                           placement.computePoseMatrix ( Tplacement );
+                           p3d_set_freeflyer_pose ( object, Tplacement );
+	
+ctr=0;
+
+for(std::list<gpGrasp>::iterator iter= graspList->begin();iter!=graspList->end(); ++iter)
+{
+////printf(" showing %d th grasp \n",ctr);
+ctr++;
+
+                           if(ctr%2!=0)
+			   {
+			     continue;
+			   }
+
+gpSet_robot_hand_grasp_configuration(hand, object, *iter);
+
+win->vs.transparency_mode= G3D_TRANSPARENT_AND_OPAQUE;
+g3d_draw_robot(hand->num, win);
+
+//return 0;
+}
+			}
+}
+
+int show_all_grasps_for_this_placement_list_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, std::list<gpPlacement> *placement_list, point_co_ordi at_point)
+{
+  
+	point_co_ordi goal_pos;
+     ////for ( int i1=0;i1<CANDIDATE_POINTS_FOR_CURRENT_TASK->no_points;i1++ )
+                     ////{
+                        ////printf ( "checking for place %d and grasp id= %d\n",i1, igrasp->ID );
+                        goal_pos.x=at_point.x;
+                        goal_pos.y=at_point.y;
+                        goal_pos.z=at_point.z;
+
+					 printf(" Inside show_all_grasps_for_this_placement_list_at_place \n");
+  if(graspList==NULL)
+  {
+    
+    return 0;
+  }
+    printf(" with grasp list size= %d\n",graspList->size());
+int ctr= 0;
+p3d_rob *cur_robot= envPt_MM->cur_robot;
+G3D_Window *win;
+win= g3d_get_cur_win();
+
+envPt_MM->cur_robot= hand;
+
+configPt actual_config=MY_ALLOC(double,hand->nb_dof); /* Allocation of temporary robot configuration */
+
+p3d_get_robot_config_into(hand,&actual_config);
+
+glPushAttrib(GL_ENABLE_BIT);
+glEnable(GL_LIGHTING);
+
+                      int plac_ctr=0 ;
+                        for ( std::list<gpPlacement>::iterator iplacement=placement_list->begin(); iplacement!=placement_list->end(); ++iplacement )
+                        {
+			  plac_ctr++;
+                           if(plac_ctr%10!=0)
+			   {
+			     continue;
+			   }
+                           iplacement->position[0]= goal_pos.x;
+                           iplacement->position[1]= goal_pos.y;
+                           iplacement->position[2]= goal_pos.z;
+
+			
+                           p3d_matrix4 Tplacement;
+                           iplacement->computePoseMatrix ( Tplacement );
+                           p3d_set_freeflyer_pose ( object, Tplacement );
+	
+ctr=0;
+
+for(std::list<gpGrasp>::iterator iter= graspList->begin();iter!=graspList->end(); ++iter)
+{
+////printf(" showing %d th grasp \n",ctr);
+ctr++;
+
+                           if(ctr%10!=0)
+			   {
+			     continue;
+			   }
+
+gpSet_robot_hand_grasp_configuration(hand, object, *iter);
+
+win->vs.transparency_mode= G3D_TRANSPARENT_AND_OPAQUE;
+g3d_draw_robot(hand->num, win);
+
+//return 0;
+}
+			}
+glPopAttrib();
+
+p3d_set_and_update_this_robot_conf ( hand, actual_config );
+
+MY_FREE(actual_config, double, hand->nb_dof);
+envPt_MM->cur_robot= cur_robot;
+}
 
 int show_hand_grasps_of_list(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList)
 {
@@ -21070,7 +21302,7 @@ glEnable(GL_LIGHTING);
 
 for(std::list<gpGrasp>::iterator iter= graspList->begin();iter!=graspList->end(); ++iter)
 {
-printf(" showing %d th grasp \n",ctr);
+////printf(" showing %d th grasp \n",ctr);
 ctr++;
 
 gpSet_robot_hand_grasp_configuration(hand, object, *iter);
