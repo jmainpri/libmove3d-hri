@@ -39,6 +39,7 @@ HRI_ENTITIES * hri_create_entities()
   entities->lastEventsInTheWorldStep = 4; //TODO use a constant
   entities->isWorldStatic = TRUE;
   entities->needSituationAssessmentUpdate = FALSE;
+  entities->generalAllowDissappear = TRUE;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -887,7 +888,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 	  if(!ents->entities[e_i]->disappeared && ((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)) && (kn_on_ent->visibility == HRI_VISIBLE)){
 	    if(ents->isWorldStatic){
 
-	      if(ents->entities[e_i]->allow_disappear){
+	      if(ents->generalAllowDissappear && ents->entities[e_i]->allow_disappear){
 		// specific test for this entity to assess percentage visibility 
 		// Todo : when to recompute it. Not all the time but often enough.
 		if( ents->entities[e_i]->visibility_percentage == 0 ){

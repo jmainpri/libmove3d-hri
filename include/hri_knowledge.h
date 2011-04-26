@@ -105,6 +105,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   int lastEventsInTheWorldStep;
   int isWorldStatic;
   int needSituationAssessmentUpdate;
+  int generalAllowDissappear; /// flag to allow or forbid disappear management
 } HRI_ENTITIES;
 
 typedef enum ENUM_HRI_VISIBILITY {
