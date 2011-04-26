@@ -648,7 +648,7 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
 
     case HRI_PR2:
       manip->type = TWO_ARMED;
-      *tasklist_no = 5;
+      *tasklist_no = 7;
       *tasklist = MY_ALLOC(GIK_TASK, *tasklist_no);
 
       (*tasklist)[0].type = GIK_LOOK;
@@ -657,19 +657,7 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
       (*tasklist)[0].default_joints[2] = 27;
       (*tasklist)[0].active_joint = 27; /* active joint */
       (*tasklist)[0].default_joints_no = 3;
-
-      (*tasklist)[1].type = GIK_RAPOINT;
-      (*tasklist)[1].default_joints[0] = 15;
-      (*tasklist)[1].default_joints[1] = 16;
-      (*tasklist)[1].default_joints[2] = 17;
-      (*tasklist)[1].default_joints[3] = 18;
-      (*tasklist)[1].default_joints[4] = 19;
-      (*tasklist)[1].default_joints[5] = 20;
-      (*tasklist)[1].default_joints[6] = 21;
-      (*tasklist)[1].default_joints[7] = 29;
-      (*tasklist)[1].active_joint = 29; /* active joint */
-      (*tasklist)[1].default_joints_no = 8;
-
+      
       (*tasklist)[2].type = GIK_LAPOINT;
       (*tasklist)[2].default_joints[0] = 5;
       (*tasklist)[2].default_joints[1] = 6;
@@ -679,8 +667,43 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
       (*tasklist)[2].default_joints[5] = 10;
       (*tasklist)[2].default_joints[6] = 11;
       (*tasklist)[2].default_joints[7] = 28;
-      (*tasklist)[2].active_joint = 28; /* active joint */
+      (*tasklist)[2].active_joint = 27; /* active joint */
       (*tasklist)[2].default_joints_no = 8;
+      
+      (*tasklist)[1].type = GIK_RAPOINT;
+      (*tasklist)[1].default_joints[0] = 15;
+      (*tasklist)[1].default_joints[1] = 16;
+      (*tasklist)[1].default_joints[2] = 17;
+      (*tasklist)[1].default_joints[3] = 18;
+      (*tasklist)[1].default_joints[4] = 19;
+      (*tasklist)[1].default_joints[5] = 20;
+      (*tasklist)[1].default_joints[6] = 21;
+      (*tasklist)[1].default_joints[7] = 29;
+      (*tasklist)[1].active_joint = 28; /* active joint */
+      (*tasklist)[1].default_joints_no = 8;
+      
+      (*tasklist)[0].type = GIK_RATREACH;
+      (*tasklist)[0].default_joints[0] = 6;
+      (*tasklist)[0].default_joints[1] = 7;
+      (*tasklist)[0].default_joints[2] = 8;
+      (*tasklist)[0].default_joints[3] = 9;
+      (*tasklist)[0].default_joints[4] = 10;
+      (*tasklist)[0].default_joints[5] = 11;
+      (*tasklist)[0].default_joints[6] = 12;
+      (*tasklist)[0].active_joint = p3d_get_robot_jnt_index_by_name(agent->robotPt, (char*) "lPalm"); /* active joint */
+      (*tasklist)[0].default_joints_no = 7;
+      
+      (*tasklist)[1].type = GIK_LATREACH;
+      (*tasklist)[1].default_joints[0] = 16;
+      (*tasklist)[1].default_joints[1] = 17;
+      (*tasklist)[1].default_joints[2] = 18;
+      (*tasklist)[1].default_joints[3] = 19;
+      (*tasklist)[1].default_joints[4] = 20;
+      (*tasklist)[1].default_joints[5] = 21;
+      (*tasklist)[1].default_joints[6] = 22;
+      (*tasklist)[1].active_joint = p3d_get_robot_jnt_index_by_name(agent->robotPt, (char*) "rPalm"); /* active joint */
+      (*tasklist)[1].default_joints_no = 7;
+
 
       (*tasklist)[3].type = GIK_RAREACH;
       (*tasklist)[3].default_joints[0] = 15;
@@ -1524,6 +1547,9 @@ HRI_AGENT* hri_get_one_agent_of_type(HRI_AGENTS * agents, HRI_AGENT_TYPE agentTy
 {
   for(int i=0; i<agents->all_agents_no; i++) 
   {
+//    std::cout << "agent[" << i << "]->robotPt->name = " << agents->all_agents[i]->robotPt->name << std::endl;
+//    std::cout << agentType << std::endl;
+//    std::cout << agents->all_agents[i]->type << std::endl;
     if( agentType == agents->all_agents[i]->type ) 
     {
       return agents->all_agents[i];
