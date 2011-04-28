@@ -39,7 +39,8 @@ HRI_ENTITIES * hri_create_entities()
   entities->lastEventsInTheWorldStep = 4; //TODO use a constant
   entities->isWorldStatic = TRUE;
   entities->needSituationAssessmentUpdate = FALSE;
-  entities->generalAllowDissappear = TRUE;
+  entities->needLooksatUpdate = FALSE;
+  entities->general_allow_disappear = TRUE;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -663,34 +664,45 @@ int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI
   double vecX;
   double vecY;
   double vecZ;
+  double x1,x2,y1,y2,z1,z2;
 
   //Compute vector between the two bounding box center.
-  if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
-    vecX += (firstEntity->partPt->BB.xmax + firstEntity->partPt->BB.xmin)/2;
-    vecY += (firstEntity->partPt->BB.ymax + firstEntity->partPt->BB.ymin)/2;
-    vecZ += (firstEntity->partPt->BB.zmax + firstEntity->partPt->BB.zmin)/2;
+  if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
+    vecX += (otherEntity->partPt->BB.xmax + otherEntity->partPt->BB.xmin)/2;
+    vecY += (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
+    vecZ += (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
+    //p3d_get_BB_obj(otherEntity->partPt, &x1, &x2, &y1, &y2, &z1, &z2);
+    printf("objBB normal %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,otherEntity->partPt->BB.xmin,otherEntity->partPt->BB.xmax,otherEntity->partPt->BB.ymin,otherEntity->partPt->BB.ymax,otherEntity->partPt->BB.zmin,otherEntity->partPt->BB.zmax);
+    //printf("objBB get processing %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,x1,x2,y1,y2,z1,z2);
+
   }
   else {
-    vecX += (firstEntity->robotPt->BB.xmax + firstEntity->robotPt->BB.xmin)/2;
-    vecY += (firstEntity->robotPt->BB.ymax + firstEntity->robotPt->BB.ymin)/2;
-    vecZ += (firstEntity->robotPt->BB.zmax + firstEntity->robotPt->BB.zmin)/2;
+    vecX += (otherEntity->robotPt->BB.xmax + otherEntity->robotPt->BB.xmin)/2;
+    vecY += (otherEntity->robotPt->BB.ymax + otherEntity->robotPt->BB.ymin)/2;
+    vecZ += (otherEntity->robotPt->BB.zmax + otherEntity->robotPt->BB.zmin)/2;
   }
 
-  if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
-    vecX -= (otherEntity->partPt->BB.xmax + otherEntity->partPt->BB.xmin)/2;
-    vecY -= (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
-    vecZ -= (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
+  if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
+    vecX -= (firstEntity->partPt->BB.xmax + firstEntity->partPt->BB.xmin)/2;
+    vecY -= (firstEntity->partPt->BB.ymax + firstEntity->partPt->BB.ymin)/2;
+    vecZ -= (firstEntity->partPt->BB.zmax + firstEntity->partPt->BB.zmin)/2;
   }
   else {
-    vecX -= (otherEntity->robotPt->BB.xmax + otherEntity->robotPt->BB.xmin)/2;
-    vecY -= (otherEntity->robotPt->BB.ymax + otherEntity->robotPt->BB.ymin)/2;
-    vecZ -= (otherEntity->robotPt->BB.zmax + otherEntity->robotPt->BB.zmin)/2;
+    vecX -= (firstEntity->robotPt->BB.xmax + firstEntity->robotPt->BB.xmin)/2;
+    vecY -= (firstEntity->robotPt->BB.ymax + firstEntity->robotPt->BB.ymin)/2;
+    vecZ -= (firstEntity->robotPt->BB.zmax + firstEntity->robotPt->BB.zmin)/2;
   }
+
+  //printf("set_XYZ_of_entity_at_center_of_other_entity VecX : %f ; VecY : %f ; VecZ : %f .\n",vecX,vecY,vecZ);
 
   //Apply this vector to x,y,z of object
-  firstEntity->robotPt->joints[1]->abs_pos[0][3] = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
-  firstEntity->robotPt->joints[1]->abs_pos[1][3] = firstEntity->robotPt->joints[1]->abs_pos[1][3] +vecY;
-  firstEntity->robotPt->joints[1]->abs_pos[2][3] = firstEntity->robotPt->joints[1]->abs_pos[2][3] +vecZ;   
+  // firstEntity->robotPt->joints[1]->abs_pos[0][3] = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
+  // firstEntity->robotPt->joints[1]->abs_pos[1][3] = firstEntity->robotPt->joints[1]->abs_pos[1][3] + vecY;
+  // firstEntity->robotPt->joints[1]->abs_pos[2][3] = firstEntity->robotPt->joints[1]->abs_pos[2][3] + vecZ;   
+  firstEntity->infx = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
+  firstEntity->infy = firstEntity->robotPt->joints[1]->abs_pos[1][3] + vecY;
+  firstEntity->infz = firstEntity->robotPt->joints[1]->abs_pos[2][3] + vecZ;   
+
   return TRUE;
 }
 
@@ -706,7 +718,7 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
   double zInferred;
   double distPerceptInferrence;
 
-  //Compute deltator between the two bounding box center.
+  //Compute max BB middle width for object whose position is inferred
   if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
     deltaX = (firstEntity->partPt->BB.xmax - firstEntity->partPt->BB.xmin)/2;
     deltaY = (firstEntity->partPt->BB.ymax - firstEntity->partPt->BB.ymin)/2;
@@ -726,7 +738,7 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
   if(deltaMaxFirst < deltaZ)
     deltaMaxFirst = deltaZ;
 
-
+  //Compute max BB middle width for object or agent part that give the inferred position
   if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
     deltaX = (otherEntity->partPt->BB.xmax - otherEntity->partPt->BB.xmin)/2;
     deltaY = (otherEntity->partPt->BB.ymax - otherEntity->partPt->BB.ymin)/2;
@@ -750,9 +762,12 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
 
   //To be sure that x,y,z is the inferred value and not the last perceived value
   hri_set_XYZ_of_entity_at_center_of_other_entity(firstEntity,otherEntity);
-  xInferred = firstEntity->robotPt->joints[1]->abs_pos[0][3]; 
-  yInferred = firstEntity->robotPt->joints[1]->abs_pos[1][3];
-  zInferred = firstEntity->robotPt->joints[1]->abs_pos[2][3];  
+  // xInferred = firstEntity->robotPt->joints[1]->abs_pos[0][3]; 
+  // yInferred = firstEntity->robotPt->joints[1]->abs_pos[1][3];
+  // zInferred = firstEntity->robotPt->joints[1]->abs_pos[2][3];  
+  xInferred = firstEntity->infx; 
+  yInferred = firstEntity->infy;
+  zInferred = firstEntity->infz; 
   distPerceptInferrence = DISTANCE3D(xInferred, yInferred, zInferred, xPerception, yPerception, zPerception );
   if(distPerceptInferrence < deltaSum/2)
     firstEntity->inferrenceValidity = HRI_HIGHLY_PROBABLE;
@@ -888,7 +903,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 	  if(!ents->entities[e_i]->disappeared && ((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)) && (kn_on_ent->visibility == HRI_VISIBLE)){
 	    if(ents->isWorldStatic){
 
-	      if(ents->generalAllowDissappear && ents->entities[e_i]->allow_disappear){
+	      if(ents->general_allow_disappear && ents->entities[e_i]->allow_disappear){
 		// specific test for this entity to assess percentage visibility 
 		// Todo : when to recompute it. Not all the time but often enough.
 		if( ents->entities[e_i]->visibility_percentage == 0 ){
@@ -1128,7 +1143,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     return FALSE;
   }
 
-  if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) ){
+  if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate){
     vis_result = MY_ALLOC(HRI_VISIBILITY, ents->entities_nb); // ALLOC
     present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
     present_ents_global_idxs = MY_ALLOC(int, ents->entities_nb); // ALLOC
@@ -1218,8 +1233,10 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    
 	}
 
-	if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
+	// Update look at also only when head as moved
 
+	if((ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate ){
+	  
 	  // LOOKS AT / VISIBILITY PLACEMENT - FOV,FOA,OOF
 	  // TODO: visibility placement for robot parts	
 	  if(ent->disappeared)
@@ -1247,7 +1264,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    else
 	      kn_on_ent->is_looked_at = HRI_FALSE_V;
 	  }
+	}
 
+	if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
 	  // POINTS AT / POINTING PLACEMENT - FOV,FOA,OOF
 	  // TODO: visibility placement for robot parts	
 	  if(ent->disappeared)
@@ -1272,6 +1291,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    else
 	      kn_on_ent->is_pointed_at = HRI_FALSE_V;
 	  }
+	  
 
 	  // REACHABILITY - REACHABLE, UNREACHABLE, HARDLY REACHABLE
 	  // TODO: Fix this global variable use. It's ugly.     
@@ -1365,5 +1385,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
   if(ents->needSituationAssessmentUpdate && ents->isWorldStatic)
     ents->needSituationAssessmentUpdate = FALSE;
+  if(ents->needLooksatUpdate)
+    ents->needLooksatUpdate = FALSE;
+
   return counter;
 }

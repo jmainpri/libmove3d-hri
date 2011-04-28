@@ -46,21 +46,22 @@ typedef enum ENUM_HRI_PLACEMENT_STATE_TRANSITION {
 
 /** different type of inferences managed*/
 typedef enum ENUM_HRI_INFERRENCE_TYPE {
-  HRI_PRECISE_ROBOT_HAND = 0,
-  HRI_ROUGH_ROBOT_HAND = 1,
-  HRI_HUMAN_HAND =  2,
-  HRI_IS_IN = 3,
-  HRI_NO_INFERRENCE =  4
+  HRI_NO_INFERRENCE =  0,
+  HRI_PRECISE_ROBOT_HAND = 1,
+  HRI_ROUGH_ROBOT_HAND = 2,
+  HRI_HUMAN_HAND =  3,
+  HRI_IS_IN = 4
+
 } HRI_INFERRENCE_TYPE;
 
 /** different type of inferences managed*/
 typedef enum ENUM_HRI_INFERRENCE_VALIDITY {
-  HRI_HIGHLY_PROBABLE = 0,
-  HRI_PROBABLE = 1,
-  HRI_AVERAGE =  2,
-  HRI_UNPROBABLE = 3,
-  HRI_HIGHLY_UNPROBABLE =  4,
-  HRI_NO_PROBABILITY =  5
+  HRI_NO_PROBABILITY =  0,
+  HRI_HIGHLY_PROBABLE = 1,
+  HRI_PROBABLE = 2,
+  HRI_AVERAGE =  3,
+  HRI_UNPROBABLE = 4,
+  HRI_HIGHLY_UNPROBABLE =  5
 } HRI_INFERRENCE_VALIDITY;
 
 typedef struct STRUCT_HRI_ENTITY {
@@ -83,7 +84,8 @@ typedef struct STRUCT_HRI_ENTITY {
   int hasInferrence ; /* is this entity position inferred */
   HRI_INFERRENCE_TYPE inferrenceType; //what is the type of this infference
   char inferrenceObjectOrAgentPartName[64] ; //Agent, object name used to define this inference (in agent hand, inside object )
-  HRI_INFERRENCE_VALIDITY inferrenceValidity; //In case of perception inference conflicts what 
+  HRI_INFERRENCE_VALIDITY inferrenceValidity; //inferrence validity value in case of perception inference conflicts 
+  double infx,infy,infz; // x,y,z coordinate to save the inferred position candidate.
 
   int last_ismoving_iter; /* how many*/
   HRI_MOTION filtered_motion; /* */
@@ -105,7 +107,8 @@ typedef struct STRUCT_HRI_ENTITIES {
   int lastEventsInTheWorldStep;
   int isWorldStatic;
   int needSituationAssessmentUpdate;
-  int generalAllowDissappear; /// flag to allow or forbid disappear management
+  int needLooksatUpdate;
+  int general_allow_disappear; /// flag to allow or forbid disappear management
 } HRI_ENTITIES;
 
 typedef enum ENUM_HRI_VISIBILITY {
