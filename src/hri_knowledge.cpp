@@ -87,9 +87,10 @@ HRI_ENTITIES * hri_create_entities()
         ent_i++;
       }
 
+      /// We get the GHOST object part to have correct values for Bounding Boxes.
       for(j=0; j<env->robot[i]->no; j++) {
         objectrealname = strrchr(env->robot[i]->o[j]->name, '.')+1;
-        if(!strcasestr(objectrealname,"GHOST") &&
+        if(strcasestr(objectrealname,"GHOST") &&
            (strcasestr(objectrealname,"SURFACE") || strcasestr(objectrealname,"HAND") ||
             strcasestr(objectrealname,"HEAD")    || strcasestr(objectrealname,"CAMERA")) ) {
              entities->entities = MY_REALLOC(entities->entities, HRI_ENTITY*, ent_i, ent_i+1);
@@ -659,7 +660,7 @@ HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent
   return HRI_NO_RELATION;
 }
 
-
+/// This functions computes the inferred positions as the center of the bounding box of the other entity (object or agent parts)
 int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity){
   double vecX;
   double vecY;
@@ -672,7 +673,7 @@ int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI
     vecY += (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
     vecZ += (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
     //p3d_get_BB_obj(otherEntity->partPt, &x1, &x2, &y1, &y2, &z1, &z2);
-    printf("objBB normal %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,otherEntity->partPt->BB.xmin,otherEntity->partPt->BB.xmax,otherEntity->partPt->BB.ymin,otherEntity->partPt->BB.ymax,otherEntity->partPt->BB.zmin,otherEntity->partPt->BB.zmax);
+    //printf("objBB normal %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,otherEntity->partPt->BB.xmin,otherEntity->partPt->BB.xmax,otherEntity->partPt->BB.ymin,otherEntity->partPt->BB.ymax,otherEntity->partPt->BB.zmin,otherEntity->partPt->BB.zmax);
     //printf("objBB get processing %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,x1,x2,y1,y2,z1,z2);
 
   }
@@ -706,6 +707,7 @@ int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI
   return TRUE;
 }
 
+/// This function assess the probability of an ongoing inferrence on position for an object that is perceived.
 int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity,double xPerception,double yPerception,double zPerception){
   double deltaX;
   double deltaY;
