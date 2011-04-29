@@ -994,6 +994,8 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 	  //Static, Nothing to do
 	}
 	else if ((ents->entities[e_i]->last_ismoving_iter > 0 ) && (ents->entities[e_i]->filtered_motion == HRI_MOVING)){
+	  ///while moving we consider it as events in the world (world is not static ) but no placement state transition. 
+	  ents->eventsInTheWorld = TRUE;
 	  printf("%s IS MOVING\n",ents->entities[e_i]->name);  
 	}
 	else
@@ -1007,6 +1009,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
   }
   
   // Computing all Situation assessment after each event Appear, Start Moving, Stop Moving and disappear can be costly and delay reading the state of the world ( object, human, robot ) as these events can be quite often folowed shortly one by another. Heavy computations should be done only once the world is detected as "static". We wait four step without an event. This Four should be replaced by a constant.
+  // We also inhibit reprocessing while objects or agent parts are moving ( we consider it as eventsInTheWorld ) We have to check wether it is not too restrictive.
 
   if(ents->eventsInTheWorld){
     ents->lastEventsInTheWorldStep = 0;
