@@ -38,6 +38,7 @@ HRI_ENTITIES * hri_create_entities()
   entities->eventsInTheWorld = FALSE;
   entities->lastEventsInTheWorldStep = 4; //TODO use a constant
   entities->isWorldStatic = TRUE;
+  entities->forbidWorldStatic = FALSE; /* allow to forbid go back to isWorldStatic = TRUE to inhibit situation assessment processing */
   entities->needSituationAssessmentUpdate = FALSE;
   entities->needLooksatUpdate = FALSE;
   entities->general_allow_disappear = TRUE;
@@ -1018,7 +1019,8 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
   }
   else {
     if(ents->lastEventsInTheWorldStep == 4)
-      ents->isWorldStatic = TRUE;
+      if(!ents->forbidWorldStatic)
+	ents->isWorldStatic = TRUE;
     else
       ents->lastEventsInTheWorldStep ++;
   }

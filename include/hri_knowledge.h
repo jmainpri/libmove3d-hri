@@ -106,6 +106,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   int eventsInTheWorld;
   int lastEventsInTheWorldStep;
   int isWorldStatic;
+  int forbidWorldStatic;
   int needSituationAssessmentUpdate;
   int needLooksatUpdate;
   int general_allow_disappear; /// flag to allow or forbid disappear management
