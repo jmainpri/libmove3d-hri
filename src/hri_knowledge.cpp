@@ -1018,9 +1018,10 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
     ents->needSituationAssessmentUpdate = TRUE;
   }
   else {
-    if(ents->lastEventsInTheWorldStep == 4)
+    if(ents->lastEventsInTheWorldStep == 4){
       if(!ents->forbidWorldStatic)
 	ents->isWorldStatic = TRUE;
+    }
     else
       ents->lastEventsInTheWorldStep ++;
   }
