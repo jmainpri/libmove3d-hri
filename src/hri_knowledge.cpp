@@ -64,6 +64,7 @@ HRI_ENTITIES * hri_create_entities()
         entities->entities[ent_i]->hasInferrence = FALSE;
 	entities->entities[ent_i]->inferrenceType = HRI_NO_INFERRENCE;
 	strcpy(entities->entities[ent_i]->inferrenceObjectOrAgentPartName,"");
+	entities->entities[ent_i]->agentPartNum = 0;
 	entities->entities[ent_i]->inferrenceValidity = HRI_NO_PROBABILITY;
 	entities->entities[ent_i]->last_ismoving_iter = 0;
 	entities->entities[ent_i]->filtered_motion = HRI_UK_MOTION;

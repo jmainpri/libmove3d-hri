@@ -84,6 +84,7 @@ typedef struct STRUCT_HRI_ENTITY {
   int hasInferrence ; /* is this entity position inferred */
   HRI_INFERRENCE_TYPE inferrenceType; //what is the type of this infference
   char inferrenceObjectOrAgentPartName[64] ; //Agent, object name used to define this inference (in agent hand, inside object )
+  int agentPartNum;  // An agent can have several hands, or parts, this is the index of the part.
   HRI_INFERRENCE_VALIDITY inferrenceValidity; //inferrence validity value in case of perception inference conflicts 
   double infx,infy,infz; // x,y,z coordinate to save the inferred position candidate.
 
