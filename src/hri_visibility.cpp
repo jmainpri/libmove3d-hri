@@ -128,6 +128,8 @@ int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera
   return TRUE;
 }
 
+// g3d_compute_visibility_for_given_entities
+// g3d_compute_visibility_in_fov_for_given_entities
 //! This function return how much % of the object is visible from a given viewpoint.
 //! \param camera_frame the frame of the viewpoint (the looking direction is X, Y points downward and Z to the left)
 //! \param camera_fov the field of view angle of the robot's camera (in degrees)
@@ -136,6 +138,7 @@ int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera
 //! \return TRUE in case of success, FALSE otherwise
 int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame, double camera_fov, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue,double *results, int save)
 {
+  int succeeded = TRUE;
   GLint viewport[4];
   g3d_states st;
   g3d_win *win = g3d_get_win_by_name((char*) "Move3D");
@@ -146,7 +149,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   }
 
   if(objects_nb == 0) {
-    return TRUE;
+    return succeeded;
   }
 
   // Change the size of the viewport if you want speed
@@ -174,7 +177,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_set_projection_matrix(win->vs.projection_mode);
 
   // everything is ready now.
-  g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mwarnier/");
+  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mali/");
 
   // restore viewport
   if(!save){
@@ -185,7 +188,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_restore_win_camera(win->vs);
   g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
 
-  return TRUE;
+  return succeeded;
 }
 
 int g3d_is_object_visible_from_current_viewpoint(g3d_win* win, p3d_rob *object, double *result, int save, char *path)
@@ -310,6 +313,7 @@ int g3d_is_object_visible_from_current_viewpoint(g3d_win* win, p3d_rob *object, 
 
 int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * agent, HRI_VISIBILITY * res, int ent_nb)
 {
+  int succeeded = TRUE;
   double saved_pan_value, saved_tilt_value;
   configPt q;
   p3d_rob * robot;
@@ -388,8 +392,14 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
       }
             
       // TEST THEIR VISIBILITY
-      g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+      succeeded = g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
 							  entities_to_test, o_i, TRUE,results, save_images);
+
+      if( !succeeded ) 
+	{
+	  printf("Visbility failed for agent : %s\n", agent->robotPt->name );
+	  break;
+	}
       //printf("%d. Number of tested entities: %d\n", j+2, o_i);
 
       // EVALUATE AND WRITE THE RESULT
@@ -464,8 +474,11 @@ int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENT
   o_i++;
 
   // TEST THEIR VISIBILITY
-  g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
-						      entities_to_test, o_i, TRUE,results, save_images);
+  if (! g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+							    entities_to_test, o_i, TRUE,results, save_images) )
+    {
+      printf("Visbility failed for agent : %s\n", agent->robotPt->name );
+    }
 
   //printf("agent %s threshold %f\n",agent->robotPt->name,visible_pixel_treshold);
   // EVALUATE AND WRITE THE RESULT (except for agent itself)
@@ -497,7 +510,7 @@ int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * e
   double suspect_untedected_entity_real_visibility_score;
   /* double elevation, azimuth; */
   /* int vis_pl; */
-  int save_images = FALSE;
+  int save_images =FALSE;
 
 
   /// We add one element more in results and entities to test to include agent itself entity
@@ -676,8 +689,10 @@ int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_wi
 }
 
 /* Computes visibility in one image acquisition for given objects */
+/* Return FALSE if visbility computation has failed */
 int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue , double *vis_results, int save, char *path)
 {
+  int succeeded = TRUE;
   unsigned char *image;
   int i, width, height,pixel_value_to_array_index;
   GLint viewport[4];
@@ -689,7 +704,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   p3d_obj_display_mode _p3d_obj_display_mode;
 
   if(objects_nb == 0) {
-    return TRUE;
+    return succeeded;
   }
 
   visiblepixels = MY_ALLOC(int, objects_nb); //ALLOC
@@ -755,8 +770,11 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
       pixel_value_to_array_index = (int)((image[3*i])/10)-1; 
       if(pixel_value_to_array_index<objects_nb)
 	visiblepixels[pixel_value_to_array_index]++;
-      else
-	printf("Wrong image for visibility calculation in BackBuffer in g3d_get_given_entities_pixelpresence_in_current_viewpoint\n");
+      else {
+	printf("Wrong image for visibility calculation in BackBuffer ( view : %d ) \n", crntcnt );
+	succeeded = FALSE;
+	break;
+      }
     }
   }
 
@@ -780,7 +798,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
     p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
   }
 
-  return TRUE;
+  return succeeded;
 }
 
 
