@@ -11,11 +11,20 @@
 #include "hri.h"
 #include "P3d-pkg.h"
 
+using namespace std;
+
 //! human kinect information
+bool        m_debug_kinect = false;
 bool        m_data_exists = false;
 kinectData  m_humKin;
 p3d_rob*    m_human;
 p3d_matrix4 m_absPos;
+
+//! set the flag for debug
+void hri_set_debug_kinect(bool is_debug)
+{
+  m_debug_kinect = is_debug;
+}
 
 //! set the human position form the kinect information
 //! right arm 1,2,3
@@ -261,15 +270,28 @@ void hri_store_kinect_model( kinectData& data )
 //! 
 void hri_draw_kinect_points()
 {
-  if (!m_data_exists) {
+  if (!m_data_exists) 
+  {
     return;
   }
   
-/*   p3d_jnt* joint = p3d_get_robot_jnt_by_name(m_human, (char*) "rShoulderX"); */
-/*   g3d_draw_frame( joint->abs_pos , 0.5 ); */
-
 //  g3d_draw_frame( m_absPos , 0.5 );
-
+  
+  if(m_debug_kinect)
+  {
+    cout << "HEAD = " <<  m_humKin.HEAD.confidence << endl;
+    cout << "NECK = " << m_humKin.NECK.confidence << endl;
+    cout << "TORSO = " << m_humKin.TORSO.confidence << endl;
+    cout << "SHOULDER_RIGHT = " << m_humKin.SHOULDER_RIGHT.confidence << endl;
+    cout << "SHOULDER_LEFT = " << m_humKin.SHOULDER_LEFT.confidence << endl;
+    cout << "ELBOW_RIGHT = " << m_humKin.ELBOW_RIGHT.confidence << endl;
+    cout << "ELBOW_LEFT = " << m_humKin.ELBOW_LEFT.confidence << endl;
+    cout << "HAND_RIGHT = " << m_humKin.HAND_RIGHT.confidence << endl;
+    cout << "HAND_LEFT = " << m_humKin.HAND_LEFT.confidence << endl;
+    cout << "HIP_RIGHT = " << m_humKin.HIP_RIGHT.confidence << endl;
+    cout << "HIP_LEFT = " << m_humKin.HIP_LEFT.confidence << endl;
+  }
+                 
   double r = 0.03;
   g3d_drawSphere(m_humKin.HEAD.pos[0],m_humKin.HEAD.pos[1],m_humKin.HEAD.pos[2],r);
   g3d_drawSphere(m_humKin.NECK.pos[0],m_humKin.NECK.pos[1],m_humKin.NECK.pos[2],r);

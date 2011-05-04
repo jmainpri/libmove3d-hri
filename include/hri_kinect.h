@@ -15,7 +15,7 @@
 struct kinectJoint {
   p3d_vector3 pos;
   double      confidence;
-}
+};
 
 // Only HEAD, NECK, TORSO, 
 // SHOULDERS, ELBOW, 
@@ -52,6 +52,7 @@ struct kinectAgents
   kinectAgent humans[KINECT_MAX_NUM_HUMANS];
 };
 
+void hri_set_debug_kinect(bool is_debug);
 configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& data );
 void hri_store_kinect_model( kinectData& data );
 void hri_draw_kinect_points();
