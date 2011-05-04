@@ -177,7 +177,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_set_projection_matrix(win->vs.projection_mode);
 
   // everything is ready now.
-  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mali/");
+  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mwarnier/");
 
   // restore viewport
   if(!save){
@@ -330,6 +330,8 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
   int vis_pl;
   int save_images = FALSE;
 
+  // if(ents->printVisibilityImages)
+  //   save_images = TRUE;
   //TODO: Do not compute all visibility placements in each step
   //TODO: There should be a more intelligent way of dealing with the tilt angle
   //TODO: Here the fov of an agent is unchanged, since it has to move the head many times. If we can enlarge the fov it'll turn less -> less computation
@@ -440,6 +442,8 @@ int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENT
   int vis_pl;
   int save_images = FALSE;
 
+  // if(ents->printVisibilityImages)
+  //   save_images = TRUE;
   //TODO : manage better this : Ack to manage big differences in field of view.
   /* visible_pixel_treshold = visible_pixel_treshold_init*tan( DTOR(30))*tan(DTOR(30))/(tan(DTOR(visibility_processing_fov/2))*tan(DTOR(visibility_processing_fov/2))); */
 
@@ -510,9 +514,10 @@ int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * e
   double suspect_untedected_entity_real_visibility_score;
   /* double elevation, azimuth; */
   /* int vis_pl; */
-  int save_images =FALSE;
+  int save_images = FALSE;
 
-
+  // if(ents->printVisibilityImages)
+  //   save_images = TRUE;
   /// We add one element more in results and entities to test to include agent itself entity
   results = MY_ALLOC(double,ents->entities_nb ); // ALLOC
   entities_to_test = MY_ALLOC(HRI_ENTITY *,ents->entities_nb ); // ALLOC
@@ -692,7 +697,8 @@ int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_wi
 /* Return FALSE if visbility computation has failed */
 int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue , double *vis_results, int save, char *path)
 {
-  int succeeded = TRUE;
+  int succeeded = TRUE;  
+  int numWrongPixels =0;
   unsigned char *image;
   int i, width, height,pixel_value_to_array_index;
   GLint viewport[4];
@@ -771,9 +777,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
       if(pixel_value_to_array_index<objects_nb)
 	visiblepixels[pixel_value_to_array_index]++;
       else {
-	printf("Wrong image for visibility calculation in BackBuffer ( view : %d ) \n", crntcnt );
-	succeeded = FALSE;
-	break;
+	numWrongPixels ++;
       }
     }
   }
@@ -796,6 +800,11 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   }
   for(i=0; i<XYZ_ENV->nr; i++){
     p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
+  }
+
+  if(numWrongPixels > 0){
+    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of wrong pixels is %d \n", crntcnt , numWrongPixels );	
+    succeeded = FALSE;
   }
 
   return succeeded;
