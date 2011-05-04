@@ -3,6 +3,8 @@
 #include "Graphic-pkg.h"
 #include "hri.h"
 
+#include "move3d-gui.h"
+
 int HRI_DRAW_TRAJ;
 // Hri distance draw
 extern std::string hri_text_to_display;
@@ -11,7 +13,6 @@ extern std::vector<double> hri_disp_dist;
 
 void g3d_hri_main()
 {
-////#ifdef HRI_PLANNER
 	  //hri_hri_inter_point_test();
 	  g3d_hri_bt_draw_active_bitmaps(BTSET);
 	  g3d_hri_bt_draw_active_3dbitmaps(INTERPOINT);
@@ -57,9 +58,7 @@ void g3d_hri_main()
 	  }
 
 	  hri_draw_kinect_points();
-	  
-	  
-//#endif
+    hri_draw_kinect_state(G3D_WIN->vs, 0.33, 5, 0.33);
 }
 
 void g3d_hri_display_visible_objects(HRI_AGENT *agent)

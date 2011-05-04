@@ -351,3 +351,62 @@ void hri_draw_kinect_points()
   //               m_humKin.FOOT_LEFT[1],
   //               m_humKin.FOOT_LEFT[2],r);
 }
+
+//! Displays the Kinect State
+//! \param offsetX X position of the logo lower-left corner (from the image lower-left corner)
+//! \param offsetY Y position of the logo lower-left corner (from the image lower-left corner)
+//! \param widthRatio ratio of the logo width with respect of the OpenGL window width (e.g.: use 0.1 if you want the logo width to be 1/10 of the window width) 
+//! \return 0 in case of success, 1 otherwise
+const unsigned int LOGO_WIDTH = 10;
+const unsigned int LOGO_HEIGHT = 10;
+void hri_draw_kinect_state(g3d_states &vs, float offsetXRatio, float offsetY, float widthRatio )
+{
+  cout <<  "hri_draw_kinect_state" << endl;
+  
+  GLint viewport[4];
+  
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  int width  = viewport[2];
+  int height = viewport[3];
+  
+  float scale= widthRatio*width/( (float) LOGO_WIDTH);
+  float offsetX = offsetXRatio*width;
+  
+#ifdef USE_SHADERS
+  if(vs.enableShaders==TRUE)
+  { g3d_no_shader(); }
+#endif
+  
+  glPushAttrib(GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0, width, 0, height, -1, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity(); 
+  glEnable(GL_BLEND);
+  glDisable(GL_LIGHTING); 
+  glDisable(GL_DEPTH_TEST);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);	 
+  //glEnable(GL_TEXTURE_2D);
+  glColor4f(0.0, 1.0, 1.0, 1.0);
+  //glBindTexture(GL_TEXTURE_2D, vs.logoTexture);
+  //glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  glBegin (GL_QUADS);
+  glTexCoord2f(1.0f,1.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY);
+  glTexCoord2f(1.0f,0.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY + scale*LOGO_HEIGHT);
+  glTexCoord2f(0.0f,0.0f);  glVertex2f(offsetX, offsetY + scale*LOGO_HEIGHT);
+  glTexCoord2f(0.0f,1.0f);  glVertex2f(offsetX, offsetY);
+  glEnd(); 
+  
+  glPopMatrix(); 
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glPopAttrib();
+  
+#ifdef USE_SHADERS
+  if(vs.enableShaders==TRUE)
+  { g3d_use_shader(); }
+#endif
+}
