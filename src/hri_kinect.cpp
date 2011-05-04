@@ -15,7 +15,7 @@ using namespace std;
 
 //! human kinect information
 bool        m_debug_kinect = false;
-KinectState m_state = NO_TRACKING;
+kinectState m_state = KINECT_DISCONNECTED;
 bool        m_data_exists = false;
 kinectData  m_humKin;
 p3d_rob*    m_human;
@@ -28,26 +28,9 @@ void hri_set_debug_kinect(bool is_debug)
 }
 
 //! Sores the kinect state
-void hri_set_kinect_state(int kinectState)
+void hri_set_kinect_state(const kinectState& state)
 {
-  switch (kinectState) 
-  {
-    case 0: m_state = NO_TRACKING;
-      break;
-      
-    case 1: m_state = POSE_SEARCH;
-      break;
-      
-    case 2: m_state = CALIBRATE;
-      break;
-      
-    case 3: m_state = TRACKING;
-      break;
-      
-    default:
-      cout << "Error setting state" << endl;
-      break;
-  }
+  m_state = state;
 }
 
 //! set the human position form the kinect information
@@ -87,199 +70,221 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   int index_dof = joint->index_dof;
   
   configPt q = p3d_get_robot_config(robot);
+
+  p3d_vector3 pos;
+
+  if( data.TORSO.confidence > 0 && data.HIP_LEFT.confidence > 0 && data.HIP_RIGHT.confidence > 0 )
+    {
+      q[index_dof+0] = data.TORSO.pos[0];
+      q[index_dof+1] = data.TORSO.pos[1];
+      q[index_dof+2] = data.TORSO.pos[2] - 0.20 ; // Hack 1 meter
   
-  q[index_dof+0] = data.TORSO.pos[0];
-  q[index_dof+1] = data.TORSO.pos[1];
-  q[index_dof+2] = data.TORSO.pos[2] - 0.20 ; // Hack 1 meter
+      // calcul de l'orientation du pelvis
+      p3d_vector3 sum,midP;
+      p3d_vectAdd( data.HIP_LEFT.pos, data.HIP_RIGHT.pos , sum );
+      p3d_vectScale(  sum , midP , 0.5 );
   
-  // calcul de l'orientation du pelvis
-  p3d_vector3 sum,midP;
-  p3d_vectAdd( data.HIP_LEFT.pos, data.HIP_RIGHT.pos , sum );
-  p3d_vectScale(  sum , midP , 0.5 );
-  
-  q[index_dof+5] = atan2( data.HIP_LEFT.pos[1]-midP[1] , data.HIP_LEFT.pos[0]-midP[0]  );
-  q[index_dof+5] += -M_PI/2; // Hack +  Pi / 2  
+      q[index_dof+5] = atan2( data.HIP_LEFT.pos[1]-midP[1] , data.HIP_LEFT.pos[0]-midP[0]  );
+      q[index_dof+5] += -M_PI/2; // Hack +  Pi / 2  
+    }
 
   //--------------------------------------------------------------
-  p3d_set_and_update_this_robot_conf( robot, q );  
-  joint = p3d_get_robot_jnt_by_name(robot, (char*) "Pelvis");
-  
   p3d_matrix4 Tinv,Tpelv;
-  p3d_vector3 pos,shoulder;
-  p3d_mat4Copy( joint->abs_pos , Tpelv );
-  p3d_mat4Copy( joint->abs_pos , m_absPos );
-  p3d_matInvertXform( Tpelv , Tinv  );
-  p3d_xformPoint( Tinv , data.NECK.pos , pos );
-  
-  double TorsoX = atan2( -pos[1] , pos[2] );
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoX")->index_dof; 
-  q[index_dof] = TorsoX;
-
+  p3d_vector3 shoulder;
   p3d_vector3 Xaxis = { 1 , 0 , 0 };
   p3d_matrix4 TrotX,TrotXtmp;
-  p3d_mat4TransRot( TrotX , 0 , 0 , 0 , Xaxis , TorsoX  );
-  p3d_matMultXform( Tpelv , TrotX , TrotXtmp );
-  p3d_matInvertXform( TrotXtmp , Tinv  );
-  p3d_xformPoint( Tinv , data.NECK.pos , pos );
-
-  double TorsoY = atan2( pos[0] , pos[2] );
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoY")->index_dof; 
-  q[index_dof] = TorsoY;
-
   p3d_vector3 Yaxis = { 0 , 1 , 0 };
   p3d_matrix4 TrotY,TrotYtmp;
-  p3d_mat4TransRot( TrotY , 0 , 0 , 0 , Yaxis , TorsoY  );
-  p3d_matMultXform( TrotXtmp , TrotY , TrotYtmp );
-  p3d_matInvertXform( TrotYtmp , Tinv  );
-  p3d_xformPoint( Tinv , data.SHOULDER_LEFT.pos , pos );
 
-  double TorsoZ = atan2( -pos[0] , pos[1] );
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ")->index_dof; 
-  q[index_dof] = TorsoZ;
+  if( data.NECK.confidence > 0 && data.SHOULDER_LEFT.confidence > 0 )
+    {
+      p3d_set_and_update_this_robot_conf( robot, q );  
+      joint = p3d_get_robot_jnt_by_name(robot, (char*) "Pelvis");
+
+
+      p3d_mat4Copy( joint->abs_pos , Tpelv );
+      p3d_mat4Copy( joint->abs_pos , m_absPos );
+      p3d_matInvertXform( Tpelv , Tinv  );
+      p3d_xformPoint( Tinv , data.NECK.pos , pos );
+  
+      double TorsoX = atan2( -pos[1] , pos[2] );
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoX")->index_dof; 
+      q[index_dof] = TorsoX;
+
+
+      p3d_mat4TransRot( TrotX , 0 , 0 , 0 , Xaxis , TorsoX  );
+      p3d_matMultXform( Tpelv , TrotX , TrotXtmp );
+      p3d_matInvertXform( TrotXtmp , Tinv  );
+      p3d_xformPoint( Tinv , data.NECK.pos , pos );
+
+      double TorsoY = atan2( pos[0] , pos[2] );
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoY")->index_dof; 
+      q[index_dof] = TorsoY;
+
+
+      p3d_mat4TransRot( TrotY , 0 , 0 , 0 , Yaxis , TorsoY  );
+      p3d_matMultXform( TrotXtmp , TrotY , TrotYtmp );
+      p3d_matInvertXform( TrotYtmp , Tinv  );
+      p3d_xformPoint( Tinv , data.SHOULDER_LEFT.pos , pos );
+
+      double TorsoZ = atan2( -pos[0] , pos[1] );
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ")->index_dof; 
+      q[index_dof] = TorsoZ;
+    }
 
   // -----------------------------------------------------------------
   // Set and update robot to 
   // new position
   // -----------------------------------------------------------------
-  p3d_set_and_update_this_robot_conf( robot, q );
-
-  joint = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderX");
-  p3d_jnt_get_cur_vect_point( joint , pos );
-  p3d_jnt_get_cur_vect_point( joint , shoulder );
- 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rArmTrans")->index_dof; 
-  q[index_dof] = p3d_vectDistance( data.ELBOW_RIGHT.pos , pos ) - 0.2066 ;
-
   p3d_matrix4 Trot;
-  joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
-  p3d_mat4Copy( joint->abs_pos , Trot );
-  Trot[0][3] = pos[0];
-  Trot[1][3] = pos[1];
-  Trot[2][3] = pos[2];
-
-  //  p3d_mat4Copy( Trot , m_absPos );
-
-  p3d_matInvertXform( Trot , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
-
-  // calcul de la direction pour le bras droit
-  p3d_vector3 dir,sub;
-  p3d_vectNormalize( pos , dir );
-
-  // JP
-  // selon x
-  double alpha1r = atan2( -pos[2] , -pos[1] );
-  
   p3d_matrix4 Trot2,Trot3;
-  p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1r );
-  p3d_matMultXform( Trot , Trot2 , Trot3 );
-  p3d_matInvertXform( Trot3 , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
-
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderX")->index_dof;
-  q[index_dof] = alpha1r;
-
-  // selon z
-  double alpha2r = atan2( pos[0] , -pos[1] );
-
-  //  printf("alpha1 = %f\n", alpha1r );
-  //  printf("alpha2 = %f\n", alpha2r );
-  //  printf("dir = ( %f , %f , %f )\n", pos[0] , pos[1] , pos[2] );
-  
   p3d_vector3 Zaxis = { 0 , 0 , 1 };
   p3d_matrix4 Trot4;
-  p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2r );
-  p3d_matMultXform( Trot3 , Trot2 , Trot4 );
-  p3d_matInvertXform( Trot4 , Tinv  );
-  p3d_xformPoint( Tinv , data.HAND_RIGHT.pos , pos );
-
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderZ")->index_dof;
-  q[index_dof] = alpha2r;
-
-  // selon y  
-  double alpha3r = atan2( pos[2], pos[0] );  
-
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderY")->index_dof; 
-  q[index_dof] = alpha3r; 
-
   p3d_vector3 vect1,vect2,vect3;
+
+  if( data.ELBOW_RIGHT.confidence > 0 && data.HAND_RIGHT.confidence > 0 )
+    {
+      p3d_set_and_update_this_robot_conf( robot, q );
+
+      joint = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderX");
+      p3d_jnt_get_cur_vect_point( joint , pos );
+      p3d_jnt_get_cur_vect_point( joint , shoulder );
+ 
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rArmTrans")->index_dof; 
+      q[index_dof] = p3d_vectDistance( data.ELBOW_RIGHT.pos , pos ) - 0.2066 ;
+
+ 
+      joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
+      p3d_mat4Copy( joint->abs_pos , Trot );
+      Trot[0][3] = pos[0];
+      Trot[1][3] = pos[1];
+      Trot[2][3] = pos[2];
+
+      //  p3d_mat4Copy( Trot , m_absPos );
+
+      p3d_matInvertXform( Trot , Tinv  );
+      p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
+
+      // calcul de la direction pour le bras droit
+      p3d_vector3 dir,sub;
+      p3d_vectNormalize( pos , dir );
+
+      // JP
+      // selon x
+      double alpha1r = atan2( -pos[2] , -pos[1] );
   
-  p3d_vectSub( shoulder ,  data.ELBOW_RIGHT.pos , vect1 );
-  p3d_vectNormalize( vect1 , vect1 );
+ 
+      p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1r );
+      p3d_matMultXform( Trot , Trot2 , Trot3 );
+      p3d_matInvertXform( Trot3 , Tinv  );
+      p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
 
-  p3d_vectSub( data.HAND_RIGHT.pos , data.ELBOW_RIGHT.pos , vect2 );
-  p3d_vectNormalize( vect2 , vect2 );
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderX")->index_dof;
+      q[index_dof] = alpha1r;
 
-  // Elbow
-  double alpha4r = M_PI - acos( p3d_vectDotProd( vect1 , vect2) ) ;
+      // selon z
+      double alpha2r = atan2( pos[0] , -pos[1] );
 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rElbowZ")->index_dof; 
-  q[index_dof] = alpha4r; 
+      //  printf("alpha1 = %f\n", alpha1r );
+      //  printf("alpha2 = %f\n", alpha2r );
+      //  printf("dir = ( %f , %f , %f )\n", pos[0] , pos[1] , pos[2] );
+  
+
+      p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2r );
+      p3d_matMultXform( Trot3 , Trot2 , Trot4 );
+      p3d_matInvertXform( Trot4 , Tinv  );
+      p3d_xformPoint( Tinv , data.HAND_RIGHT.pos , pos );
+
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderZ")->index_dof;
+      q[index_dof] = alpha2r;
+
+      // selon y  
+      double alpha3r = atan2( pos[2], pos[0] );  
+
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderY")->index_dof; 
+      q[index_dof] = alpha3r; 
+
+  
+      p3d_vectSub( shoulder ,  data.ELBOW_RIGHT.pos , vect1 );
+      p3d_vectNormalize( vect1 , vect1 );
+
+      p3d_vectSub( data.HAND_RIGHT.pos , data.ELBOW_RIGHT.pos , vect2 );
+      p3d_vectNormalize( vect2 , vect2 );
+
+      // Elbow
+      double alpha4r = M_PI - acos( p3d_vectDotProd( vect1 , vect2) ) ;
+
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rElbowZ")->index_dof; 
+      q[index_dof] = alpha4r; 
+    }
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  joint = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderX");
-  p3d_jnt_get_cur_vect_point( joint , pos );
-  p3d_jnt_get_cur_vect_point( joint , shoulder );
+  if( data.ELBOW_LEFT.confidence > 0 && data.HAND_LEFT.confidence > 0 )
+    {
+      joint = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderX");
+      p3d_jnt_get_cur_vect_point( joint , pos );
+      p3d_jnt_get_cur_vect_point( joint , shoulder );
 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lArmTrans")->index_dof; 
-  q[index_dof] = p3d_vectDistance( data.ELBOW_LEFT.pos , pos ) - 0.2066 ;
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lArmTrans")->index_dof; 
+      q[index_dof] = p3d_vectDistance( data.ELBOW_LEFT.pos , pos ) - 0.2066 ;
 
-  joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
-  p3d_mat4Copy( joint->abs_pos , Trot );
-  Trot[0][3] = pos[0];
-  Trot[1][3] = pos[1];
-  Trot[2][3] = pos[2];
+      joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
+      p3d_mat4Copy( joint->abs_pos , Trot );
+      Trot[0][3] = pos[0];
+      Trot[1][3] = pos[1];
+      Trot[2][3] = pos[2];
 
-  //  p3d_mat4Copy( Trot , m_absPos );
+      //  p3d_mat4Copy( Trot , m_absPos );
 
 
-  p3d_matInvertXform( Trot , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
+      p3d_matInvertXform( Trot , Tinv  );
+      p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
 
-  // JP
-  // selon x
-  double alpha1l = atan2( pos[2] , pos[1] );
+      // JP
+      // selon x
+      double alpha1l = atan2( pos[2] , pos[1] );
 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderX")->index_dof;
-  q[index_dof] = alpha1l;
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderX")->index_dof;
+      q[index_dof] = alpha1l;
 
-  p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1l );
-  p3d_matMultXform( Trot , Trot2 , Trot3 );
-  p3d_matInvertXform( Trot3 , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
+      p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1l );
+      p3d_matMultXform( Trot , Trot2 , Trot3 );
+      p3d_matInvertXform( Trot3 , Tinv  );
+      p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
 
-  // selon z
-  double alpha2l = atan2( -pos[0] , pos[1] );
+      // selon z
+      double alpha2l = atan2( -pos[0] , pos[1] );
 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderZ")->index_dof;
-  q[index_dof] = alpha2l;
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderZ")->index_dof;
+      q[index_dof] = alpha2l;
 
-  //  printf("alpha1 = %f\n", alpha1l );
-  //  printf("alpha2 = %f\n", alpha2l );
-  //  printf("dir = ( %f , %f , %f )\n", pos[0] , pos[1] , pos[2] );
+      //  printf("alpha1 = %f\n", alpha1l );
+      //  printf("alpha2 = %f\n", alpha2l );
+      //  printf("dir = ( %f , %f , %f )\n", pos[0] , pos[1] , pos[2] );
 
-  p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2l );
-  p3d_matMultXform( Trot3 , Trot2 , Trot4 );
-  p3d_matInvertXform( Trot4 , Tinv  );
-  p3d_xformPoint( Tinv , data.HAND_LEFT.pos , pos );
+      p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2l );
+      p3d_matMultXform( Trot3 , Trot2 , Trot4 );
+      p3d_matInvertXform( Trot4 , Tinv  );
+      p3d_xformPoint( Tinv , data.HAND_LEFT.pos , pos );
 
-  // selon y  
-  double alpha3l = -atan2( -pos[2], pos[0] );  
+      // selon y  
+      double alpha3l = -atan2( -pos[2], pos[0] );  
   
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderY")->index_dof; 
-  q[index_dof] = alpha3l; 
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderY")->index_dof; 
+      q[index_dof] = alpha3l; 
 
-  p3d_vectSub( shoulder ,  data.ELBOW_LEFT.pos , vect1 );
-  p3d_vectNormalize( vect1 , vect1 );
+      p3d_vectSub( shoulder ,  data.ELBOW_LEFT.pos , vect1 );
+      p3d_vectNormalize( vect1 , vect1 );
 
-  p3d_vectSub( data.HAND_LEFT.pos , data.ELBOW_LEFT.pos , vect2 );
-  p3d_vectNormalize( vect2 , vect2 );
+      p3d_vectSub( data.HAND_LEFT.pos , data.ELBOW_LEFT.pos , vect2 );
+      p3d_vectNormalize( vect2 , vect2 );
 
-  double alpha4l = -M_PI + acos( p3d_vectDotProd( vect1 , vect2) ) ;
+      double alpha4l = -M_PI + acos( p3d_vectDotProd( vect1 , vect2) ) ;
 
-  index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lElbowZ")->index_dof; 
-  q[index_dof] = alpha4l; 
+      index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lElbowZ")->index_dof; 
+      q[index_dof] = alpha4l; 
+    }
 
   return q;
 }
@@ -303,6 +308,7 @@ void hri_draw_kinect_points()
   
   if(m_debug_kinect)
   {
+    cout << "---------------------------------" << endl;
     cout << "HEAD = " <<  m_humKin.HEAD.confidence << endl;
     cout << "NECK = " << m_humKin.NECK.confidence << endl;
     cout << "TORSO = " << m_humKin.TORSO.confidence << endl;
@@ -314,7 +320,6 @@ void hri_draw_kinect_points()
     cout << "HAND_LEFT = " << m_humKin.HAND_LEFT.confidence << endl;
     cout << "HIP_RIGHT = " << m_humKin.HIP_RIGHT.confidence << endl;
     cout << "HIP_LEFT = " << m_humKin.HIP_LEFT.confidence << endl;
-  }
                  
   double r = 0.03;
   g3d_drawSphere(m_humKin.HEAD.pos[0],m_humKin.HEAD.pos[1],m_humKin.HEAD.pos[2],r);
@@ -358,6 +363,8 @@ void hri_draw_kinect_points()
   g3d_drawSphere(m_humKin.HIP_LEFT.pos[0],
                  m_humKin.HIP_LEFT.pos[1],
                  m_humKin.HIP_LEFT.pos[2],r);
+
+  }
   
   //g3d_drawSphere(m_humKin.KNEE_RIGHT[0],
   //               m_humKin.KNEE_RIGHT[1],
@@ -390,16 +397,19 @@ void hri_draw_kinect_state(g3d_states &vs, float offsetXRatio, float offsetY, fl
   
   switch (m_state) 
   {
-    case NO_TRACKING:   color[0] = 1.0; color[1]= 0.0; color[2]= 0.0; color[3]= 1.0;
+    case KINECT_DISCONNECTED: 
+     return;
+
+    case KINECT_NO_TRACKING:   color[0] = 1.0; color[1]= 0.0; color[2]= 0.0; color[3]= 1.0;
       break;
       
-    case POSE_SEARCH:   color[0] = 1.0; color[1]= 0.5; color[2]= 0.0; color[3]= 1.0;
+    case KINECT_POSE_SEARCH:   color[0] = 1.0; color[1]= 0.5; color[2]= 0.0; color[3]= 1.0;
       break;
       
-    case CALIBRATE:     color[0] = 1.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
+    case KINECT_CALIBRATE:     color[0] = 1.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
       break;
       
-    case TRACKING:      color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
+    case KINECT_TRACKING:      color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
       break;
       
     default:

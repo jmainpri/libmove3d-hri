@@ -12,11 +12,12 @@
 
 #include "hri_agent.h"
 
-typedef enum KinectState {
-	NO_TRACKING,
-	POSE_SEARCH,
-	CALIBRATE,
-	TRACKING
+typedef enum kinectState {
+        KINECT_DISCONNECTED,
+	KINECT_NO_TRACKING,
+	KINECT_POSE_SEARCH,
+	KINECT_CALIBRATE,
+	KINECT_TRACKING
 };
 
 // Kinect joint
@@ -61,7 +62,7 @@ struct kinectAgents
 };
 
 void hri_set_debug_kinect(bool is_debug);
-void hri_set_kinect_state(int kinectState);
+void hri_set_kinect_state(const kinectState& state);
 configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& data );
 void hri_store_kinect_model( kinectData& data );
 void hri_draw_kinect_points();
