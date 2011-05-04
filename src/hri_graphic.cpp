@@ -58,7 +58,7 @@ void g3d_hri_main()
 	  }
 
 	  hri_draw_kinect_points();
-    hri_draw_kinect_state(G3D_WIN->vs, 0.33, 5, 0.33);
+    hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07);
 }
 
 void g3d_hri_display_visible_objects(HRI_AGENT *agent)

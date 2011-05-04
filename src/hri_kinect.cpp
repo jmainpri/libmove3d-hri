@@ -15,6 +15,7 @@ using namespace std;
 
 //! human kinect information
 bool        m_debug_kinect = false;
+KinectState m_state = NO_TRACKING;
 bool        m_data_exists = false;
 kinectData  m_humKin;
 p3d_rob*    m_human;
@@ -24,6 +25,29 @@ p3d_matrix4 m_absPos;
 void hri_set_debug_kinect(bool is_debug)
 {
   m_debug_kinect = is_debug;
+}
+
+//! Sores the kinect state
+void hri_set_kinect_state(int kinectState)
+{
+  switch (kinectState) 
+  {
+    case 0: m_state = NO_TRACKING;
+      break;
+      
+    case 1: m_state = POSE_SEARCH;
+      break;
+      
+    case 2: m_state = CALIBRATE;
+      break;
+      
+    case 3: m_state = TRACKING;
+      break;
+      
+    default:
+      cout << "Error setting state" << endl;
+      break;
+  }
 }
 
 //! set the human position form the kinect information
@@ -361,7 +385,27 @@ const unsigned int LOGO_WIDTH = 10;
 const unsigned int LOGO_HEIGHT = 10;
 void hri_draw_kinect_state(g3d_states &vs, float offsetXRatio, float offsetY, float widthRatio )
 {
-  cout <<  "hri_draw_kinect_state" << endl;
+//  cout <<  "hri_draw_kinect_state" << endl;
+  GLfloat color[4];
+  
+  switch (m_state) 
+  {
+    case NO_TRACKING:   color[0] = 1.0; color[1]= 0.0; color[2]= 0.0; color[3]= 1.0;
+      break;
+      
+    case POSE_SEARCH:   color[0] = 1.0; color[1]= 0.5; color[2]= 0.0; color[3]= 1.0;
+      break;
+      
+    case CALIBRATE:     color[0] = 1.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
+      break;
+      
+    case TRACKING:      color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
+      break;
+      
+    default:
+      cout << "Error setting kinect color state" << endl;
+      break;
+  }
   
   GLint viewport[4];
   
@@ -389,10 +433,9 @@ void hri_draw_kinect_state(g3d_states &vs, float offsetXRatio, float offsetY, fl
   glDisable(GL_LIGHTING); 
   glDisable(GL_DEPTH_TEST);
   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);	 
-  //glEnable(GL_TEXTURE_2D);
-  glColor4f(0.0, 1.0, 1.0, 1.0);
-  //glBindTexture(GL_TEXTURE_2D, vs.logoTexture);
-  //glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  
+  glColor4f(color[0], color[1], color[2], color[3]);
+  
   glBegin (GL_QUADS);
   glTexCoord2f(1.0f,1.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY);
   glTexCoord2f(1.0f,0.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY + scale*LOGO_HEIGHT);
