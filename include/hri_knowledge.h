@@ -111,6 +111,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   int needSituationAssessmentUpdate;
   int needLooksatUpdate;
   int general_allow_disappear; /// flag to allow or forbid disappear management
+  int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
 } HRI_ENTITIES;
 
 typedef enum ENUM_HRI_VISIBILITY {

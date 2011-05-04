@@ -42,6 +42,7 @@ HRI_ENTITIES * hri_create_entities()
   entities->needSituationAssessmentUpdate = FALSE;
   entities->needLooksatUpdate = FALSE;
   entities->general_allow_disappear = TRUE;
+  entities->printVisibilityImages = FALSE;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
