@@ -55,16 +55,16 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   
   configPt q = p3d_get_robot_config(robot);
   
-  q[index_dof+0] = data.TORSO[0];
-  q[index_dof+1] = data.TORSO[1];
-  q[index_dof+2] = data.TORSO[2] - 0.20 ; // Hack 1 meter
+  q[index_dof+0] = data.TORSO.pos[0];
+  q[index_dof+1] = data.TORSO.pos[1];
+  q[index_dof+2] = data.TORSO.pos[2] - 0.20 ; // Hack 1 meter
   
   // calcul de l'orientation du pelvis
   p3d_vector3 sum,midP;
-  p3d_vectAdd( data.HIP_LEFT, data.HIP_RIGHT , sum );
+  p3d_vectAdd( data.HIP_LEFT.pos, data.HIP_RIGHT.pos , sum );
   p3d_vectScale(  sum , midP , 0.5 );
   
-  q[index_dof+5] = atan2( data.HIP_LEFT[1]-midP[1] , data.HIP_LEFT[0]-midP[0]  );
+  q[index_dof+5] = atan2( data.HIP_LEFT.pos[1]-midP[1] , data.HIP_LEFT.pos[0]-midP[0]  );
   q[index_dof+5] += -M_PI/2; // Hack +  Pi / 2  
 
   //--------------------------------------------------------------
@@ -76,7 +76,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4Copy( joint->abs_pos , Tpelv );
   p3d_mat4Copy( joint->abs_pos , m_absPos );
   p3d_matInvertXform( Tpelv , Tinv  );
-  p3d_xformPoint( Tinv , data.NECK , pos );
+  p3d_xformPoint( Tinv , data.NECK.pos , pos );
   
   double TorsoX = atan2( -pos[1] , pos[2] );
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoX")->index_dof; 
@@ -87,7 +87,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( TrotX , 0 , 0 , 0 , Xaxis , TorsoX  );
   p3d_matMultXform( Tpelv , TrotX , TrotXtmp );
   p3d_matInvertXform( TrotXtmp , Tinv  );
-  p3d_xformPoint( Tinv , data.NECK , pos );
+  p3d_xformPoint( Tinv , data.NECK.pos , pos );
 
   double TorsoY = atan2( pos[0] , pos[2] );
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoY")->index_dof; 
@@ -98,7 +98,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( TrotY , 0 , 0 , 0 , Yaxis , TorsoY  );
   p3d_matMultXform( TrotXtmp , TrotY , TrotYtmp );
   p3d_matInvertXform( TrotYtmp , Tinv  );
-  p3d_xformPoint( Tinv , data.SHOULDER_LEFT , pos );
+  p3d_xformPoint( Tinv , data.SHOULDER_LEFT.pos , pos );
 
   double TorsoZ = atan2( -pos[0] , pos[1] );
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ")->index_dof; 
@@ -115,7 +115,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_jnt_get_cur_vect_point( joint , shoulder );
  
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rArmTrans")->index_dof; 
-  q[index_dof] = p3d_vectDistance( data.ELBOW_RIGHT , pos ) - 0.2066 ;
+  q[index_dof] = p3d_vectDistance( data.ELBOW_RIGHT.pos , pos ) - 0.2066 ;
 
   p3d_matrix4 Trot;
   joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
@@ -127,7 +127,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   //  p3d_mat4Copy( Trot , m_absPos );
 
   p3d_matInvertXform( Trot , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_RIGHT , pos );
+  p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
 
   // calcul de la direction pour le bras droit
   p3d_vector3 dir,sub;
@@ -141,7 +141,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1r );
   p3d_matMultXform( Trot , Trot2 , Trot3 );
   p3d_matInvertXform( Trot3 , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_RIGHT , pos );
+  p3d_xformPoint( Tinv , data.ELBOW_RIGHT.pos , pos );
 
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderX")->index_dof;
   q[index_dof] = alpha1r;
@@ -158,7 +158,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2r );
   p3d_matMultXform( Trot3 , Trot2 , Trot4 );
   p3d_matInvertXform( Trot4 , Tinv  );
-  p3d_xformPoint( Tinv , data.HAND_RIGHT , pos );
+  p3d_xformPoint( Tinv , data.HAND_RIGHT.pos , pos );
 
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "rShoulderZ")->index_dof;
   q[index_dof] = alpha2r;
@@ -171,10 +171,10 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
 
   p3d_vector3 vect1,vect2,vect3;
   
-  p3d_vectSub( shoulder ,  data.ELBOW_RIGHT , vect1 );
+  p3d_vectSub( shoulder ,  data.ELBOW_RIGHT.pos , vect1 );
   p3d_vectNormalize( vect1 , vect1 );
 
-  p3d_vectSub( data.HAND_RIGHT , data.ELBOW_RIGHT , vect2 );
+  p3d_vectSub( data.HAND_RIGHT.pos , data.ELBOW_RIGHT.pos , vect2 );
   p3d_vectNormalize( vect2 , vect2 );
 
   // Elbow
@@ -190,7 +190,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_jnt_get_cur_vect_point( joint , shoulder );
 
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lArmTrans")->index_dof; 
-  q[index_dof] = p3d_vectDistance( data.ELBOW_LEFT , pos ) - 0.2066 ;
+  q[index_dof] = p3d_vectDistance( data.ELBOW_LEFT.pos , pos ) - 0.2066 ;
 
   joint = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoZ");
   p3d_mat4Copy( joint->abs_pos , Trot );
@@ -202,7 +202,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
 
 
   p3d_matInvertXform( Trot , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_LEFT , pos );
+  p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
 
   // JP
   // selon x
@@ -214,7 +214,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1l );
   p3d_matMultXform( Trot , Trot2 , Trot3 );
   p3d_matInvertXform( Trot3 , Tinv  );
-  p3d_xformPoint( Tinv , data.ELBOW_LEFT , pos );
+  p3d_xformPoint( Tinv , data.ELBOW_LEFT.pos , pos );
 
   // selon z
   double alpha2l = atan2( -pos[0] , pos[1] );
@@ -229,7 +229,7 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Zaxis , alpha2l );
   p3d_matMultXform( Trot3 , Trot2 , Trot4 );
   p3d_matInvertXform( Trot4 , Tinv  );
-  p3d_xformPoint( Tinv , data.HAND_LEFT , pos );
+  p3d_xformPoint( Tinv , data.HAND_LEFT.pos , pos );
 
   // selon y  
   double alpha3l = -atan2( -pos[2], pos[0] );  
@@ -237,10 +237,10 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "lShoulderY")->index_dof; 
   q[index_dof] = alpha3l; 
 
-  p3d_vectSub( shoulder ,  data.ELBOW_LEFT , vect1 );
+  p3d_vectSub( shoulder ,  data.ELBOW_LEFT.pos , vect1 );
   p3d_vectNormalize( vect1 , vect1 );
 
-  p3d_vectSub( data.HAND_LEFT , data.ELBOW_LEFT , vect2 );
+  p3d_vectSub( data.HAND_LEFT.pos , data.ELBOW_LEFT.pos , vect2 );
   p3d_vectNormalize( vect2 , vect2 );
 
   double alpha4l = -M_PI + acos( p3d_vectDotProd( vect1 , vect2) ) ;
@@ -271,47 +271,47 @@ void hri_draw_kinect_points()
 //  g3d_draw_frame( m_absPos , 0.5 );
 
   double r = 0.03;
-  g3d_drawSphere(m_humKin.HEAD[0],m_humKin.HEAD[1],m_humKin.HEAD[2],r);
-  g3d_drawSphere(m_humKin.NECK[0],m_humKin.NECK[1],m_humKin.NECK[2],r);
+  g3d_drawSphere(m_humKin.HEAD.pos[0],m_humKin.HEAD.pos[1],m_humKin.HEAD.pos[2],r);
+  g3d_drawSphere(m_humKin.NECK.pos[0],m_humKin.NECK.pos[1],m_humKin.NECK.pos[2],r);
   
-  g3d_drawSphere(m_humKin.TORSO[0],
-                 m_humKin.TORSO[1],
-                 m_humKin.TORSO[2],r);
+  g3d_drawSphere(m_humKin.TORSO.pos[0],
+                 m_humKin.TORSO.pos[1],
+                 m_humKin.TORSO.pos[2],r);
   
-  g3d_drawSphere(m_humKin.SHOULDER_RIGHT[0],
-                 m_humKin.SHOULDER_RIGHT[1],
-                 m_humKin.SHOULDER_RIGHT[2],r);
+  g3d_drawSphere(m_humKin.SHOULDER_RIGHT.pos[0],
+                 m_humKin.SHOULDER_RIGHT.pos[1],
+                 m_humKin.SHOULDER_RIGHT.pos[2],r);
   
-  g3d_drawSphere(m_humKin.SHOULDER_LEFT[0],
-                 m_humKin.SHOULDER_LEFT[1],
-                 m_humKin.SHOULDER_LEFT[2],r);
+  g3d_drawSphere(m_humKin.SHOULDER_LEFT.pos[0],
+                 m_humKin.SHOULDER_LEFT.pos[1],
+                 m_humKin.SHOULDER_LEFT.pos[2],r);
 
-  g3d_drawSphere(m_humKin.ELBOW_RIGHT[0],
-                 m_humKin.ELBOW_RIGHT[1],
-                 m_humKin.ELBOW_RIGHT[2],r);
+  g3d_drawSphere(m_humKin.ELBOW_RIGHT.pos[0],
+                 m_humKin.ELBOW_RIGHT.pos[1],
+                 m_humKin.ELBOW_RIGHT.pos[2],r);
   
-  g3d_drawSphere(m_humKin.ELBOW_LEFT[0],
-                 m_humKin.ELBOW_LEFT[1],
-                 m_humKin.ELBOW_LEFT[2],r);
+  g3d_drawSphere(m_humKin.ELBOW_LEFT.pos[0],
+                 m_humKin.ELBOW_LEFT.pos[1],
+                 m_humKin.ELBOW_LEFT.pos[2],r);
 
-  g3d_drawSphere(m_humKin.HAND_RIGHT[0],
-                 m_humKin.HAND_RIGHT[1],
-                 m_humKin.HAND_RIGHT[2],r);
+  g3d_drawSphere(m_humKin.HAND_RIGHT.pos[0],
+                 m_humKin.HAND_RIGHT.pos[1],
+                 m_humKin.HAND_RIGHT.pos[2],r);
   
-  g3d_drawSphere(m_humKin.HAND_LEFT[0],
-                 m_humKin.HAND_LEFT[1],
-                 m_humKin.HAND_LEFT[2],r);
+  g3d_drawSphere(m_humKin.HAND_LEFT.pos[0],
+                 m_humKin.HAND_LEFT.pos[1],
+                 m_humKin.HAND_LEFT.pos[2],r);
 
   //  r = 0.1;
   //  glColor3f(0,1,0);
   
-  g3d_drawSphere(m_humKin.HIP_RIGHT[0],
-                 m_humKin.HIP_RIGHT[1],
-                 m_humKin.HIP_RIGHT[2],r);
+  g3d_drawSphere(m_humKin.HIP_RIGHT.pos[0],
+                 m_humKin.HIP_RIGHT.pos[1],
+                 m_humKin.HIP_RIGHT.pos[2],r);
   
-  g3d_drawSphere(m_humKin.HIP_LEFT[0],
-                 m_humKin.HIP_LEFT[1],
-                 m_humKin.HIP_LEFT[2],r);
+  g3d_drawSphere(m_humKin.HIP_LEFT.pos[0],
+                 m_humKin.HIP_LEFT.pos[1],
+                 m_humKin.HIP_LEFT.pos[2],r);
   
   //g3d_drawSphere(m_humKin.KNEE_RIGHT[0],
   //               m_humKin.KNEE_RIGHT[1],

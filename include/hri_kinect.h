@@ -12,24 +12,29 @@
 
 #include "hri_agent.h"
 
+struct kinectJoint {
+  p3d_vector3 pos;
+  double      confidence;
+}
+
 // Only HEAD, NECK, TORSO, 
 // SHOULDERS, ELBOW, 
 // HAND, HIP, KNEE and FOOT 
 struct kinectData 
 {
-  p3d_vector3 HEAD, NECK, TORSO;
-  p3d_vector3 SHOULDER_RIGHT;
-  p3d_vector3 SHOULDER_LEFT;
-  p3d_vector3 ELBOW_RIGHT;
-  p3d_vector3 ELBOW_LEFT;
-  p3d_vector3 HIP_LEFT;
-  p3d_vector3 HIP_RIGHT;
-  p3d_vector3 HAND_RIGHT;
-  p3d_vector3 HAND_LEFT;
-  p3d_vector3 KNEE_RIGHT;
-  p3d_vector3 KNEE_LEFT;
-  p3d_vector3 FOOT_RIGHT;
-  p3d_vector3 FOOT_LEFT;
+  kinectJoint HEAD, NECK, TORSO;
+  kinectJoint SHOULDER_RIGHT;
+  kinectJoint SHOULDER_LEFT;
+  kinectJoint ELBOW_RIGHT;
+  kinectJoint ELBOW_LEFT;
+  kinectJoint HIP_LEFT;
+  kinectJoint HIP_RIGHT;
+  kinectJoint HAND_RIGHT;
+  kinectJoint HAND_LEFT;
+  kinectJoint KNEE_RIGHT;
+  kinectJoint KNEE_LEFT;
+  kinectJoint FOOT_RIGHT;
+  kinectJoint FOOT_LEFT;
 };
 
 struct kinectAgent 
