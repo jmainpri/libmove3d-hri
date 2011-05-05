@@ -347,18 +347,20 @@ typedef struct agents_for_MA
        for_agent[i].no_of_arms=2;
        
        for_agent[i].head_params.no_joints_neck=3;
+       /*
       for_agent[i].head_params.joint_indices[PAN]=HUMAN_J_NECK_PAN;
       for_agent[i].head_params.joint_indices[TILT]=HUMAN_J_NECK_TILT;
       for_agent[i].head_params.joint_indices[ROLL]=HUMAN_J_NECK_ROLL;
-      
+      */
       for_agent[i].head_params.no_Qs_neck=3;
+      /*
       for_agent[i].head_params.Q_indices[PAN]=HUMAN_Q_NECK_PAN;
       for_agent[i].head_params.Q_indices[TILT]=HUMAN_Q_NECK_TILT;
       for_agent[i].head_params.Q_indices[ROLL]=HUMAN_Q_NECK_ROLL;
-
+          
       for_agent[i].hand_params.joint_indices[RSHOULDER]=HUMAN_J_RSHOULDER;
       for_agent[i].hand_params.joint_indices[LSHOULDER]=HUMAN_J_LSHOULDER;
-
+       */
        break;
 #ifdef HUMAN2_EXISTS_FOR_MA
        case HUMAN2_MA:
@@ -367,18 +369,20 @@ typedef struct agents_for_MA
        for_agent[i].no_of_arms=2;
        
        for_agent[i].head_params.no_joints_neck=3;
+       /*
       for_agent[i].head_params.joint_indices[PAN]=HUMAN_J_NECK_PAN;
       for_agent[i].head_params.joint_indices[TILT]=HUMAN_J_NECK_TILT;
       for_agent[i].head_params.joint_indices[ROLL]=HUMAN_J_NECK_ROLL;
-      
+      */
       for_agent[i].head_params.no_Qs_neck=3;
+      /*
       for_agent[i].head_params.Q_indices[PAN]=HUMAN_Q_NECK_PAN;
       for_agent[i].head_params.Q_indices[TILT]=HUMAN_Q_NECK_TILT;
       for_agent[i].head_params.Q_indices[ROLL]=HUMAN_Q_NECK_ROLL;
 
       for_agent[i].hand_params.joint_indices[RSHOULDER]=HUMAN_J_RSHOULDER;
       for_agent[i].hand_params.joint_indices[LSHOULDER]=HUMAN_J_LSHOULDER;
-
+      */
        break;
 #endif
 

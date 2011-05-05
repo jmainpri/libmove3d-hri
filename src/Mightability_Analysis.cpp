@@ -333,6 +333,11 @@ double maxi_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
 
 std::vector<int> rob_index_list;
 
+int agents_for_MA_initialized=0;
+extern int agents_for_ASA_prepared;
+extern int agents_for_ASA_initialized;
+
+extern agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -340,6 +345,7 @@ std::list<gpGrasp> grasps_for_object;
 int execute_Mightability_Map_functions()
 {
    
+////printf(" Inside execute_Mightability_Map_functions()\n");
 ////test_inside(( p3d_rob* ) p3d_get_robot_by_name ( "TRASHBIN" ), ( p3d_rob* ) p3d_get_robot_by_name ( "GREY_TAPE" ));
 
   if(Affordances_Found==1)
@@ -3905,10 +3911,13 @@ int get_indices_for_MA_agents()
   {
     switch(i)
     {
+#ifdef JIDO_EXISTS_FOR_MA
       case JIDO_MA:
       indices_of_MA_agents[i]=get_index_of_robot_by_name("JIDOKUKA_ROBOT");
       indices_of_eye_joint_MA_agents[i]=p3d_get_robot_jnt_index_by_name(envPt_MM->robot[indices_of_MA_agents[i]], (char*) "TopCameras");
       break;
+#endif
+
 #ifdef HRP2_EXISTS_FOR_MA
       case HRP2_MA:
 	 indices_of_MA_agents[i]=get_index_of_robot_by_name("HRP2_ROBOT");
@@ -4298,18 +4307,60 @@ break;
   }
 }
 
-
+int init_agents_for_MA_and_ASA()
+{
+  printf(" Inside init_agents_for_MA_and_ASA()\n");
+    envPt_MM = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
+    assign_indices_of_robots();
+    get_indices_for_MA_agents();
+    
+    agents_for_MA_initialized=1;
+    agents_for_ASA_initialized=1;
+    
+    printf(" Agents for Mightability and State Analysis hasve been created\n");
+    
+    return 1;
+}
   
+int init_indices_for_agents_joints_for_MA()
+{
+  int for_agent=HUMAN1_MA;
+  
+  agents_for_MA_obj.for_agent[for_agent].head_params.joint_indices[PAN]=agents_for_ASA[for_agent].joint_indx.head_yaw;
+  agents_for_MA_obj.for_agent[for_agent].head_params.joint_indices[TILT]=agents_for_ASA[for_agent].joint_indx.head_pitch;
+  agents_for_MA_obj.for_agent[for_agent].head_params.joint_indices[ROLL]=agents_for_ASA[for_agent].joint_indx.head_roll;
+  
+  agents_for_MA_obj.for_agent[for_agent].head_params.Q_indices[PAN]=agents_for_ASA[for_agent].Q_indx.head_Q_yaw;
+  agents_for_MA_obj.for_agent[for_agent].head_params.Q_indices[TILT]=agents_for_ASA[for_agent].Q_indx.head_Q_pitch;
+  agents_for_MA_obj.for_agent[for_agent].head_params.Q_indices[ROLL]=agents_for_ASA[for_agent].Q_indx.head_Q_roll;
+  
+  agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[RSHOULDER]=agents_for_ASA[for_agent].joint_indx.R_shoulder_x_jnt;
+  agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[LSHOULDER]=agents_for_ASA[for_agent].joint_indx.L_shoulder_x_jnt;
+}
+
 int Create_and_init_Mightability_Maps()
 {
   printf(" Inside Create_and_init_Mightability_Maps()\n");
-
- 
+  
+  if(agents_for_MA_initialized==0)
+  {
+    printf(">>>> MA_ERROR: First Initialize Agents for MA, and then prepare the agent for state analysis. Most probably the function to init is init_agents_for_MA_and_ASA() and function to prepare for ASA is prepare_for_Agent_State_Analysis(char *threshold_file_path).\n");
+     Affordances_Found=0; 
+    return 0;
+  }
+  
+  if(agents_for_ASA_prepared==0)
+  {
+     printf(">>>> MA_ERROR: prepare the agent for state analysis. Most probably the function to prepare for ASA is prepare_for_Agent_State_Analysis(char *threshold_file_path).\n");
+     Affordances_Found=0; 
+    return 0;
+  }
   ////p3d_init_robot_parameters(); //To remove the dependency on Watch button
   ////printf(" After p3d_init_robot_parameters()\n");
   envPt_MM = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
-  assign_indices_of_robots();
-  get_indices_for_MA_agents();
+  ////assign_indices_of_robots();
+  ////get_indices_for_MA_agents();
+  init_indices_for_agents_joints_for_MA();
   create_agents_for_Mightabilities();
   init_HRI_task_name_ID_map();
  
@@ -20856,7 +20907,7 @@ int test_inside(int container_index, int object_index )
 				if(dist_between_obj_container_base<1)
 				{
 				  if(index_of_support>=0)
-				  printf(" %s is lying on support %s \n",envPt_MM->robot[object_index]->name,envPt_MM->robot[index_of_support]->name);
+				  printf(" %s is laying on support %s \n",envPt_MM->robot[object_index]->name,envPt_MM->robot[index_of_support]->name);
 				}
 			    }
 			    
@@ -21401,6 +21452,7 @@ glPopAttrib();
 glPopMatrix();
 }
 }
+
 
 
 ////#endif
