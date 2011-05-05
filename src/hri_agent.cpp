@@ -1276,6 +1276,44 @@ static int hri_compute_leg_angles(double hipknee, double kneeankle, double ankle
   }
   return TRUE;
 }
+/**
+ * sets the agent standing
+ */
+int hri_agent_set_human_standing_posture(HRI_AGENT * agent,configPt q)
+{  
+  // Only supports HRI_HERAKLES and HRI_ACHILE human model. Everything else returns FALSE.
+  
+  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE) ) 
+  {
+    //std::cout << "Set human in seated posture" << std::endl;
+    
+    p3d_jnt* jntHead = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"HeadZ" ); // 5
+    
+    p3d_jnt* jntRHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rHipY" ); // 23
+    p3d_jnt* jntRKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rKnee" ); // 25 
+    p3d_jnt* jntRAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rAnkleY" ); // 27
+    
+    p3d_jnt* jntLHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lHipY" ); // 30
+    p3d_jnt* jntLKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lKnee" ); // 32 
+    p3d_jnt* jntLAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lAnkleY" ); // 34
+
+    q[jntRHip->index_dof] = 0.0;
+    q[jntRKnee->index_dof] = 0.0;
+    q[jntRAnkle->index_dof] = 0.0;
+
+    q[jntLHip->index_dof] = 0.0;
+    q[jntLKnee->index_dof] = 0.0;
+    q[jntLAnkle->index_dof] = 0.0;
+    
+    agent->actual_state = 1; // STANDING
+    
+    return TRUE;
+  }
+  else {
+    //printf("In %s:%d, Trying to compute the posture of an unsupported robot\n",__FILE__,__LINE__);
+    return FALSE;
+  }
+}
 
 /**
  * sets the agent seated
