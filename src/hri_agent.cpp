@@ -1278,6 +1278,77 @@ static int hri_compute_leg_angles(double hipknee, double kneeankle, double ankle
 }
 
 /**
+ * sets the agent seated
+ */
+int hri_agent_set_human_seated_posture(HRI_AGENT * agent,configPt q)
+{
+  double neck_height;
+  double hiptoknee_dist, kneetoankle_dist, necktobase_dist, hiptoground_dist;
+  double basetohip_dist, ankletoground_dist;
+  double lhip_angle, lknee_angle, lankle_angle;
+  double rhip_angle, rknee_angle, rankle_angle;
+  
+  // Only supports HRI_HERAKLES and HRI_ACHILE human model. Everything else returns FALSE.
+  
+  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE) ) 
+  {
+    //std::cout << "Set human in seated posture" << std::endl;
+    
+    p3d_jnt* jntHead = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"HeadZ" ); // 5
+    
+    p3d_jnt* jntRHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rHipY" ); // 23
+    p3d_jnt* jntRKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rKnee" ); // 25 
+    p3d_jnt* jntRAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rAnkleY" ); // 27
+    
+    p3d_jnt* jntLHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lHipY" ); // 30
+    p3d_jnt* jntLKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lKnee" ); // 32 
+    p3d_jnt* jntLAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lAnkleY" ); // 34
+    
+    neck_height = jntHead->abs_pos[2][3];
+    
+    necktobase_dist = jntHead->abs_pos[2][3]-agent->robotPt->joints[1]->abs_pos[2][3];
+    
+    hiptoknee_dist = DISTANCE3D(jntRHip->abs_pos[0][3],
+                                jntRHip->abs_pos[1][3],
+                                jntRHip->abs_pos[2][3],
+                                jntRKnee->abs_pos[0][3],
+                                jntRKnee->abs_pos[1][3],
+                                jntRKnee->abs_pos[2][3]); // Constant -> 0.47
+    kneetoankle_dist = DISTANCE3D(jntRKnee->abs_pos[0][3],
+                                  jntRKnee->abs_pos[1][3],
+                                  jntRKnee->abs_pos[2][3],
+                                  jntRAnkle->abs_pos[0][3],
+                                  jntRAnkle->abs_pos[1][3],
+                                  jntRAnkle->abs_pos[2][3]); // Constant -> 0.39
+    basetohip_dist = agent->robotPt->joints[1]->abs_pos[2][3]-jntRHip->abs_pos[2][3];
+    hiptoground_dist =  neck_height - necktobase_dist - basetohip_dist;
+    ankletoground_dist = 0.09; // Fixed distance in ACHILE model
+    
+    hri_compute_leg_angles(hiptoknee_dist, kneetoankle_dist, ankletoground_dist, hiptoground_dist, 0.4,
+                               &lhip_angle, &lknee_angle, &lankle_angle);
+    rhip_angle = lhip_angle;
+    rknee_angle = lknee_angle;
+    rankle_angle = lankle_angle;
+
+    q[8] = neck_height - necktobase_dist;
+    q[jntRHip->index_dof] = -lhip_angle;
+    q[jntRKnee->index_dof] = lknee_angle;
+    q[jntRAnkle->index_dof] = -lankle_angle;
+    q[jntLHip->index_dof] = -rhip_angle;
+    q[jntLKnee->index_dof] = rknee_angle;
+    q[jntLAnkle->index_dof] = -rankle_angle;
+    
+    agent->actual_state = 0; // SITTING
+    
+    return TRUE;
+  }
+  else {
+    //printf("In %s:%d, Trying to compute the posture of an unsupported robot\n",__FILE__,__LINE__);
+    return FALSE;
+  }
+}
+
+/**
  * sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
  */
 int hri_agent_compute_posture(HRI_AGENT * agent, double neck_height, int state, configPt q)
