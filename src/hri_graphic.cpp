@@ -11,6 +11,8 @@ extern std::string hri_text_to_display;
 extern bool hri_draw_distance;
 extern std::vector<double> hri_disp_dist;
 
+int STOP_AGENT_STATE_ANALYSIS=0;//Will be used by spark to set/reset
+
 void g3d_hri_main()
 {
 	  //hri_hri_inter_point_test();
@@ -28,7 +30,10 @@ void g3d_hri_main()
 #ifdef USE_MIGHTABILITY_MAPS
 		  ////printf("Inside g3d_draw_env_custom() \n");
 		  execute_Mightability_Map_functions();
+		  if(STOP_AGENT_STATE_ANALYSIS!=1)
+		  {
 		  hri_execute_Agent_State_Analysis_functions();
+		  }
 #endif
 	  
 	  if(FALSE) { 
