@@ -38,15 +38,23 @@ agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 int find_activity_fact_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 agents_activity_facts Ag_Activity_Fact[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+agents_activity_facts Ag_Activity_Prev_Fact_for_print[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 int agents_for_ASA_initialized=0;
+int agents_for_ASA_prepared=0;
+extern char CURRENT_OBJECT_TO_MANIPULATE[50];
+
 int index_test_cube_ASA;
+configPt test_cube_tmp_config;
+
 configPt agents_tmp_config_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 std::map<int,std::string > agent_motion_status_map;
 std::map<int,std::string > agent_head_status_map;
 std::map<int,std::string > agent_hand_status_map;
 std::map<int,std::string > agent_hand_config_mode_map;
+std::map<int,std::string > agent_hand_occupancy_info_map;
+std::map<int,std::string > agent_hand_rest_info_map;
 std::map<int,std::string > agent_torso_status_map;
 
 // Internal functions
@@ -59,11 +67,14 @@ static int init_all_agents_activity_facts();
 static int alloc_agents_tmp_config_for_ASA();
 static int create_agents_facts_name_maps();
 static int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
+static int prepare_for_Agent_State_Analysis();
+static int is_object_laying_on_a_support(int obj_index, int &support_index);
 
 int hri_execute_Agent_State_Analysis_functions()
 {
   
-  printf(" Inside hri_execute_Agent_State_Analysis_functions()\n");
+  ////printf(" Inside hri_execute_Agent_State_Analysis_functions()\n");
+  /*
   if(agents_for_ASA_initialized==0)
   {
     char *threshold_file_path="/home/akpandey/Human_State_Analysis_Thresholds.txt";
@@ -77,11 +88,44 @@ int hri_execute_Agent_State_Analysis_functions()
      create_agents_facts_name_maps();
     agents_for_ASA_initialized=1;
   }
+   */
   ////get_human_activity_facts(human1_fact );
   //////get_human_activity_facts();
+  if(agents_for_ASA_prepared==1)
+  {
+   int support_index;
+    ////is_object_laying_on_a_support(get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE), support_index);
  get_agents_activity_facts(find_activity_fact_for);
  print_agents_activity_facts(find_activity_fact_for);
-  
+  }
+}
+
+int prepare_for_Agent_State_Analysis(char *threshold_file_path)
+{
+  printf("agents_for_ASA_initialized=%d\n",agents_for_ASA_initialized);
+  ////char *threshold_file_path="/home/akpandey/Human_State_Analysis_Thresholds.txt";
+  if(agents_for_ASA_initialized==0)
+  {
+    printf(">>>> ASA_ERROR: First Initialize Agents for ASA, most probably the function to init is init_agents_for_MA_and_ASA()\n");
+    agents_for_ASA_prepared=0;
+    return 0;
+  }
+    
+    ////get_indices_for_MA_agents();
+    init_enable_agents_for_facts();
+    init_agent_state_analysis();
+    
+    int init_thr_res=init_thresholds_for_ASA(threshold_file_path);
+    if(init_thr_res==0)
+      return 0;
+    
+    init_all_agents_activity_facts();
+    index_test_cube_ASA=get_index_of_robot_by_name("VISBALL_MIGHTABILITY");
+     alloc_agents_tmp_config_for_ASA();
+     create_agents_facts_name_maps();
+    agents_for_ASA_prepared=1;
+    return 1;
+    
 }
 
 int alloc_agents_tmp_config_for_ASA()
@@ -92,6 +136,9 @@ int alloc_agents_tmp_config_for_ASA()
   agents_tmp_config_ASA[i]= MY_ALLOC(double,envPt_ASA->robot[indices_of_MA_agents[i]]->nb_dof);
   p3d_get_robot_config_into(envPt_ASA->robot[indices_of_MA_agents[i]],&agents_tmp_config_ASA[i]);
   }
+  
+  test_cube_tmp_config=MY_ALLOC(double,envPt_ASA->robot[index_test_cube_ASA]->nb_dof);
+  p3d_get_robot_config_into(envPt_ASA->robot[index_test_cube_ASA],&test_cube_tmp_config);
 }
 
 int destroy_agents_tmp_config_for_ASA()
@@ -128,6 +175,17 @@ agent_hand_config_mode_map[AGENT_HAND_AT_REST_MODE]="AGENT_HAND_AT_REST_MODE";
 agent_hand_config_mode_map[AGENT_HAND_AT_MANIPULATION_MODE]="AGENT_HAND_AT_MANIPULATION_MODE";
 agent_hand_config_mode_map[AGENT_HAND_CONFIG_MODE_UNKNOWN]="AGENT_HAND_CONFIG_MODE_UNKNOWN";
 
+agent_hand_occupancy_info_map[AGENT_HAND_HOLDING_OBJECT]="AGENT_HAND_HOLDING_OBJECT";
+agent_hand_occupancy_info_map[AGENT_HAND_FREE_OF_OBJECT]="AGENT_HAND_FREE_OF_OBJECT";
+agent_hand_occupancy_info_map[AGENT_HAND_OCCUPANCY_MODE_UNKNOWN]="AGENT_HAND_OCCUPANCY_MODE_UNKNOWN";
+
+
+agent_hand_rest_info_map[AGENT_HAND_REST_BY_POSTURE]="AGENT_HAND_REST_BY_POSTURE";
+agent_hand_rest_info_map[AGENT_HAND_REST_ON_SUPPORT]="AGENT_HAND_REST_ON_SUPPORT";
+agent_hand_rest_info_map[AGENT_HAND_NOT_IN_REST]="AGENT_HAND_NOT_IN_REST";
+agent_hand_rest_info_map[AGENT_HAND_REST_MODE_UNKNOWN]="AGENT_HAND_REST_MODE_UNKNOWN";
+
+
 agent_torso_status_map[AGENT_TORSO_TURNING]="AGENT_TORSO_TURNING";
 agent_torso_status_map[AGENT_TORSO_STATIC]="AGENT_TORSO_STATIC";
 agent_torso_status_map[AGENT_TORSO_HAS_TURNED]="AGENT_TORSO_HAS_TURNED";
@@ -143,30 +201,76 @@ int init_all_agents_activity_facts()
     switch(i)
     {
       case HUMAN1_MA:
-	Ag_Activity_Fact[HUMAN1_MA].agent_index=-1;
-	Ag_Activity_Fact[HUMAN1_MA].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
-	Ag_Activity_Fact[HUMAN1_MA].torso=AGENT_TORSO_STATUS_UNKNOWN;
-	Ag_Activity_Fact[HUMAN1_MA].head=AGENT_HEAD_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].agent_index=-1;
+	Ag_Activity_Fact[i].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].torso=AGENT_TORSO_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].head=AGENT_HEAD_STATUS_UNKNOWN;
 	
-	Ag_Activity_Fact[HUMAN1_MA].right_hand=AGENT_HAND_STATUS_UNKNOWN;
-	Ag_Activity_Fact[HUMAN1_MA].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
-	Ag_Activity_Fact[HUMAN1_MA].left_hand=AGENT_HAND_STATUS_UNKNOWN;
-	Ag_Activity_Fact[HUMAN1_MA].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
 	
+	Ag_Activity_Fact[i].right_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	
+	
+	Ag_Activity_Prev_Fact_for_print[i].agent_index=-1;
+	Ag_Activity_Prev_Fact_for_print[i].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].torso=AGENT_TORSO_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].head=AGENT_HEAD_STATUS_UNKNOWN;
+	
+	Ag_Activity_Prev_Fact_for_print[i].right_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
 	
 	break;
+
+#ifdef JIDO_EXISTS_FOR_MA
       case JIDO_MA:
-	Ag_Activity_Fact[JIDO_MA].agent_index=-1;
-	Ag_Activity_Fact[JIDO_MA].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
-	Ag_Activity_Fact[JIDO_MA].torso=AGENT_TORSO_STATUS_UNKNOWN;
-	Ag_Activity_Fact[JIDO_MA].head=AGENT_HEAD_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].agent_index=-1;
+	Ag_Activity_Fact[i].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].torso=AGENT_TORSO_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].head=AGENT_HEAD_STATUS_UNKNOWN;
 	
-	Ag_Activity_Fact[JIDO_MA].right_hand=AGENT_HAND_STATUS_UNKNOWN;
-	Ag_Activity_Fact[JIDO_MA].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
-	Ag_Activity_Fact[JIDO_MA].left_hand=AGENT_HAND_STATUS_UNKNOWN;
-	Ag_Activity_Fact[JIDO_MA].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	
+	Ag_Activity_Fact[i].right_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].right_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Fact[i].left_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	
+	
+	Ag_Activity_Prev_Fact_for_print[i].agent_index=-1;
+	Ag_Activity_Prev_Fact_for_print[i].whole_body=AGENT_MOTION_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].torso=AGENT_TORSO_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].head=AGENT_HEAD_STATUS_UNKNOWN;
+	
+	Ag_Activity_Prev_Fact_for_print[i].right_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand=AGENT_HAND_STATUS_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_mode=AGENT_HAND_CONFIG_MODE_UNKNOWN;
+	
+	
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].right_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_occup.occupancy_mode=AGENT_HAND_OCCUPANCY_MODE_UNKNOWN;
+	Ag_Activity_Prev_Fact_for_print[i].left_hand_rest_info.rest_type=AGENT_HAND_REST_MODE_UNKNOWN;
+	
+	
 	break;
-	
+#endif
 	
     }
   }
@@ -187,6 +291,15 @@ int init_thresholds_for_ASA(char *file_name_with_path)
     {
       case HUMAN1_MA:
 	Thr_FP = fopen (file_name_with_path, "r"); 
+	if(Thr_FP==NULL)
+	{
+	  printf(" >>>> ASA ERROR: Can not open the threshold file %s for reading the values for human\n", file_name_with_path);
+	  return 0;
+	  
+	}
+	
+	 printf(" Opening the threshold file %s for reading the threshold values for human\n", file_name_with_path);
+	 
 	for( j=0; j<MAXI_NUM_OF_THRESHOLDS_FOR_ASA; j++)
 	{
 	  if(fgets(line, 150, Thr_FP) != NULL)
@@ -222,12 +335,17 @@ int init_thresholds_for_ASA(char *file_name_with_path)
 	agents_for_ASA[HUMAN1_MA].ASA_threshold.min_period_for_agent_hand_is_not_moving=1000;//in ms
 	
 	*/
+	fclose(Thr_FP);
 	break;
+
+#ifdef JIDO_EXISTS_FOR_MA
       case JIDO_MA:
 	
 	break;
+#endif
     }
   }
+  return 1;
 }
 
 int init_indices_of_agent_for_ASA()
@@ -236,6 +354,7 @@ int init_indices_of_agent_for_ASA()
   {
     switch(i)
     {
+#ifdef JIDO_EXISTS_FOR_MA
       case JIDO_MA:
 //       agents_for_ASA[i].agent_index=get_index_of_robot_by_name("JIDOKUKA_ROBOT");
 //       strcpy(agents_for_ASA[i].agent_name,"JIDOKUKA_ROBOT");
@@ -259,6 +378,8 @@ int init_indices_of_agent_for_ASA()
       agents_for_ASA[i].joint_indx.L_hand_jnt=-1;
       
       break;
+#endif
+      
 #ifdef HRP2_EXISTS_FOR_MA
       case HRP2_MA:
 	 agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
@@ -360,15 +481,17 @@ int init_agent_state_analysis()
    init_indices_of_agent_for_ASA();
 }
 
-int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_hand)
+
+int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_hand, int &supp_index)
 {
+  int on_support=0;
   int agent_index=indices_of_MA_agents[for_agent];
   int hand_joint;
   char hand_name[50];
   
   if(for_hand==MA_RIGHT_HAND)
   {
-   //// printf(" Inside is_hand_on_support for right hand\n");
+    ////printf(" Inside is_hand_on_support for right hand\n");
   hand_joint=agents_for_ASA[for_agent].joint_indx.R_hand_jnt;
   strcpy(hand_name,"rHand");
  
@@ -376,7 +499,7 @@ int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_han
   
   if(for_hand==MA_LEFT_HAND)
   {
-    //// printf(" Inside is_hand_on_support for left hand\n");
+     ////printf(" Inside is_hand_on_support for left hand\n");
   hand_joint=agents_for_ASA[for_agent].joint_indx.L_hand_jnt;
   strcpy(hand_name,"lHand");
   }
@@ -399,31 +522,80 @@ int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_han
   double y=envPt_ASA->robot[agent_index]->joints[hand_joint]->abs_pos[1][3];
   double z=envPt_ASA->robot[agent_index]->joints[hand_joint]->abs_pos[2][3];
  
+  test_cube_tmp_config[6]=x;
+  test_cube_tmp_config[7]=y;
+   ////envPt_ASA->robot[index_test_cube_ASA]->joints[1]->abs_pos[0][3]=x;
+   ////envPt_ASA->robot[index_test_cube_ASA]->joints[1]->abs_pos[1][3]=y;
   
   double decrement_z_by=0.03;
   
   for(int j=0; j<2;j++)
   {
-   p3d_set_freeflyer_pose2(envPt_ASA->robot[index_test_cube_ASA], x,y,z,0,0,0);
+    test_cube_tmp_config[8]=z;
+    p3d_set_and_update_this_robot_conf(envPt_ASA->robot[index_test_cube_ASA], test_cube_tmp_config);
+   
+    ////envPt_ASA->robot[index_test_cube_ASA]->joints[1]->abs_pos[2][3]=z;
+    
+   ////p3d_set_freeflyer_pose2(envPt_ASA->robot[index_test_cube_ASA], x,y,z,0,0,0);
   int kcd_with_report=0;
   int res = p3d_col_test_robot(envPt_ASA->robot[index_test_cube_ASA],kcd_with_report);
   if(res>0)
    {
      ////pqp_print_colliding_pair();
-     printf(" Human hand is on a support \n");
+    //////// printf(" Human hand is on a support \n");
+     
+                /*p3d_obj *o1;
+		p3d_obj *o2;
+		p3d_obj *sup_obj;
+		
+		printf(" From current pos \n");
+		pqp_colliding_pair(&o1, &o2);
+		printf(" obj1= %s, obj2 =%s\n",o1->name,o2->name);
+		*/
+		
+		char obj_1[200], obj_2[200];
+		char sup_obj_name[200];
+		pqp_colliding_obj_name_pair(obj_1, obj_2);
+		//////printf("obj1= %s, obj2 =%s\n",obj_1,obj_2);
+		
+		if(strcasestr(obj_1,envPt_ASA->robot[index_test_cube_ASA]->name))
+		{
+		  //sup_obj=o2;
+		  strcpy(sup_obj_name,obj_2);
+                  
+		  ////int coll_obj_index=get_index_of_robot_by_name(o2->name);
+		  ////is_object_laying_on_a_support()
+		}
+		else
+		{
+		 //sup_obj=o1;
+	         strcpy(sup_obj_name,obj_1);
+		}
+		//////printf(" sup_obj_name=%s\n",sup_obj_name);
+		int pt_ctr=0;
+		char obj_name[100];
+		while(sup_obj_name[pt_ctr]!='.')
+		{
+		  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
+		  pt_ctr++;
+		}
+		obj_name[pt_ctr]='\0';
+		/*
+		  int obj_name_end_indx;
+                  obj_name_end_indx = strcspn (sup_obj_name,".");
+		  printf(" obj_name_end_indx=%d\n",obj_name_end_indx);
+                  char * obj_name;
+		  strncpy(obj_name,sup_obj_name,obj_name_end_indx);
+		  obj_name[obj_name_end_indx]='\0';
+		  */
+                   supp_index=get_index_of_robot_by_name(obj_name);
+		   
+                  //////printf(" support is %s, supp_index=%d\n",obj_name, supp_index);
+		  
      /////p3d_col_activate_rob_rob(envPt_ASA->robot[index_test_cube_ASA],envPt_ASA->robot[agent_index]);
      ////p3d_col_activate_rob_obj(envPt_ASA->robot[index_test_cube_ASA],envPt_ASA->robot[agent_index]->joints[hand_joint]->o);
-    for(int i=0; i<envPt_ASA->robot[agent_index]->no; i++)
-    {
-    ////printf(" >>>> envPt_ASA->robot[agent_index]->o[i]->name = %s \n", envPt_ASA->robot[agent_index]->o[i]->name);
-     if(strcasestr(envPt_ASA->robot[agent_index]->o[i]->name,hand_name))
-     {
-       p3d_col_activate_rob_obj(envPt_ASA->robot[index_test_cube_ASA],envPt_ASA->robot[agent_index]->o[i]);
-       
-     }
-    }
-    p3d_set_freeflyer_pose2(envPt_ASA->robot[index_test_cube_ASA], 0,0,0,0,0,0);
-     return 1;
+		  on_support=1;
+    break;
    }
    
    z-=decrement_z_by;
@@ -440,7 +612,15 @@ int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_han
        
      }
     }
-     p3d_set_freeflyer_pose2(envPt_ASA->robot[index_test_cube_ASA], 0,0,0,0,0,0);
+////     p3d_set_freeflyer_pose2(envPt_ASA->robot[index_test_cube_ASA], 0,0,0,0,0,0);
+     test_cube_tmp_config[6]=0;
+     test_cube_tmp_config[7]=0;
+     test_cube_tmp_config[8]=0;
+    p3d_set_and_update_this_robot_conf(envPt_ASA->robot[index_test_cube_ASA], test_cube_tmp_config);
+    
+     if(on_support==1)
+       return 1;
+     
   return 0;
   
 }
@@ -486,9 +666,59 @@ int is_hand_in_rest_config(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for
   
 }
 
-int get_agents_static_hand_mode(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_hand, agents_hand_config_mode &res_hand_mode)
+int get_agents_hand_info(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_hand, agents_hand_config_mode &res_hand_mode, agent_hand_occupancy_info &res_hand_occup, agent_hand_rest_info &res_hand_rest_info)
 {
- int hand_on_support_res=is_hand_on_support(for_agent, for_hand);
+ int hand_supp_index;
+ int hand_on_support_res=is_hand_on_support(for_agent, for_hand,hand_supp_index);
+ ////printf(" hand_on_support_res = %d \n",hand_on_support_res);
+ 
+ if(hand_on_support_res==1)
+ {
+   ////printf(" hand support obj name = %s\n",envPt_ASA->robot[hand_supp_index]->name);
+   
+   if(strcasestr(envPt_ASA->robot[hand_supp_index]->name,"SHELF")||strcasestr(envPt_ASA->robot[hand_supp_index]->name,"TABLE")||strcasestr(envPt_ASA->robot[hand_supp_index]->name,"CHAIR"))
+   {
+     res_hand_mode=AGENT_HAND_AT_REST_MODE;
+     strcpy(res_hand_rest_info.hand_on_support_obj,envPt_ASA->robot[hand_supp_index]->name);
+     res_hand_rest_info.index_obj=hand_supp_index;
+     res_hand_rest_info.rest_type=AGENT_HAND_REST_ON_SUPPORT;
+     res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
+     return 1;
+     ////printf(" Support is heavy \n");
+   }
+   else
+   {
+     
+ p3d_col_deactivate_rob_rob(envPt_ASA->robot[indices_of_MA_agents[for_agent]], envPt_ASA->robot[hand_supp_index]);
+ int obj_supp_indx;
+ int is_obj_on_support_res=is_object_laying_on_a_support(hand_supp_index,obj_supp_indx);
+   if(is_obj_on_support_res==1)
+   {
+     res_hand_mode=AGENT_HAND_AT_REST_MODE;
+     strcpy(res_hand_rest_info.hand_on_support_obj,envPt_ASA->robot[hand_supp_index]->name);
+     res_hand_rest_info.index_obj=hand_supp_index;
+     res_hand_rest_info.rest_type=AGENT_HAND_REST_ON_SUPPORT;
+     
+     res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
+   }
+   else
+   {
+     res_hand_mode=AGENT_HAND_AT_MANIPULATION_MODE;
+     
+     strcpy(res_hand_occup.object_in_hand,envPt_ASA->robot[hand_supp_index]->name);
+     res_hand_occup.index_obj=hand_supp_index;
+     res_hand_occup.occupancy_mode=AGENT_HAND_HOLDING_OBJECT;
+     
+     res_hand_rest_info.rest_type=AGENT_HAND_NOT_IN_REST;
+     
+     
+   }
+   
+ p3d_col_activate_rob_rob(envPt_ASA->robot[indices_of_MA_agents[for_agent]], envPt_ASA->robot[hand_supp_index]);
+ 
+ 
+   }
+ }
   ////printf(" after test is_hand_on_support \n");
  if(hand_on_support_res==0)
  {
@@ -498,20 +728,25 @@ int get_agents_static_hand_mode(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_nam
    if(hand_in_rest_config==1)
    {
      res_hand_mode=AGENT_HAND_AT_REST_MODE;
+     res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
+      res_hand_rest_info.rest_type=AGENT_HAND_REST_BY_POSTURE;
      ////printf(" but Hand is in rest config \n");
    }
    else
    {
      res_hand_mode=AGENT_HAND_AT_MANIPULATION_MODE;
+      
+     res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
+     res_hand_rest_info.rest_type=AGENT_HAND_NOT_IN_REST;
      ////printf(" Hand is in manipulation config \n");
    }
  }
- else
- {
-   ////printf(" Hand is ON a support \n");
-   res_hand_mode=AGENT_HAND_AT_REST_MODE;
-   
- }
+//  else
+//  {
+//    ////printf(" Hand is ON a support \n");
+//    res_hand_mode=AGENT_HAND_AT_REST_MODE;
+//    
+//  }
  
  return 1;
 }
@@ -609,7 +844,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     ////////printf("Elapsed time: %lf milliseconds\n", elapsedTime);
 
   curr_config.time_diff_from_prev_config=elapsedTime;
-  printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
+  //////////printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
   
   ////printf(" prev conf time=%lf, curr conf time= %lf, time period : %lf s\n",prev_config.clock, curr_config.clock, elapsedTime);
                
@@ -878,7 +1113,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     }
   }
   
-  get_agents_static_hand_mode(for_agent,MA_RIGHT_HAND, Ag_Activity_Fact[for_agent].right_hand_mode);
+  ////get_agents_static_hand_mode(for_agent,MA_RIGHT_HAND, Ag_Activity_Fact[for_agent].right_hand_mode);
+  get_agents_hand_info(for_agent,MA_RIGHT_HAND, Ag_Activity_Fact[for_agent].right_hand_mode, Ag_Activity_Fact[for_agent].right_hand_occup, Ag_Activity_Fact[for_agent].right_hand_rest_info);
   
   
   curr_config.diff_prev_config.agent_L_hand_has_moved=0;
@@ -936,7 +1172,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     }
   }
   
-  get_agents_static_hand_mode(for_agent,MA_LEFT_HAND,Ag_Activity_Fact[for_agent].left_hand_mode);
+  ////get_agents_static_hand_mode(for_agent,MA_LEFT_HAND,Ag_Activity_Fact[for_agent].left_hand_mode);
+  get_agents_hand_info(for_agent,MA_LEFT_HAND, Ag_Activity_Fact[for_agent].left_hand_mode, Ag_Activity_Fact[for_agent].left_hand_occup, Ag_Activity_Fact[for_agent].left_hand_rest_info);
   
   human1_prev_configs.agents_config_info.push_back(curr_config);
   ////printf(
@@ -963,18 +1200,147 @@ int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]
   
 }
 
-int print_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent)
+int did_human_activity_facts_change(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &prev_fact, agents_activity_facts &curr_fact)
 {
-  printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[Ag_Activity_Fact[for_agent].agent_index]->name);
+  ///printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[Ag_Activity_Fact[for_agent].agent_index]->name);
+  
+  if(prev_fact.whole_body!=curr_fact.whole_body)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.torso!=curr_fact.torso)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.head!=curr_fact.head)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.right_hand!=curr_fact.right_hand)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.right_hand_mode!=curr_fact.right_hand_mode)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.right_hand_occup.occupancy_mode!=curr_fact.right_hand_occup.occupancy_mode)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.right_hand_rest_info.rest_type!=curr_fact.right_hand_rest_info.rest_type)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.left_hand!=curr_fact.left_hand)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.left_hand_mode!=curr_fact.left_hand_mode)
+  {
+    return 1;
+  }
+      
+  if(prev_fact.left_hand_occup.occupancy_mode!=curr_fact.left_hand_occup.occupancy_mode)
+  {
+    return 1;
+  }
+  
+  if(prev_fact.left_hand_rest_info.rest_type!=curr_fact.left_hand_rest_info.rest_type)
+  {
+    return 1;
+  }
+  
+      return 0;
+  ////Ag_Activity_Fact[for_agent].
+}
 
-  printf(" %s \n",agent_motion_status_map[Ag_Activity_Fact[for_agent].whole_body].c_str());
-  printf(" %s \n",agent_torso_status_map[Ag_Activity_Fact[for_agent].torso].c_str());
-  printf(" %s \n",agent_head_status_map[Ag_Activity_Fact[for_agent].head].c_str());
+int copy_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &from_fact, agents_activity_facts &to_fact)
+{
+  ///printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[Ag_Activity_Fact[for_agent].agent_index]->name);
+  to_fact.whole_body=from_fact.whole_body;
+  to_fact.torso=from_fact.torso;
+  to_fact.head=from_fact.head;
+  to_fact.right_hand=from_fact.right_hand;
+  to_fact.right_hand_mode=from_fact.right_hand_mode;
+  to_fact.left_hand=from_fact.left_hand;
+  to_fact.left_hand_mode=from_fact.left_hand_mode;
+  
+  to_fact.right_hand_occup.occupancy_mode=from_fact.right_hand_occup.occupancy_mode;
+  to_fact.right_hand_occup.index_obj=from_fact.right_hand_occup.index_obj;
+  strcpy(to_fact.right_hand_occup.object_in_hand,from_fact.right_hand_occup.object_in_hand);
+  to_fact.right_hand_rest_info.rest_type=from_fact.right_hand_rest_info.rest_type;
+  to_fact.right_hand_rest_info.index_obj=from_fact.right_hand_rest_info.index_obj;
+  strcpy(to_fact.right_hand_rest_info.hand_on_support_obj,from_fact.right_hand_rest_info.hand_on_support_obj);
+  
+  to_fact.left_hand_occup.occupancy_mode=from_fact.left_hand_occup.occupancy_mode;
+  to_fact.left_hand_occup.index_obj=from_fact.left_hand_occup.index_obj;
+  strcpy(to_fact.left_hand_occup.object_in_hand,from_fact.left_hand_occup.object_in_hand);
+  to_fact.left_hand_rest_info.rest_type=from_fact.left_hand_rest_info.rest_type;
+  to_fact.left_hand_rest_info.index_obj=from_fact.left_hand_rest_info.index_obj;
+  strcpy(to_fact.left_hand_rest_info.hand_on_support_obj,from_fact.left_hand_rest_info.hand_on_support_obj);
+  return 1;
+      
+  ////Ag_Activity_Fact[for_agent].
+}
+
+int print_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &ag_act_fact)
+{
+
+  printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[ag_act_fact.agent_index]->name);
+
+  printf(" %s \n",agent_motion_status_map[ag_act_fact.whole_body].c_str());
+  printf(" %s \n",agent_torso_status_map[ag_act_fact.torso].c_str());
+  printf(" %s \n",agent_head_status_map[ag_act_fact.head].c_str());
     
-     printf(" Right Hand: %s \n",agent_hand_status_map[Ag_Activity_Fact[for_agent].right_hand].c_str());
-     printf(" Right Hand: %s \n",agent_hand_config_mode_map[Ag_Activity_Fact[for_agent].right_hand_mode].c_str());
-     printf(" Left Hnad: %s \n",agent_hand_status_map[Ag_Activity_Fact[for_agent].left_hand].c_str());
-     printf(" Left Hnad: %s \n",agent_hand_config_mode_map[Ag_Activity_Fact[for_agent].left_hand_mode].c_str());
+     printf(" Right Hand Status: %s \n",agent_hand_status_map[ag_act_fact.right_hand].c_str());
+     printf(" Right Hand Mode: %s \n",agent_hand_config_mode_map[ag_act_fact.right_hand_mode].c_str());
+     
+     if(ag_act_fact.right_hand_mode==AGENT_HAND_AT_REST_MODE)
+     {
+       printf(" >>> Rest mode type: %s \n",agent_hand_rest_info_map[ag_act_fact.right_hand_rest_info.rest_type].c_str());
+       
+       if(ag_act_fact.right_hand_rest_info.rest_type==AGENT_HAND_REST_ON_SUPPORT)
+       { 
+       printf(" >>> Resting on support: %s \n", ag_act_fact.right_hand_rest_info.hand_on_support_obj);
+       }
+     }
+     
+     printf(" Right Hand occupancy: %s \n",agent_hand_occupancy_info_map[ag_act_fact.right_hand_occup.occupancy_mode].c_str());
+     
+     if(ag_act_fact.right_hand_occup.occupancy_mode==AGENT_HAND_HOLDING_OBJECT)
+     {
+       printf(" >>> Holding Object %s \n",ag_act_fact.right_hand_occup.object_in_hand);
+     }
+     
+     
+     printf(" Left Hand Status: %s \n",agent_hand_status_map[ag_act_fact.left_hand].c_str());
+     printf(" Left Hand Mode: %s \n",agent_hand_config_mode_map[ag_act_fact.left_hand_mode].c_str());
+     
+     if(ag_act_fact.left_hand_mode==AGENT_HAND_AT_REST_MODE)
+     {
+       printf(" >>> Rest mode type: %s \n",agent_hand_rest_info_map[ag_act_fact.left_hand_rest_info.rest_type].c_str());
+       
+       if(ag_act_fact.left_hand_rest_info.rest_type==AGENT_HAND_REST_ON_SUPPORT)
+       { 
+       printf(" >>> Resting on support: %s \n", ag_act_fact.left_hand_rest_info.hand_on_support_obj);
+       }
+     }
+     
+     printf(" Left Hand occupancy: %s \n",agent_hand_occupancy_info_map[ag_act_fact.left_hand_occup.occupancy_mode].c_str());
+     
+     if(ag_act_fact.left_hand_occup.occupancy_mode==AGENT_HAND_HOLDING_OBJECT)
+     {
+       printf(" >>> Holding Object %s \n",ag_act_fact.left_hand_occup.object_in_hand);
+     }
      
       
   ////Ag_Activity_Fact[for_agent].
@@ -989,11 +1355,128 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
      case HUMAN1_MA:
        if(find_facts_for[i]==1)
        {
-	 print_human_activity_facts(HUMAN1_MA);
+	 if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
+	 {
+	 print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
+	 copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
+	 }
        }
        
        break;
    }
  }
   
+}
+
+int is_object_laying_on_a_support(int obj_index, int &support_index)
+{
+  ////////printf(" Inside is_object_laying_on_a_support\n");
+  int kcd_with_report=0;
+  double act_z_val=envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3];
+   int res = p3d_col_test_robot(envPt_ASA->robot[obj_index],kcd_with_report);
+	    if(res>0)
+	      {
+		char obj_1[200], obj_2[200];
+		char sup_obj_name[200];
+		pqp_colliding_obj_name_pair(obj_1, obj_2);
+		////////printf("obj1= %s, obj2 =%s\n",obj_1,obj_2);
+		
+		if(strcasestr(obj_1,envPt_ASA->robot[obj_index]->name))
+		{
+		  //sup_obj=o2;
+		  strcpy(sup_obj_name,obj_2);
+                  
+		  ////int coll_obj_index=get_index_of_robot_by_name(o2->name);
+		  ////is_object_laying_on_a_support()
+		}
+		else
+		{
+		 //sup_obj=o1;
+	         strcpy(sup_obj_name,obj_1);
+		}
+		////////printf(" sup_obj_name=%s\n",sup_obj_name);
+		int pt_ctr=0;
+		char obj_name[100];
+		while(sup_obj_name[pt_ctr]!='.')
+		{
+		  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
+		  pt_ctr++;
+		}
+		obj_name[pt_ctr]='\0';
+		/*
+		  int obj_name_end_indx;
+                  obj_name_end_indx = strcspn (sup_obj_name,".");
+		  printf(" obj_name_end_indx=%d\n",obj_name_end_indx);
+                  char * obj_name;
+		  strncpy(obj_name,sup_obj_name,obj_name_end_indx);
+		  obj_name[obj_name_end_indx]='\0';
+		  */
+                   support_index=get_index_of_robot_by_name(obj_name);
+		   envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]=act_z_val;
+                  ////////printf(" support is %s, supp_index=%d\n",obj_name, support_index);
+		  
+		  return 1;
+// 		p3d_obj *o1;
+// 		p3d_obj *o2;
+// 		printf(" From current pos \n");
+// 		pqp_colliding_pair(&o1, &o2);
+// 		printf(" obj1= %s, obj2 =%s\n",o1->name,o2->name);
+		////pqp_print_colliding_pair();
+	      }
+	      
+	      envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]-=0.05;
+	      
+	    res = p3d_col_test_robot(envPt_ASA->robot[obj_index],kcd_with_report);
+	     if(res>0)
+	      {
+		////////printf(" From down pos \n");
+		char obj_1[200], obj_2[200];
+		char sup_obj_name[200];
+		pqp_colliding_obj_name_pair(obj_1, obj_2);
+		////////printf("obj1= %s, obj2 =%s\n",obj_1,obj_2);
+		
+		if(strcasestr(obj_1,envPt_ASA->robot[obj_index]->name))
+		{
+		  //sup_obj=o2;
+		  strcpy(sup_obj_name,obj_2);
+                  
+		  ////int coll_obj_index=get_index_of_robot_by_name(o2->name);
+		  ////is_object_laying_on_a_support()
+		}
+		else
+		{
+		 //sup_obj=o1;
+	         strcpy(sup_obj_name,obj_1);
+		}
+		////////printf(" sup_obj_name=%s\n",sup_obj_name);
+		int pt_ctr=0;
+		char obj_name[100];
+		while(sup_obj_name[pt_ctr]!='.')
+		{
+		  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
+		  pt_ctr++;
+		}
+		obj_name[pt_ctr]='\0';
+		/*
+		  int obj_name_end_indx;
+                  obj_name_end_indx = strcspn (sup_obj_name,".");
+		  printf(" obj_name_end_indx=%d\n",obj_name_end_indx);
+                  char * obj_name;
+		  strncpy(obj_name,sup_obj_name,obj_name_end_indx);
+		  obj_name[obj_name_end_indx]='\0';
+		  */
+                   support_index=get_index_of_robot_by_name(obj_name);
+		   
+                  ////////printf(" support is %s, supp_index=%d\n",obj_name, support_index);
+		  envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]=act_z_val;
+		  return 1;
+// 		p3d_obj *o1;
+// 		p3d_obj *o2;
+// 		
+// 		pqp_colliding_pair(&o1, &o2);
+// 		printf(" obj1= %s, obj2 =%s\n",o1->name,o2->name);
+		////pqp_print_colliding_pair();
+	      } 
+	      envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]=act_z_val;
+	      return 0;
 }

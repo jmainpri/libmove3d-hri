@@ -28,7 +28,7 @@ void g3d_hri_main()
 #ifdef USE_MIGHTABILITY_MAPS
 		  ////printf("Inside g3d_draw_env_custom() \n");
 		  execute_Mightability_Map_functions();
-		  ////////hri_execute_Agent_State_Analysis_functions();
+		  hri_execute_Agent_State_Analysis_functions();
 #endif
 	  
 	  if(FALSE) { 

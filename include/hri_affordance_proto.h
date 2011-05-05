@@ -196,5 +196,6 @@ extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE_E
 extern int get_indices_for_MA_agents();
 extern int show_all_grasps_for_this_placement_list_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, std::list<gpPlacement> *placement_list, point_co_ordi at_point);
 extern int show_all_grasps_for_this_placement_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, gpPlacement placement, point_co_ordi at_point);
+extern int init_agents_for_MA_and_ASA();
 #endif /* __CEXTRACT__ */
 
