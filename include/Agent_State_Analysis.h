@@ -144,6 +144,42 @@ typedef enum agents_hand_config_mode
   
 }agents_hand_config_mode;
 
+typedef enum agents_hand_occupancy_mode
+{
+  AGENT_HAND_HOLDING_OBJECT=0,
+  AGENT_HAND_FREE_OF_OBJECT,
+  
+  AGENT_HAND_OCCUPANCY_MODE_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_HAND_OCCUPANCY_MODE
+  
+}agents_hand_occupancy_mode;
+
+typedef enum agents_hand_rest_mode_types
+{
+  AGENT_HAND_REST_BY_POSTURE=0,
+  AGENT_HAND_REST_ON_SUPPORT,
+  AGENT_HAND_NOT_IN_REST,
+  
+  AGENT_HAND_REST_MODE_UNKNOWN,//NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_OF_AGENTS_HAND_REST_MODE
+}agents_hand_rest_mode_types;
+
+typedef struct agent_hand_occupancy_info
+{
+  agents_hand_occupancy_mode occupancy_mode;
+  char object_in_hand[100];
+  int index_obj; //Should be synchronized with the global index of obj in env 
+}agent_hand_occupancy_info;
+
+typedef struct agent_hand_rest_info
+{
+  agents_hand_rest_mode_types rest_type;
+  char hand_on_support_obj[100];
+  int index_obj; //Should be synchronized with the global index of obj in env 
+}agent_hand_rest_info;
+
 typedef enum agents_torso_status
 {
   AGENT_TORSO_TURNING=0,
@@ -253,6 +289,10 @@ typedef struct agents_activity_facts
    agents_hand_status left_hand;
    agents_hand_config_mode right_hand_mode;
    agents_hand_config_mode left_hand_mode;
+   agent_hand_occupancy_info right_hand_occup;
+   agent_hand_occupancy_info left_hand_occup;
+   agent_hand_rest_info right_hand_rest_info;
+   agent_hand_rest_info left_hand_rest_info;
    
 }agents_activity_facts;
 
