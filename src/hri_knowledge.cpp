@@ -93,7 +93,7 @@ HRI_ENTITIES * hri_create_entities()
       /// We get the GHOST object part to have correct values for Bounding Boxes.
       for(j=0; j<env->robot[i]->no; j++) {
         objectrealname = strrchr(env->robot[i]->o[j]->name, '.')+1;
-        if(strcasestr(objectrealname,"GHOST") &&
+        if((strcasestr(objectrealname,"GHOST") || strcasestr(objectrealname,"G")) &&
            (strcasestr(objectrealname,"SURFACE") || strcasestr(objectrealname,"HAND") ||
             strcasestr(objectrealname,"HEAD")    || strcasestr(objectrealname,"CAMERA")) ) {
              entities->entities = MY_REALLOC(entities->entities, HRI_ENTITY*, ent_i, ent_i+1);
