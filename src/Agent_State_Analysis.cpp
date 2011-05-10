@@ -56,6 +56,7 @@ std::map<int,std::string > agent_hand_config_mode_map;
 std::map<int,std::string > agent_hand_occupancy_info_map;
 std::map<int,std::string > agent_hand_rest_info_map;
 std::map<int,std::string > agent_torso_status_map;
+std::map<int,std::string > agent_whole_body_turn_status_map;
 
 // Internal functions
 static int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent);
@@ -185,6 +186,11 @@ agent_hand_rest_info_map[AGENT_HAND_REST_ON_SUPPORT]="AGENT_HAND_REST_ON_SUPPORT
 agent_hand_rest_info_map[AGENT_HAND_NOT_IN_REST]="AGENT_HAND_NOT_IN_REST";
 agent_hand_rest_info_map[AGENT_HAND_REST_MODE_UNKNOWN]="AGENT_HAND_REST_MODE_UNKNOWN";
 
+agent_whole_body_turn_status_map[AGENT_WHOLE_BODY_TURNING]="AGENT_WHOLE_BODY_TURNING";
+agent_whole_body_turn_status_map[AGENT_WHOLE_BODY_NOT_TURNING]="AGENT_WHOLE_BODY_NOT_TURNING";
+agent_whole_body_turn_status_map[AGENT_WHOLE_BODY_HAS_TURNED]="AGENT_WHOLE_BODY_HAS_TURNED";
+agent_whole_body_turn_status_map[AGENT_WHOLE_BODY_DID_NOT_TURN]="AGENT_WHOLE_BODY_DID_NOT_TURN";
+agent_whole_body_turn_status_map[AGENT_WHOLE_BODY_STATUS_UNKNOWN]="AGENT_WHOLE_BODY_STATUS_UNKNOWN";
 
 agent_torso_status_map[AGENT_TORSO_TURNING]="AGENT_TORSO_TURNING";
 agent_torso_status_map[AGENT_TORSO_STATIC]="AGENT_TORSO_STATIC";
@@ -574,7 +580,7 @@ int is_hand_on_support(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_han
 		//////printf(" sup_obj_name=%s\n",sup_obj_name);
 		int pt_ctr=0;
 		char obj_name[100];
-		while(sup_obj_name[pt_ctr]!='.')
+		while(sup_obj_name[pt_ctr]!='.'&&sup_obj_name[pt_ctr]!='\0')
 		{
 		  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
 		  pt_ctr++;
@@ -688,21 +694,32 @@ int get_agents_hand_info(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_h
    }
    else
    {
-     
- p3d_col_deactivate_rob_rob(envPt_ASA->robot[indices_of_MA_agents[for_agent]], envPt_ASA->robot[hand_supp_index]);
- int obj_supp_indx;
- int is_obj_on_support_res=is_object_laying_on_a_support(hand_supp_index,obj_supp_indx);
-   if(is_obj_on_support_res==1)
-   {
+     if(hand_supp_index==indices_of_MA_agents[for_agent])
+     {
+     res_hand_mode=AGENT_HAND_AT_REST_MODE;
+     strcpy(res_hand_rest_info.hand_on_support_obj,envPt_ASA->robot[hand_supp_index]->name);
+     res_hand_rest_info.index_obj=hand_supp_index;
+     res_hand_rest_info.rest_type=AGENT_HAND_REST_ON_SUPPORT;
+     res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
+     ////printf("Support is human itself \n");
+     return 1;
+     }
+    else
+     {
+     p3d_col_deactivate_rob_rob(envPt_ASA->robot[indices_of_MA_agents[for_agent]], envPt_ASA->robot[hand_supp_index]);
+     int obj_supp_indx;
+     int is_obj_on_support_res=is_object_laying_on_a_support(hand_supp_index,obj_supp_indx);
+     if(is_obj_on_support_res==1)
+      {
      res_hand_mode=AGENT_HAND_AT_REST_MODE;
      strcpy(res_hand_rest_info.hand_on_support_obj,envPt_ASA->robot[hand_supp_index]->name);
      res_hand_rest_info.index_obj=hand_supp_index;
      res_hand_rest_info.rest_type=AGENT_HAND_REST_ON_SUPPORT;
      
      res_hand_occup.occupancy_mode=AGENT_HAND_FREE_OF_OBJECT;
-   }
-   else
-   {
+      }
+      else
+      {
      res_hand_mode=AGENT_HAND_AT_MANIPULATION_MODE;
      
      strcpy(res_hand_occup.object_in_hand,envPt_ASA->robot[hand_supp_index]->name);
@@ -712,11 +729,12 @@ int get_agents_hand_info(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_h
      res_hand_rest_info.rest_type=AGENT_HAND_NOT_IN_REST;
      
      
-   }
+      }
    
  p3d_col_activate_rob_rob(envPt_ASA->robot[indices_of_MA_agents[for_agent]], envPt_ASA->robot[hand_supp_index]);
  
- 
+ return 1;
+    }
    }
  }
   ////printf(" after test is_hand_on_support \n");
@@ -750,6 +768,12 @@ int get_agents_hand_info(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_h
  
  return 1;
 }
+
+extern int NEED_CURRENT_VISIBILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+extern int NEED_ALL_VISIBILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+extern int NEED_ALL_REACHABILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+extern int NEED_CURRENT_REACHABILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+extern robots_status robots_status_for_Mightability_Maps[100];
 
 int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 {
@@ -798,17 +822,23 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.conti_diff_info.agent_head_has_turned_conti_for_period=0;
     curr_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period=0;
     curr_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period=0;
+    curr_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period=0;
     curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=0;
+    
     curr_config.conti_diff_info.agent_has_not_moved_conti_for_period=0;
     curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=0;
     curr_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period=0;
     curr_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period=0;
+    curr_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period=0;
     curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=0;
+    
     curr_config.diff_prev_config.agent_has_moved=-1;
     curr_config.diff_prev_config.agent_head_has_turned=-1;
+    curr_config.diff_prev_config.agent_whole_body_has_turned=-1;
     curr_config.diff_prev_config.agent_torso_has_turned=-1;
     curr_config.diff_prev_config.agent_L_hand_has_moved=-1;
     curr_config.diff_prev_config.agent_R_hand_has_moved=-1;
+    
     
     human1_prev_configs.agents_config_info.push_back(curr_config);
     return 0;
@@ -874,6 +904,17 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
   if(curr_config.diff_prev_config.agent_has_moved==1)
   {
+     // If the agent has just moved then update only the current states of visibility for all the agents and current state of reachability only for the current agent 
+     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     {
+     NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i];
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     }
+     NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+     robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+     
     curr_config.conti_diff_info.agent_has_not_moved_conti_for_period=0;
    if(prev_config.diff_prev_config.agent_has_moved==1)
     {
@@ -888,6 +929,21 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     {
       ////////printf(" **** Human is moving \n");
       Ag_Activity_Fact[for_agent].whole_body=AGENT_MOVING;
+     
+    /*  // If agent is moving then update only the current states of visibility for all the agents and current state of reachability only for the current agent 
+     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     {
+     NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i];
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     }
+     NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+    */
+    }
+    else
+    {
+      // TODO Write code for appropriate updation
     }
   }
   else
@@ -897,17 +953,31 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
     if(prev_config.diff_prev_config.agent_has_moved==0)
     {
+      ////printf(" The agent has moved previously also\n");
       curr_config.conti_diff_info.agent_has_not_moved_conti_for_period=prev_config.conti_diff_info.agent_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
       curr_config.conti_diff_info.agent_has_not_moved_conti_for_period=0;
+      ////printf(" First time the agent did not moved \n");
+      //This is the first time agent has been detected to be not moved so update all the revelant MA, as for the next time of has not moved no need to update any MA
+     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     {
+     ////NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i];
+     NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     }
+     NEED_ALL_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+     robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
     }
     
     if(curr_config.conti_diff_info.agent_has_not_moved_conti_for_period>=curr_min_time_period)
     {
       //////printf(" **** Human is NOT moving \n");
       Ag_Activity_Fact[for_agent].whole_body=AGENT_STATIC;
+      
+      
     }
   }
   
@@ -917,19 +987,88 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    
    curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_orient_tolerance];
    
-  curr_config.diff_prev_config.agent_torso_has_turned=0;
-  Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_DID_NOT_TURN;
+  curr_config.diff_prev_config.agent_whole_body_has_turned=0;
+  Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_DID_NOT_TURN;
   
   if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold||fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
   {
-    curr_config.diff_prev_config.agent_torso_has_turned=1;
+    curr_config.diff_prev_config.agent_whole_body_has_turned=1;
     //////printf(">>>>>> Human whole body has turned \n");
-    Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_HAS_TURNED;
+    Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_HAS_TURNED;
+    
+    ////NEED_ALL_VISIBILITY_UPDATE_AGENT[for_agent]=1;
+    NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+    ////NEED_ALL_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+    NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;
+    robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+  }
+  
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_whole_body_is_turning];
+  
+  if(curr_config.diff_prev_config.agent_whole_body_has_turned==1)
+  {
+     ////for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     ////{
+     ////NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i];
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     ////}
+     ////NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+     ////robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+     
+    curr_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period=0;
+  if(prev_config.diff_prev_config.agent_whole_body_has_turned==1)
+    {
+      curr_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period=prev_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+    }
+    else
+    {
+      curr_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period=0;
+    }
+    
+    if(curr_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period>=curr_min_time_period)
+    {
+      //////printf(" **** Human is turning \n");
+      Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_TURNING;
+      
+    }
+  }
+  else
+  {
+    curr_config.conti_diff_info.agent_whole_body_has_turned_conti_for_period=0;
+    
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_whole_body_is_not_turning];
+    if(prev_config.diff_prev_config.agent_whole_body_has_turned==0)
+    {
+      curr_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period=prev_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+    }
+    else
+    {
+       curr_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period=0;
+        //This is the first time agent has been detected not to be turning after a turn so update all the revelant MA, as for the next time of has not moved no need to update any MA
+     ////for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     ////{
+     ////NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i];
+     NEED_ALL_VISIBILITY_UPDATE_AGENT[for_agent]=1;
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     ////}
+     NEED_ALL_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+     robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+    }
+    
+    if(curr_config.conti_diff_info.agent_whole_body_has_not_turned_conti_for_period>=curr_min_time_period)
+    {
+      /////printf(" **** Human is NOT turning \n");
+      Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_NOT_TURNING;
+      
+    }
   }
   
    Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_yaw;
    Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_pitch;
-    Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
+   Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
     
     curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
    
@@ -939,13 +1078,27 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.diff_prev_config.agent_torso_has_turned=1;
     ///////printf(">>>>>>>> Human torso has turned \n");
     Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_HAS_TURNED;
+    
+    NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;
+    NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+    robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
   }
   
   
-  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_turning];
+  curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_torso_is_turning];
   
   if(curr_config.diff_prev_config.agent_torso_has_turned==1)
   {
+     ////for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     ////{
+     ////NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i];
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     ////}
+     ////NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+     ////robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+     
     curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=0;
   if(prev_config.diff_prev_config.agent_torso_has_turned==1)
     {
@@ -967,7 +1120,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   {
     curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=0;
     
-    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_is_not_turning];
+    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_torso_is_not_turning];
     if(prev_config.diff_prev_config.agent_torso_has_turned==0)
     {
       curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
@@ -975,6 +1128,16 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     else
     {
        curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=0;
+        //This is the first time agent has been detected to be turning so update all the revelant MA, as for the next time of has not moved no need to update any MA
+     ////for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     ////{
+     NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[for_agent]=1;
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     ////}
+     NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;//As only the torso has turned
+     robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
     }
     
     if(curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period>=curr_min_time_period)
@@ -1011,6 +1174,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_head_is_turning];
   if(curr_config.diff_prev_config.agent_head_has_turned==1)
   {
+    NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;;
+     
     curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=0;
     
   if(prev_config.diff_prev_config.agent_head_has_turned==1)
@@ -1044,6 +1209,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     else
     {
      curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=0;
+     
     }
     ////printf(" Head not turned continuously for period = %lf \n",curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period);
     if(curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period>=curr_min_time_period)
@@ -1065,6 +1231,13 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.diff_prev_config.agent_R_hand_has_moved=1;
     //////printf(" >>>>>>>>>> Human's Right Hand has moved\n");
     Ag_Activity_Fact[for_agent].right_hand=AGENT_HAND_HAS_MOVED;
+    for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     {
+     NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     }
   }
   else
   {
@@ -1123,6 +1296,14 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.diff_prev_config.agent_L_hand_has_moved=1;
      ///////printf(" >>>>>>>>>> Human's Left Hand has moved\n");
      Ag_Activity_Fact[for_agent].left_hand=AGENT_HAND_HAS_MOVED;
+     
+     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+     {
+     NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;;
+     ////NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+     ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
+     
+     }
   }
   else
   {
@@ -1209,6 +1390,11 @@ int did_human_activity_facts_change(HRI_TASK_AGENT_ENUM for_agent, agents_activi
     return 1;
   }
   
+  if(prev_fact.whole_body_turn!=curr_fact.whole_body_turn)
+  {
+    return 1;
+  }
+  
   if(prev_fact.torso!=curr_fact.torso)
   {
     return 1;
@@ -1267,6 +1453,7 @@ int copy_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fac
 {
   ///printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[Ag_Activity_Fact[for_agent].agent_index]->name);
   to_fact.whole_body=from_fact.whole_body;
+  to_fact.whole_body_turn=from_fact.whole_body_turn;
   to_fact.torso=from_fact.torso;
   to_fact.head=from_fact.head;
   to_fact.right_hand=from_fact.right_hand;
@@ -1298,6 +1485,7 @@ int print_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fa
   printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[ag_act_fact.agent_index]->name);
 
   printf(" %s \n",agent_motion_status_map[ag_act_fact.whole_body].c_str());
+  printf(" %s \n",agent_whole_body_turn_status_map[ag_act_fact.whole_body_turn].c_str());
   printf(" %s \n",agent_torso_status_map[ag_act_fact.torso].c_str());
   printf(" %s \n",agent_head_status_map[ag_act_fact.head].c_str());
     
@@ -1397,7 +1585,7 @@ int is_object_laying_on_a_support(int obj_index, int &support_index)
 		////////printf(" sup_obj_name=%s\n",sup_obj_name);
 		int pt_ctr=0;
 		char obj_name[100];
-		while(sup_obj_name[pt_ctr]!='.')
+		while(sup_obj_name[pt_ctr]!='.'&&sup_obj_name[pt_ctr]!='\0')
 		{
 		  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
 		  pt_ctr++;

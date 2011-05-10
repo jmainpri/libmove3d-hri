@@ -270,6 +270,9 @@ extern std::list<gpGrasp> *CURRENT_CANDIDATE_GRASP_FOR_TASK;
 
 extern std::list<gpPlacement> *CURRENT_CANDIDATE_PLACEMENT_LIST;
 
+extern agents_activity_facts Ag_Activity_Fact[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+agents_activity_facts Ag_Activity_Prev_Fact_for_MA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+
 int SHOW_HOW_TO_PLACE_AT=0;
 int SHOW_GRASP_FOR_HOW_TO_PLACE_AT=0;
 
@@ -13074,6 +13077,7 @@ int show_exact_obstacles_for_HRP2_GIK_manip(hri_bitmapset * bitmapset, int bt_ty
 }
 
 
+
 int update_robots_and_objects_status()
 {
   envPt_MM= (p3d_env *) p3d_get_desc_curid(P3D_ENV);
@@ -13095,9 +13099,14 @@ int update_robots_and_objects_status()
       //double cur_x=r->ROBOT_POS[6];
       if(strcasestr(r->name,"visball"))
 	{
+	  continue;
 	}
       else
 	{
+	 if(strcasestr(r->name,"HUMAN1")) //This will be taken care in get_human_activity_facts()
+	 {
+	  continue;
+	 }
 	  if(robots_status_for_Mightability_Maps[r_ctr].has_moved==0)
 	    {
   
@@ -13160,6 +13169,8 @@ int update_robots_and_objects_status()
     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
     {
       
+      if(i==HUMAN1_MA)
+	continue;
       
       if(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].has_moved==1)
       {

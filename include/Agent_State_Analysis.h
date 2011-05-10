@@ -53,8 +53,11 @@ typedef enum Agent_State_Analysis_thresholds
  ASA_min_period_for_agent_is_moving,// in ms, will be used to calculate based on continuous change for this period
  ASA_min_period_for_agent_is_not_moving,// in ms, will be used to calculate based on continuous not-change for this period
  
- ASA_min_period_for_agent_is_turning,// in ms, will be used to calculate based on continuous change for this period
- ASA_min_period_for_agent_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
+ ASA_min_period_for_agent_whole_body_is_turning,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_whole_body_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
+ 
+ ASA_min_period_for_agent_torso_is_turning,// in ms, will be used to calculate based on continuous change for this period
+ ASA_min_period_for_agent_torso_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
  
  ASA_min_period_for_agent_head_is_turning,// in ms, will be used to calculate based on continuous change for this period
  ASA_min_period_for_agent_head_is_not_turning,// in ms, will be used to calculate based on continuous not-change for this period
@@ -70,6 +73,7 @@ typedef enum Agent_State_Analysis_thresholds
 typedef struct agents_state_diff
 {
   int agent_has_moved;
+  int agent_whole_body_has_turned;
   int agent_torso_has_turned;
   int agent_head_has_turned;
   int agent_R_hand_has_moved;
@@ -80,12 +84,14 @@ typedef struct agents_state_diff
 typedef struct agents_state_conti_diff_info
 {
   double agent_has_moved_conti_for_period;
+  double agent_whole_body_has_turned_conti_for_period;
   double agent_torso_has_turned_conti_for_period;
   double agent_head_has_turned_conti_for_period;
   double agent_R_hand_has_moved_conti_for_period;
   double agent_L_hand_has_moved_conti_for_period;
   
   double agent_has_not_moved_conti_for_period;
+  double agent_whole_body_has_not_turned_conti_for_period;
   double agent_torso_has_not_turned_conti_for_period;
   double agent_head_has_not_turned_conti_for_period;
   double agent_R_hand_has_not_moved_conti_for_period;
@@ -179,6 +185,20 @@ typedef struct agent_hand_rest_info
   char hand_on_support_obj[100];
   int index_obj; //Should be synchronized with the global index of obj in env 
 }agent_hand_rest_info;
+
+typedef enum agents_whole_body_turn_status
+{
+  AGENT_WHOLE_BODY_TURNING=0,
+  AGENT_WHOLE_BODY_NOT_TURNING,
+  AGENT_WHOLE_BODY_HAS_TURNED,
+  AGENT_WHOLE_BODY_DID_NOT_TURN,
+  
+  AGENT_WHOLE_BODY_STATUS_UNKNOWN, //NOTE ADD any new state before the last element and Don't forget to add new states in the corresponding maps
+  
+  MAXI_NUM_AGENTS_WHOLE_BODY_STATUS
+  
+}agents_whole_body_turn_status;
+
 
 typedef enum agents_torso_status
 {
@@ -283,6 +303,7 @@ typedef struct agents_activity_facts
    ////char agent_name[50];
   
    agents_motion_status whole_body;
+   agents_whole_body_turn_status whole_body_turn;
    agents_torso_status torso;
    agents_head_status head;
    agents_hand_status right_hand;
