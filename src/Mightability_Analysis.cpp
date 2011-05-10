@@ -227,7 +227,7 @@ p3d_jnt *human_head_Joint=NULL;
 int SHOW_CONE=0;
 
 
-int CURRENT_SET_OPERATOR_ON_MM;
+int CURRENT_SET_OPERATOR_ON_MM=MM_SET_OPR_NONE;
 int USE_RESULTANT_MIGHTABILITY_SET=0; 
 int resultant_MM_after_set_operation[100][100][100];//To store 1 as a valid resultant cell after the set operation. The indices should be synchronized with the indices of the corresponding bitmap set
 
@@ -348,7 +348,7 @@ std::list<gpGrasp> grasps_for_object;
 int execute_Mightability_Map_functions()
 {
    
-////printf(" Inside execute_Mightability_Map_functions()\n");
+////printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", Affordances_Found);
 ////test_inside(( p3d_rob* ) p3d_get_robot_by_name ( "TRASHBIN" ), ( p3d_rob* ) p3d_get_robot_by_name ( "GREY_TAPE" ));
 
   if(Affordances_Found==1)
@@ -539,6 +539,7 @@ int execute_Mightability_Map_functions()
 	      else
 		{
 		  ////printf(" >>> Calling show_Mightability_Maps()\n");
+		  ////printf(" NEED_TO_SHOW_MIGHTABILITY_MAPS= %d\n", NEED_TO_SHOW_MIGHTABILITY_MAPS);
 		  if(NEED_TO_SHOW_MIGHTABILITY_MAPS==1)
 		  {
 		  show_Mightability_Maps();
@@ -5813,7 +5814,7 @@ double cell_y_world;
 double cell_z_world;
  double z_shift_for_horizontal_points=0.02;
 	      
-  ////printf(" Inside show affordance, radious=%lf\n",radius);
+  ////printf(" Inside show_Mightability_Maps \n");
   int x=0;
   for(x=0;x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;x++)
     {

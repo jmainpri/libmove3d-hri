@@ -453,7 +453,8 @@ case HIDE_OBJECT:
  
  }
 
- 
+ UPDATE_MIGHTABILITY_MAP_INFO=1;
+  SHOW_MIGHTABILITY_MAP_INFO=1;   
  
  
 }
@@ -1371,6 +1372,7 @@ if(PLAN_IN_CARTESIAN == 1)
           printf(" No IK Found to grasp\n");
           continue;
          }
+         printf(" IK found to grasp \n");
           p3d_set_freeflyer_pose ( object, Tplacement0 );
             manipulation->getManipulationData().setAttachFrame(tAtt);
             manipulation->getManipulationData().setGrasp(&(*igrasp));
@@ -1392,7 +1394,7 @@ if(PLAN_IN_CARTESIAN == 1)
                    p3d_multiLocalPath_disable_all_groupToPlan ( manipulation->robot() );
                    p3d_multiLocalPath_set_groupToPlan ( manipulation->robot(), manipulation->getUpBodyMLP(), 1 );
 
-                  ////status= manipulation->armToFree ( armID, refConf, graspConf,TRUE, NULL,  take_trajs );
+                  status= manipulation->armToFree ( armID, refConf, graspConf,TRUE, NULL,  take_trajs );
                   ////status= manipulation->armPickGoto ( armID, refConf, object, graspConf, openConf,  approachConf, take_trajs );
 //              
                   if ( status==MANIPULATION_TASK_OK )
@@ -1418,6 +1420,10 @@ if(PLAN_IN_CARTESIAN == 1)
                                     p3d_destroy_config ( manipulation->robot(), obj_refConf );
                                     p3d_destroy_config ( manipulation->robot(), qcur );
                       return 1;
+		  }
+		  else
+		  {
+		    printf ( " No path found to take for grasp_ctr=%d, and IK %d \n",grasp_ctr,i );
 		  }
       }
 			}
@@ -1710,7 +1716,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            if(task==GIVE_OBJECT||task==SHOW_OBJECT)
                            {
                            p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
-                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 30*DEGTORAD)
+                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 150*DEGTORAD)
                             { 
                             printf(" Wrist Alignment is not good \n");
                             continue; 
