@@ -63,7 +63,7 @@ static int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent);
 static int init_agent_state_analysis();
 static int init_enable_agents_for_facts();
 static int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
-static int init_thresholds_for_ASA(char *file_name_with_path);
+//static int init_thresholds_for_ASA(char *file_name_with_path);
 static int init_all_agents_activity_facts();
 static int alloc_agents_tmp_config_for_ASA();
 static int create_agents_facts_name_maps();

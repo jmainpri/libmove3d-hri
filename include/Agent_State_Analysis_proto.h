@@ -6,4 +6,5 @@
 
 extern int hri_execute_Agent_State_Analysis_functions();
 extern int prepare_for_Agent_State_Analysis(char *threshold_file_path);
+extern int init_thresholds_for_ASA(char *file_name_with_path);
 #endif
