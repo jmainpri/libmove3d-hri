@@ -21465,6 +21465,31 @@ glPopMatrix();
 }
 }
 
+int set_all_Mightability_Analyses_to_update()
+{
+ /* int nr=envPt_MM->nr;
+  p3d_rob *r;
+   for(int r_ctr=0;r_ctr<nr;r_ctr++)
+    {
+      r = envPt_MM->robot[r_ctr];
 
+      //double cur_x=r->ROBOT_POS[6];
+      if(strcasestr(r->name,"visball"))
+	{
+	  continue;
+	}
+        
+        robots_status_for_Mightability_Maps[r_ctr].has_moved=1;
+    }
+   */ 
+    for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+    {
+      
+      robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].has_moved=1;
+       ///////////////printf(" >>>> NEED_ALL_REACHABILITY_UPDATE_AGENT %d\n",i);
+	NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;
+	NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+    }
+}
 
 ////#endif
