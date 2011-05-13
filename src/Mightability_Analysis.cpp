@@ -1155,6 +1155,7 @@ accepted_states_for_agent_obj_MA[for_agent].no_accepted_reach_states=0;
 ////}
 }
 
+#ifdef JIDO_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_HUMAN1_JIDO()
 {
   for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
@@ -1449,6 +1450,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
     }
   }
 }
+#endif
 
 #ifdef HUMAN2_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_HUMAN2_JIDO()
@@ -1744,6 +1746,7 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
 
 #endif
 
+#ifdef JIDO_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_JIDO_HUMAN1()
 {
   for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
@@ -2024,6 +2027,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN1()
     }
   }
 }
+#endif
 
 #ifdef PR2_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_PR2_HUMAN1()
@@ -7433,7 +7437,7 @@ int find_reachable_sphere_surface(int for_hand, HRI_TASK_AGENT for_agent)
 #ifdef PR2_EXISTS_FOR_MA
       case PR2_MA:
 	
-	  r=0.75;//Maximum reach boundary for PR2
+	  r=0.55;//Maximum reach boundary for PR2
 	  ////curr_yaw=envPt_MM->robot[rob_indx.HRP2_ROBOT]->ROBOT_POS[11];   
 	
 	  shoulder_back_limit=M_PI/2.0;// The maxi possible angle away from the front axis of HRP2
@@ -7490,6 +7494,7 @@ int find_reachable_sphere_surface(int for_hand, HRI_TASK_AGENT for_agent)
   return no_sphere_surface_pts;
 }
 
+#ifdef JIDO_EXISTS_FOR_MA
 int update_3d_grid_reachability_for_JIDO_MM()
 {
 
@@ -7559,6 +7564,7 @@ int update_3d_grid_reachability_for_JIDO_MM()
     return 1;
 
 }
+#endif
 
 int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_hand_name for_hand, int for_state)
 {
@@ -7770,12 +7776,12 @@ int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, i
    eye_pos.y=camera_joint->abs_pos[1][3];
    eye_pos.z=camera_joint->abs_pos[2][3];
    ////printf(" After getting eye pos\n");
-  if(agent_type==JIDO_MA)
+ /* if(agent_type==JIDO_MA)
   {
   agent_eye_pos.x=eye_pos.x;       
   agent_eye_pos.y=eye_pos.y;
   agent_eye_pos.z=eye_pos.z;
-  }
+  }*/
 
   double interval=grid_around_HRP2.GRID_SET->pace/2.0;
   ////double interval=grid_around_HRP2.GRID_SET->pace*3.0/4.0;
@@ -9897,13 +9903,16 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
   ////envPt_MM->robot[rob_indx.HUMAN]->ROBOT_POS[HUMANq_TILT]=HUMAN1_running_pos_MM[HUMANq_TILT];
 }
 
+#ifdef JIDO_EXISTS_FOR_MA
 int find_JIDO_robot_current_visibility_in_3D()
 {
   int visibility_type=MM_CURRENT_STATE_JIDO_VIS;
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[JIDO_MA], JIDO_MA);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[JIDO_MA],JIDO_MA,visibility_type);
 }
+#endif
 
+#ifdef JIDO_EXISTS_FOR_MA
 int find_JIDO_robot_all_visibilities_in_3D()
 {
 
@@ -9984,6 +9993,7 @@ int find_JIDO_robot_all_visibilities_in_3D()
   ////fixed_pitch=-M_PI/10.0;
 
 }
+#endif
 
 #ifdef PR2_EXISTS_FOR_MA
 int find_PR2_robot_current_visibility_in_3D()
@@ -10025,6 +10035,7 @@ int find_PR2_robot_all_visibilities_for_posture_in_3D(PR2_POSTURE_MA for_posture
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[PAN]]=yaw; // Human Yaw angle relative to the human body frame
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[TILT]]=pitch; // Human Yaw angle relative to the human body frame
 
+  ////printf("indices_of_MA_agents[agent_type]=%d, agent_type= %d\n",indices_of_MA_agents[agent_type],agent_type);
   p3d_set_and_update_this_robot_conf(envPt_MM->robot[indices_of_MA_agents[agent_type]], HRI_AGENTS_FOR_MA_running_pos[agent_type]);
   ////envPt_MM->robot[rob_indx.JIDO_ROBOT]->ROBOT_POS[ROBOTq_PAN]=JIDO_running_pos_MM[ROBOTq_PAN];
   ////envPt_MM->robot[rob_indx.JIDO_ROBOT]->ROBOT_POS[ROBOTq_TILT]=JIDO_running_pos_MM[ROBOTq_TILT];
@@ -18648,8 +18659,9 @@ int show_object_Mightabilities()
 	      ////Draw_Bounding_Box(envPt_MM->robot[obj_index]->BB.xmin,envPt_MM->robot[obj_index]->BB.ymin,envPt_MM->robot[obj_index]->BB.zmin,envPt_MM->robot[obj_index]->BB.xmax,envPt_MM->robot[obj_index]->BB.ymax,envPt_MM->robot[obj_index]->BB.zmax, Green);
    
 	    }
-	} 
 #endif
+	} 
+
 
 #ifdef HRP2_EXISTS_FOR_MA
 	  if( Mightabilities_for_obj.object[obj_index].obj_mightability.is_reachable_by[HRP2_MA]==1)
