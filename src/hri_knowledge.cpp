@@ -91,11 +91,13 @@ HRI_ENTITIES * hri_create_entities()
       }
 
       /// We get the GHOST object part to have correct values for Bounding Boxes.
+      /// matthieu warnier 13 may 2011 : Gkuka6 is a dirty hack to have one hand for robot as well. I should 
+      /// manage this better by adding something in the  p3d files
       for(j=0; j<env->robot[i]->no; j++) {
         objectrealname = strrchr(env->robot[i]->o[j]->name, '.')+1;
         if((strcasestr(objectrealname,"GHOST") || strcasestr(objectrealname,"G")) &&
            (strcasestr(objectrealname,"SURFACE") || strcasestr(objectrealname,"HAND") ||
-            strcasestr(objectrealname,"HEAD")    || strcasestr(objectrealname,"CAMERA")) ) {
+            strcasestr(objectrealname,"HEAD")    ||  strcasestr(objectrealname,"CAMERA") || strcasestr(objectrealname,"Gkuka6")) ) {
              entities->entities = MY_REALLOC(entities->entities, HRI_ENTITY*, ent_i, ent_i+1);
              entities->entities[ent_i] = MY_ALLOC(HRI_ENTITY,1);
 	     strcpy(entities->entities[ent_i]->name, objectrealname);
@@ -107,7 +109,7 @@ HRI_ENTITIES * hri_create_entities()
              entities->entities[ent_i]->type = HRI_OBJECT_PART;
 	     if(strcasestr(env->robot[i]->name,"HEAD")||strcasestr(env->robot[i]->name,"CAMERA"))
 	       entities->entities[ent_i]->subtype = HRI_AGENT_HEAD;
-	     else if(strcasestr(env->robot[i]->name,"HAND"))
+	     else if(strcasestr(env->robot[i]->name,"HAND") || strcasestr(objectrealname,"Gkuka6"))
 	       entities->entities[ent_i]->subtype = HRI_AGENT_HAND;
 	     else
 	       entities->entities[ent_i]->subtype = HRI_UK_ENTITY_SUBTYPE;
@@ -153,7 +155,7 @@ int hri_link_agents_with_entities(HRI_ENTITIES * entities, HRI_AGENTS * agents)
             agents->all_agents[agent_idx]->head[agents->all_agents[agent_idx]->head_nb++] = entities->entities[i];
 	    
           }
-          if(strcasestr(entities->entities[i]->partPt->name, "hand")) {
+          if(strcasestr(entities->entities[i]->partPt->name, "hand") || strcasestr(entities->entities[i]->partPt->name, "Gkuka6")) {
             agents->all_agents[agent_idx]->hand = MY_REALLOC(agents->all_agents[agent_idx]->hand, HRI_ENTITY*,
 							     agents->all_agents[agent_idx]->hand_nb,
 							     agents->all_agents[agent_idx]->hand_nb+1);
@@ -665,37 +667,37 @@ HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent
 
 /// This functions computes the inferred positions as the center of the bounding box of the other entity (object or agent parts)
 int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity){
-  double vecX;
-  double vecY;
-  double vecZ;
+  double vecX=0;
+  double vecY=0;
+  double vecZ=0;
   double x1,x2,y1,y2,z1,z2;
 
   //Compute vector between the two bounding box center.
   if((otherEntity->type == HRI_OBJECT_PART) || (otherEntity->type == HRI_AGENT_PART) ) {
-    vecX += (otherEntity->partPt->BB.xmax + otherEntity->partPt->BB.xmin)/2;
-    vecY += (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
-    vecZ += (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
+    vecX = (otherEntity->partPt->BB.xmax + otherEntity->partPt->BB.xmin)/2;
+    vecY = (otherEntity->partPt->BB.ymax + otherEntity->partPt->BB.ymin)/2;
+    vecZ = (otherEntity->partPt->BB.zmax + otherEntity->partPt->BB.zmin)/2;
     //p3d_get_BB_obj(otherEntity->partPt, &x1, &x2, &y1, &y2, &z1, &z2);
-    //printf("objBB normal %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,otherEntity->partPt->BB.xmin,otherEntity->partPt->BB.xmax,otherEntity->partPt->BB.ymin,otherEntity->partPt->BB.ymax,otherEntity->partPt->BB.zmin,otherEntity->partPt->BB.zmax);
-    //printf("objBB get processing %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,x1,x2,y1,y2,z1,z2);
+    ///printf("objBB normal %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,otherEntity->partPt->BB.xmin,otherEntity->partPt->BB.xmax,otherEntity->partPt->BB.ymin,otherEntity->partPt->BB.ymax,otherEntity->partPt->BB.zmin,otherEntity->partPt->BB.zmax);
+    // printf("objBB get processing %s  xmax : %f ; xmin : %f ; ymax : %f ; ymin : %f ; zmin : %f ; zmax : %f .\n",otherEntity->name,x1,x2,y1,y2,z1,z2);
 
   }
   else {
-    vecX += (otherEntity->robotPt->BB.xmax + otherEntity->robotPt->BB.xmin)/2;
-    vecY += (otherEntity->robotPt->BB.ymax + otherEntity->robotPt->BB.ymin)/2;
-    vecZ += (otherEntity->robotPt->BB.zmax + otherEntity->robotPt->BB.zmin)/2;
+    vecX = (otherEntity->robotPt->BB.xmax + otherEntity->robotPt->BB.xmin)/2;
+    vecY = (otherEntity->robotPt->BB.ymax + otherEntity->robotPt->BB.ymin)/2;
+    vecZ = (otherEntity->robotPt->BB.zmax + otherEntity->robotPt->BB.zmin)/2;
   }
 
-  if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
-    vecX -= (firstEntity->partPt->BB.xmax + firstEntity->partPt->BB.xmin)/2;
-    vecY -= (firstEntity->partPt->BB.ymax + firstEntity->partPt->BB.ymin)/2;
-    vecZ -= (firstEntity->partPt->BB.zmax + firstEntity->partPt->BB.zmin)/2;
-  }
-  else {
-    vecX -= (firstEntity->robotPt->BB.xmax + firstEntity->robotPt->BB.xmin)/2;
-    vecY -= (firstEntity->robotPt->BB.ymax + firstEntity->robotPt->BB.ymin)/2;
-    vecZ -= (firstEntity->robotPt->BB.zmax + firstEntity->robotPt->BB.zmin)/2;
-  }
+  // if((firstEntity->type == HRI_OBJECT_PART) || (firstEntity->type == HRI_AGENT_PART) ) {
+  //   vecX -= (firstEntity->partPt->BB.xmax + firstEntity->partPt->BB.xmin)/2;
+  //   vecY -= (firstEntity->partPt->BB.ymax + firstEntity->partPt->BB.ymin)/2;
+  //   vecZ -= (firstEntity->partPt->BB.zmax + firstEntity->partPt->BB.zmin)/2;
+  // }
+  // else {
+  //   vecX -= (firstEntity->robotPt->BB.xmax + firstEntity->robotPt->BB.xmin)/2;
+  //   vecY -= (firstEntity->robotPt->BB.ymax + firstEntity->robotPt->BB.ymin)/2;
+  //   vecZ -= (firstEntity->robotPt->BB.zmax + firstEntity->robotPt->BB.zmin)/2;
+  // }
 
   //printf("set_XYZ_of_entity_at_center_of_other_entity VecX : %f ; VecY : %f ; VecZ : %f .\n",vecX,vecY,vecZ);
 
@@ -703,9 +705,12 @@ int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI
   // firstEntity->robotPt->joints[1]->abs_pos[0][3] = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
   // firstEntity->robotPt->joints[1]->abs_pos[1][3] = firstEntity->robotPt->joints[1]->abs_pos[1][3] + vecY;
   // firstEntity->robotPt->joints[1]->abs_pos[2][3] = firstEntity->robotPt->joints[1]->abs_pos[2][3] + vecZ;   
-  firstEntity->infx = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
-  firstEntity->infy = firstEntity->robotPt->joints[1]->abs_pos[1][3] + vecY;
-  firstEntity->infz = firstEntity->robotPt->joints[1]->abs_pos[2][3] + vecZ;   
+  // firstEntity->infx = firstEntity->robotPt->joints[1]->abs_pos[0][3] + vecX; 
+  // firstEntity->infy = firstEntity->robotPt->joints[1]->abs_pos[1][3] + vecY;
+  // firstEntity->infz = firstEntity->robotPt->joints[1]->abs_pos[2][3] + vecZ;   
+  firstEntity->infx =  vecX; 
+  firstEntity->infy =  vecY;
+  firstEntity->infz =  vecZ; 
 
   return TRUE;
 }
