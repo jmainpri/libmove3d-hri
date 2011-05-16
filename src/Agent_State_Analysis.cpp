@@ -97,7 +97,7 @@ int hri_execute_Agent_State_Analysis_functions()
    int support_index;
     ////is_object_laying_on_a_support(get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE), support_index);
  get_agents_activity_facts(find_activity_fact_for);
- print_agents_activity_facts(find_activity_fact_for);
+ //print_agents_activity_facts(find_activity_fact_for);
   }
 }
 
