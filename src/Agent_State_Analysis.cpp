@@ -44,6 +44,8 @@ int agents_for_ASA_initialized=0;
 int agents_for_ASA_prepared=0;
 extern char CURRENT_OBJECT_TO_MANIPULATE[50];
 
+int PRINT_AGENT_STATE_FACTS=1;
+
 int index_test_cube_ASA;
 configPt test_cube_tmp_config;
 
@@ -97,7 +99,13 @@ int hri_execute_Agent_State_Analysis_functions()
    int support_index;
     ////is_object_laying_on_a_support(get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE), support_index);
  get_agents_activity_facts(find_activity_fact_for);
- //print_agents_activity_facts(find_activity_fact_for);
+
+ 
+ if(PRINT_AGENT_STATE_FACTS==1)
+   {
+ print_agents_activity_facts(find_activity_fact_for);
+   }
+
   }
 }
 
