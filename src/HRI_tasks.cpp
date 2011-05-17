@@ -100,6 +100,8 @@ std::list<gpPlacement> *CURRENT_CANDIDATE_PLACEMENT_LIST;
 
 int IS_PERFORMING_AGENT_MASTER;
 int TASK_IS_FOR_PROACTIVE_BEHAVIOR;
+int HRI_TASK_PLAN_IN_CARTESIAN=0;
+
 
 //TODO : Put in HRI_tasks_Proto.h
 
@@ -1319,7 +1321,7 @@ int JIDO_find_solution_to_take(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_
 //       initManipulation();
 //    }
 
-int PLAN_IN_CARTESIAN=1;
+int PLAN_IN_CARTESIAN=HRI_TASK_PLAN_IN_CARTESIAN;
 if(PLAN_IN_CARTESIAN == 1) 
     {
       manipulation->setArmCartesian(armID,true);
@@ -1569,7 +1571,7 @@ int JIDO_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AG
 //       initManipulation();
 //    }
 
-int PLAN_IN_CARTESIAN=1;
+int PLAN_IN_CARTESIAN=HRI_TASK_PLAN_IN_CARTESIAN;
 if(PLAN_IN_CARTESIAN == 1) 
     {
       manipulation->setArmCartesian(armID,true);
