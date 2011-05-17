@@ -988,4 +988,42 @@ typedef struct agent_agent_task_constraint
 // 
 // }HRI_task_node;
 
+typedef enum MA_transition_vis_effort_type 
+{
+ MA_NO_VIS_EFFORT=0,
+ MA_HEAD_EFFORT,
+ MA_HEAD_TORSO_EFFORT,
+ MA_WHOLE_BODY_CURR_POS_EFFORT_VIS,
+ MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS,
+ MA_NO_POSSIBLE_VIS_EFFORT,
+ 
+ MA_MAXI_NUM_TRANS_VIS_EFFORTS
+  
+}MA_transition_vis_effort_type;
+
+typedef enum MA_transition_reach_effort_type 
+{
+ MA_NO_REACH_EFFORT=0,
+ MA_ARM_EFFORT,
+ MA_ARM_TORSO_EFFORT,
+ MA_WHOLE_BODY_CURR_POS_EFFORT_REACH,
+ MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH,
+ MA_NO_POSSIBLE_REACH_EFFORT,
+ 
+ MA_MAXI_NUM_TRANS_REACH_EFFORT
+  
+}MA_transition_reach_effort_type;
+
+typedef struct HRI_task_agent_effort_level
+{
+ int performing_agent;
+ int target_agent;
+ int effort_for_agent;
+ int task_id;
+ 
+ MA_transition_vis_effort_type maxi_vis_accept;
+ MA_transition_reach_effort_type maxi_reach_accept;
+ 
+}HRI_task_agent_effort_level;
+
 #endif

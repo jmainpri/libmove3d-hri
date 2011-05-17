@@ -4346,7 +4346,7 @@ int init_indices_for_agents_joints_for_MA()
   agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[LSHOULDER]=agents_for_ASA[for_agent].joint_indx.L_shoulder_x_jnt;
 }
 
-int Create_and_init_Mightability_Maps()
+int Create_and_init_Mightability_Maps(char *around_object)
 {
   printf(" Inside Create_and_init_Mightability_Maps()\n");
   
@@ -4382,10 +4382,19 @@ int Create_and_init_Mightability_Maps()
   ////////return 1;
 
   //init_agents_state_transition_costs();
+  /* TMP to test making human sitting
+   configPt hum_tmp_pos_to_sit=MY_ALLOC(double,envPt_MM->robot[indices_of_MA_agents[HUMAN1_MA]]->nb_dof);
+  p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[HUMAN1_MA]],&hum_tmp_pos_to_sit);
+  hri_agent_set_human_seated_posture( HRI_AGENTS_FOR_MA[HUMAN1_MA], hum_tmp_pos_to_sit);
+	  p3d_set_and_update_this_robot_conf( envPt_MM->robot[indices_of_MA_agents[HUMAN1_MA]], hum_tmp_pos_to_sit );
+	  */
+	 ////virtually_update_human_state_new(envPt_MM->robot[indices_of_MA_agents[HUMAN1_MA]], HRI_SITTING);
+	 //// return 1;
+	   
   
   printf(" Calling find_Mightability_Maps() \n");
   //////////////find_affordance_new();
-  find_Mightability_Maps();
+  find_Mightability_Maps(around_object);
   printf(" After find_Mightability_Maps()\n");
   ////find_symbolic_Mightability_Map();
   find_symbolic_Mightability_Map_new();
@@ -9553,7 +9562,59 @@ int virtually_update_human_state_new(p3d_rob *for_agent, int state) //1 means si
 	      HUMAN_curr_pos_for_state_change[35] = hri_human_MM->state[state].c4;
 	      HUMAN_curr_pos_for_state_change[40] = hri_human_MM->state[state].c1;
 	      HUMAN_curr_pos_for_state_change[42] = hri_human_MM->state[state].c2;
-	    }   
+	    }
+	    
+	    if(strcasestr(hri_human_MM->HumanPt->name,"HERAKLES"))
+	    {
+	      if(state==HRI_SITTING)
+	      {
+	      HUMAN_curr_pos_for_state_change[8] = hri_human_MM->state[state].c7+0.05;
+	     
+	      int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
+	      int q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(-90);
+	       
+	       
+	      jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(-90);
+	       
+	       jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(75);
+	       
+	         jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(75);
+	      }
+	      
+	       if(state==HRI_STANDING)
+	      {
+	      HUMAN_curr_pos_for_state_change[8] = 1.06;
+	     
+	      int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
+	      int q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
+	       
+	       
+	      jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
+	       
+	       jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
+	       
+	         jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
+	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
+	      }
+              //p3d_jnt* jntRAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rAnkleY" ); // 27
+    
+              
+              //p3d_jnt* jntLKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lKnee" ); // 32 
+              //p3d_jnt* jntLAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lAnkleY" ); // 34
+	    }
 	} 
       /////////////////hri_human_MM->actual_state=state;
       
@@ -9654,10 +9715,11 @@ int virtually_update_non_primary_human_state(int state, int hum_index) //1 means
   return 1;
 }
 
-int create_workspace_3D_grid()
+int create_workspace_3D_grid(char *around_object)
 {
   int HRP2_table_index;
-  HRP2_table_index=get_index_of_robot_by_name("HRP2TABLE");
+  HRP2_table_index=get_index_of_robot_by_name(around_object);
+  ////////HRP2_table_index=get_index_of_robot_by_name("HRP2TABLE");
   ////HRP2_table_index=get_index_of_robot_by_name("IKEA_SHELF");
   configPt HRP2_table_pos = MY_ALLOC(double,envPt_MM->robot[HRP2_table_index]->nb_dof); /* Allocation of temporary robot configuration */
 
@@ -10141,14 +10203,14 @@ PR2_POSTURE_MA pr2_posture=PR2_ARBITRARY_MA;
 
 
 #endif
-int find_Mightability_Maps()
+int find_Mightability_Maps(char *around_object)
 {
 
   envPt_MM = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
   int nr = envPt_MM->nr;
   ChronoOff();
   ChronoOn();
-  create_workspace_3D_grid();
+  create_workspace_3D_grid(around_object);
   ChronoPrint("Time for creating and Initializing 3D grid");
   printf(" **** 3D grid dimension is (%d x %d x %d), no. of cells =%d \n",grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx*grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny*grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz);
 
