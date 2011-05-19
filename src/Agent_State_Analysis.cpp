@@ -686,7 +686,7 @@ int get_agents_hand_info(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for_h
  int hand_on_support_res=is_hand_on_support(for_agent, for_hand,hand_supp_index);
  ////printf(" hand_on_support_res = %d \n",hand_on_support_res);
  
- if(hand_on_support_res==1)
+ if(hand_on_support_res==1 && hand_supp_index >=0)
  {
    ////printf(" hand support obj name = %s\n",envPt_ASA->robot[hand_supp_index]->name);
    
