@@ -70,7 +70,7 @@ extern p3d_env *envPt_MM;
 extern struct robots_indices rob_indx;
 static ManipulationPlanner *manipulation= NULL;
 
-extern candidate_poins_for_task resultant_current_candidate_point;
+//extern candidate_poins_for_task resultant_current_candidate_point;
 extern int indices_of_MA_agents[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern HRI_TASK_AGENT CURRENT_TASK_PERFORMED_BY;
 extern HRI_TASK_AGENT CURRENT_TASK_PERFORMED_FOR;
@@ -299,7 +299,7 @@ show_candidate_points_for_current_task(show_weight_by_color,show_weight_by_lengt
  
 }
 
-int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points)
+int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points, int consider_object_dimension)
 {
   int obj_index=get_index_of_robot_by_name ( obj_to_manipulate );
     
@@ -310,7 +310,7 @@ int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipul
    /////if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
    init_visibility_acceptance_for_tasks();
  
-   find_candidate_points_for_current_HRI_task_for_object(CURR_TASK,  performed_by, performed_for,performing_agent_rank, curr_resultant_candidate_points, CURRENT_OBJECT_TO_MANIPULATE);
+   find_candidate_points_for_current_HRI_task_for_object(CURR_TASK,  performed_by, performed_for,performing_agent_rank, curr_resultant_candidate_points, obj_to_manipulate, consider_object_dimension);
    
    switch (CURR_TASK)
    {
@@ -405,7 +405,7 @@ performing_agent_rank=1;//Master
 else
 performing_agent_rank=0;//Slave
 
-find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points);
+find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
 
 get_grasp_list_for_object(CURRENT_OBJECT_TO_MANIPULATE, grasps_for_object);
 candidate_grasps_for_task=grasps_for_object;
@@ -534,7 +534,7 @@ performing_agent_rank=1;//Master
 else
 performing_agent_rank=0;//Slave
 
-find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points);
+find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
 
 get_grasp_list_for_object(CURRENT_OBJECT_TO_MANIPULATE, grasps_for_object);
 candidate_grasps_for_task=grasps_for_object;
@@ -1635,8 +1635,9 @@ if(PLAN_IN_CARTESIAN == 1)
 
    int grasp_ctr=0;
    double orig_safety_dist=manipulation->getSafetyDistanceValue();
-   manipulation->setSafetyDistanceValue ( 0.0 );
    
+   manipulation->setSafetyDistanceValue ( 0.0 );
+   printf(" >>>> Warning: For planning HRI task: Actual safety distance valus was %lf, which has been reset to %lf \n",orig_safety_dist, manipulation->getSafetyDistanceValue());
    
  
    gpGrasp_context_collision_filter(graspList, ( p3d_rob* ) p3d_get_robot_by_name ( curr_robot_hand_name ), object, handProp);
@@ -1664,6 +1665,7 @@ if(PLAN_IN_CARTESIAN == 1)
       gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
       for ( int i=0; i<5; ++i )
       {
+	ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
 	 manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
@@ -1849,10 +1851,19 @@ if(PLAN_IN_CARTESIAN == 1)
                            for ( int j=0; j<5; ++j )
                            {
                               deactivateCcCntrts(manipulation->robot(), armID);
-                              p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
-                              ManipulationUtils::unFixAllHands(manipulation->robot());
+                            /*
+			      p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+                              ////ManipulationUtils::unFixAllHands(manipulation->robot());
                               gpSet_grasp_configuration ( manipulation->robot(), *igrasp, armID );
                               ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
+			    */
+			    
+			      ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
+         p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+	 manipulation->checkConfigForCartesianMode(refConf, object);
+	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
+         
+	 
                               p3d_set_freeflyer_pose ( object, Tplacement );
                               ////p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,Tfinal_placement);
@@ -1871,7 +1882,7 @@ if(PLAN_IN_CARTESIAN == 1)
                               {
                                printf(" Place config IK found\n");
                                 manipulation->getManipulationData().setAttachFrame(tAtt);
-                                if(PLAN_IN_CARTESIAN == 1)
+                                ////if(PLAN_IN_CARTESIAN == 1)
                                 {
                                 manipulation->checkConfigForCartesianMode(placeConf, object);
                                 }
@@ -1921,6 +1932,14 @@ if(PLAN_IN_CARTESIAN == 1)
                                Tplacement[2][3]+= 0.03;
                                p3d_set_freeflyer_pose ( object, Tplacement );
                                
+			         ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
+         p3d_set_and_update_this_robot_conf ( manipulation->robot(), graspConf );
+	 manipulation->checkConfigForCartesianMode(graspConf, object);
+	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
+	 
+	   manipulation->robot()->isCarryingObject = TRUE;
+                                  (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
+				  
                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
 //                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
                                  g3d_draw_allwin_active();
@@ -4807,6 +4826,7 @@ int get_soft_motion_trajectories_for_plan_ID(int HRI_task_plan_id, std::vector <
 {
   p3d_traj* traj;
   SM_TRAJ smTraj;
+  smTraj.clear();
   ////smTrajs.clear();
   
   for(int i=0;i<HRI_task_list.size();i++)
@@ -4868,3 +4888,28 @@ int show_p3d_trajectories_for_plan_ID(int HRI_task_plan_id)
   
 }
 
+int get_candidate_points_for_HRI_task(HRI_task_desc curr_task, int is_performing_agent_master, int consider_object_dimension)
+{
+//TODO: Setting below global variables just for precaution, check if really required or needed by planner or to display
+CURRENT_HRI_MANIPULATION_TASK=curr_task.task_type;
+CURRENT_TASK_PERFORMED_BY=curr_task.by_agent;
+CURRENT_TASK_PERFORMED_FOR=curr_task.for_agent;
+strcpy(CURRENT_OBJECT_TO_MANIPULATE,curr_task.for_object.c_str());
+
+printf("<<<< CURRENT_HRI_MANIPULATION_TASK=%d for object = %s, TASK_PERFORMED_BY=%d, TASK_PERFORMED_FOR=%d\n",CURRENT_HRI_MANIPULATION_TASK, CURRENT_OBJECT_TO_MANIPULATE, CURRENT_TASK_PERFORMED_BY, CURRENT_TASK_PERFORMED_FOR);
+
+candidate_poins_for_task *curr_resultant_candidate_points=MY_ALLOC(candidate_poins_for_task,1);
+
+ int performing_agent_rank;
+printf(" >> is_performing_agent_master=%d\n",is_performing_agent_master);
+if(is_performing_agent_master==1)
+performing_agent_rank=1;//Master
+else
+performing_agent_rank=0;//Slave
+
+
+  find_HRI_task_candidate_points(curr_task.task_type,(char*)curr_task.for_object.c_str(),curr_task.by_agent,curr_task.for_agent,performing_agent_rank,curr_resultant_candidate_points, consider_object_dimension);//It stores the candidate points in a global variable for displaying purpose, so we FREE below
+ 
+  MY_FREE(curr_resultant_candidate_points, candidate_poins_for_task,1);
+
+}

@@ -159,7 +159,7 @@ extern int JIDO_give_obj_to_human( char *obj_to_manipulate );
 extern int find_candidate_points_for_current_HRI_task(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, candidate_poins_for_task *resultant_candidate_point);
 extern int reverse_sort_HRI_task_weighted_candidate_points(candidate_poins_for_task *candidate_points);
 extern int JIDO_find_HRI_task_solution(HRI_TASK_TYPE CURR_TASK, HRI_TASK_AGENT for_agent, char *obj_to_manipulate);
-extern int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points);
+extern int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points, int consider_obj_dimension);
 extern object_Symbolic_Mightability_Maps_Relation* create_object_oriented_Mightability_obj();
 extern int delete_object_oriented_Mightability_obj(object_Symbolic_Mightability_Maps_Relation *OOM);
 extern int copy_current_object_oriented_Mightability_into(object_Symbolic_Mightability_Maps_Relation* target);
@@ -192,11 +192,12 @@ extern int show_hand_grasps_of_list(p3d_rob *hand, p3d_rob *object, std::list<gp
 extern int get_grasp_list_for_object(char *obj_to_manipulate, std::list<gpGrasp> &graspList);
 extern int show_all_how_to_placements_in_3D(point_co_ordi at_place, int use_random_colors, int skip, int semi_transparent, std::list<gpPlacement> *placement_config_list);
 extern int get_placements_in_3D(char *obj_to_manipulate,  std::list<gpPlacement> &placementListOut);
-extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE_ENUM curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object);
+extern int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE_ENUM curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object, int consider_obj_dimension);
 extern int get_indices_for_MA_agents();
 extern int show_all_grasps_for_this_placement_list_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, std::list<gpPlacement> *placement_list, point_co_ordi at_point);
 extern int show_all_grasps_for_this_placement_at_place(p3d_rob *hand, p3d_rob *object, std::list<gpGrasp> *graspList, gpPlacement placement, point_co_ordi at_point);
 extern int init_agents_for_MA_and_ASA();
 extern int set_all_Mightability_Analyses_to_update();
+extern int get_candidate_points_for_HRI_task(HRI_task_desc curr_task, int is_performing_agent_master, int consider_object_dimension);
 #endif /* __CEXTRACT__ */
 
