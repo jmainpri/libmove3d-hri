@@ -4,6 +4,9 @@
 
 HRI_ENTITIES * GLOBAL_ENTITIES = NULL;
 
+int HRI_MAX_OBJECT_UNDETECTION = 7;
+
+
 HRI_KNOWLEDGE * hri_create_empty_agent_knowledge(HRI_AGENT * hri_agent)
 {
   HRI_KNOWLEDGE * kn;
@@ -905,10 +908,6 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
       else{
 	if( ents->entities[e_i]->undetection_status != HRI_NEVER_DETECTED){
 
-
-
-
-
 	  kn_on_ent = &agent->knowledge->entities[e_i];	  
 	  if(!ents->entities[e_i]->disappeared && ((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)) && (kn_on_ent->visibility == HRI_VISIBLE)){
 	    if(ents->isWorldStatic){
@@ -936,7 +935,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 		    ents->entities[e_i]->undetection_iter = 0;
 		  }
 		  // Object has disappeared
-		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_MAX)){
+		  else if((ents->entities[e_i]->undetection_status == HRI_MAX_OBJECT_UNDETECTION )){
 		    ents->entities[e_i]->disappeared = TRUE;
 		    ents->eventsInTheWorld = TRUE;
 		    ents->entities[e_i]->is_pl_state_transition_new = TRUE;

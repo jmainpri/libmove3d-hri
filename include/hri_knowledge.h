@@ -28,6 +28,8 @@ typedef enum ENUM_HRI_MOTION {
   HRI_UK_MOTION = 0 /* Unknown motion. meaning we don't know */
 } HRI_MOTION;
 
+extern int HRI_MAX_OBJECT_UNDETECTION;
+
 typedef enum ENUM_HRI_DETECTION { 
   HRI_NEVER_DETECTED = 0,
   HRI_DETECTED = 1,
