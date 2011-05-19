@@ -299,7 +299,7 @@ typedef enum human_hand_joints_MA
 typedef enum PR2_hand_joints_MA
 {
   PR2_J_RSHOULDER=6,
-  PR2_J_LSHOULDER=15
+  PR2_J_LSHOULDER=16
   
 }PR2_hand_joints_MA;
 

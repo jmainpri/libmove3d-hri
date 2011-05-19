@@ -7446,7 +7446,7 @@ int find_reachable_sphere_surface(int for_hand, HRI_TASK_AGENT for_agent)
 #ifdef PR2_EXISTS_FOR_MA
       case PR2_MA:
 	
-	  r=0.55;//Maximum reach boundary for PR2
+	  r=0.8;//Maximum reach boundary for PR2
 	  ////curr_yaw=envPt_MM->robot[rob_indx.HRP2_ROBOT]->ROBOT_POS[11];   
 	
 	  shoulder_back_limit=M_PI/2.0;// The maxi possible angle away from the front axis of HRP2
@@ -20321,13 +20321,13 @@ int print_object_oriented_Mightability_for_object_by_agent(object_Symbolic_Might
    return 1;
 }
 
-int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object)
+int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object, int consider_obj_dimension)
 {
   int no_expansion_cells=0;
   double ox,oy,oz,orx,ory,orz;
   int obj_index=get_index_of_robot_by_name(object);
 
-  if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
+  if(consider_obj_dimension==1)
   {
   
   
@@ -20432,7 +20432,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 		if(accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].no_accepted_reach_states==0)
 		 cell_OK_reach=1;
 		
-		if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
+		if(consider_obj_dimension==1)
 		{
 		//In case of placement on plane test the reachability of the performing agent above the plane
 		if(cell_OK_reach==0&&need_placement_on_plane==1)
@@ -20584,7 +20584,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 		if(accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].no_accepted_reach_states==0)
 		 cell_OK_reach=1;
 		
-		if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
+		if(consider_obj_dimension==1)
 		{
 		 if(cell_OK_reach==0)
 		    {
@@ -20646,7 +20646,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 	       if(accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].no_accepted_vis_states==0)
 		 cell_OK_vis=1;
 
-	       if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
+	       if(consider_obj_dimension==1)
 	       {
 	          if(cell_OK_vis==0)
 		    {
@@ -20788,7 +20788,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
     }
 
 
-  if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
+  if(consider_obj_dimension==1)
   {
   ////int obj_index=get_index_of_robot_by_name(object);
   
