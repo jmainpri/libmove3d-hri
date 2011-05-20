@@ -22,7 +22,7 @@ void g3d_hri_main()
 	  g3d_hri_bt_draw_targets(BTSET);
 	  hri_exp_draw_ordered_points();
 	  //g3d_hri_display_test();
-	  g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
+    //g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
 	  g3d_hri_display_all_agents_sees(GLOBAL_AGENTS);
 	  //g3d_hri_draw_kinect_state();
 	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
@@ -64,10 +64,13 @@ void g3d_hri_main()
 
 	  hri_draw_kinect_points();
 
-	  if(G3D_WIN->vs.enableLogo==1) {
+    // Display things (Debug information) that is not
+    // part of the scene
+	  if(G3D_WIN->vs.enableLogo==1) 
+    {
+      g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
 	    hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07);    
-  }
-    
+    }
 }
 
 void g3d_hri_display_visible_objects(HRI_AGENT *agent)
@@ -87,7 +90,9 @@ void g3d_hri_display_visible_objects(HRI_AGENT *agent)
       //}
     }
     else {
-      if (agent->perspective->currently_sees.vispl[i] == HRI_FOA || agent->perspective->currently_sees.vispl[i] == HRI_FOV) {
+      if (agent->perspective->currently_sees.vispl[i] == HRI_FOA || 
+          agent->perspective->currently_sees.vispl[i] == HRI_FOV) 
+      {
         p3d_set_robot_display_mode(env->robot[i], P3D_ROB_RED_DISPLAY);
       }
       else {
