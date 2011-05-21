@@ -1114,7 +1114,7 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
 
 	 // We want to know wether objects are on furniture, on placemat or inside a container
 	 // Wa also want to know on which furnitures are placemat
-	 if( ((ents->entities[disappearedEntityIndex]->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ent->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
+	 if( ((ents->entities[disappearedEntityIndex]->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ents->entities[disappearedEntityIndex]->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
 	      
 	   if( e_j != disappearedEntityIndex) {
 	     kn_on_ent->is_placed[ge_j] = HRI_UK_PLR;
