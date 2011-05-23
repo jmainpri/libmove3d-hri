@@ -454,7 +454,25 @@ int init_indices_of_agent_for_ASA()
       agents_for_ASA[i].joint_indx.L_elbow_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lElbowZ");
       agents_for_ASA[i].Q_indx.L_elbow_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_elbow_jnt]->index_dof;
       
+      agents_for_ASA[i].joint_indx.R_hip_x_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "rHipX");
+      agents_for_ASA[i].joint_indx.R_hip_y_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "rHipY");
+      agents_for_ASA[i].joint_indx.R_hip_z_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "rHipZ");
+      agents_for_ASA[i].Q_indx.R_hip_x_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_hip_x_jnt]->index_dof;
+      agents_for_ASA[i].Q_indx.R_hip_y_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_hip_y_jnt]->index_dof;
+      agents_for_ASA[i].Q_indx.R_hip_z_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_hip_z_jnt]->index_dof;
       
+      agents_for_ASA[i].joint_indx.R_knee_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "rKnee");
+      agents_for_ASA[i].Q_indx.R_knee_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_knee_jnt]->index_dof;
+      
+      agents_for_ASA[i].joint_indx.L_hip_x_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lHipX");
+      agents_for_ASA[i].joint_indx.L_hip_y_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lHipY");
+      agents_for_ASA[i].joint_indx.L_hip_z_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lHipZ");
+      agents_for_ASA[i].Q_indx.L_hip_x_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_hip_x_jnt]->index_dof;
+      agents_for_ASA[i].Q_indx.L_hip_y_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_hip_y_jnt]->index_dof;
+      agents_for_ASA[i].Q_indx.L_hip_z_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_hip_z_jnt]->index_dof;
+      
+      agents_for_ASA[i].joint_indx.L_knee_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lKnee");
+      agents_for_ASA[i].Q_indx.L_knee_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_knee_jnt]->index_dof;
       ////agents_for_ASA[i].joint_indx.L_hand_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lPalm");
       
       break;
