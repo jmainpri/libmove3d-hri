@@ -150,6 +150,25 @@ int set_current_HRI_manipulation_task(int arg)
 
 p3d_matrix4 WRIST_FRAME;
 
+int get_HRI_task_id_type_by_name(char task_name[50], int &task_type)
+{
+  std::map<int, string>::iterator it;
+ 
+ for(it = HRI_task_NAME_ID_map.begin(); it != HRI_task_NAME_ID_map.end(); ++it)
+ {
+ if(strcasestr(task_name,it->second.c_str()))
+  {
+   task_type=(HRI_TASK_TYPE)it->first;
+   return 1;
+  
+  }
+ 
+ }
+ 
+ printf(" Task name %s in unknown \n",task_name);
+ return -1;
+}
+
 int convert_symbolic_HRI_task_desc_into(symbolic_HRI_task_desc &HRI_task_ip, HRI_task_desc &task_to_validate)
 { // map<char,int>::iterator it;
  printf(" Inside convert_symbolic_HRI_task_desc_into() with task name= %s, for object %s, by agent = %s, for agent= %s\n",HRI_task_ip.task_name,HRI_task_ip.for_object, HRI_task_ip.by_agent,HRI_task_ip.for_agent);
