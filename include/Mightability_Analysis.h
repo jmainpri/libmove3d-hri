@@ -1020,7 +1020,7 @@ typedef struct HRI_task_agent_effort_level
  int performing_agent;
  int target_agent;
  int effort_for_agent;
- int task_id;
+ int task;
  
  MA_transition_vis_effort_type maxi_vis_accept;
  MA_transition_reach_effort_type maxi_reach_accept;

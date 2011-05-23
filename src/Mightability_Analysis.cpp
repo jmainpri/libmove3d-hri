@@ -21614,6 +21614,7 @@ analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FO
 
 int update_analysis_type_effort_level_group()
 {
+  printf(" Inside update_analysis_type_effort_level_group\n");
   int agent;
   int ability;
   int no_analysis_types=0;
@@ -21659,7 +21660,8 @@ no_analysis_types++;
  }
  
  
- Analysis_type_Effort_level[agent][ability][MA_NO_VIS_EFFORT].num_analysis_types=no_analysis_types;
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ printf(" For MA_HEAD_EFFORT, agent=%d, ability=%d, no. of analyses type= %d\n",agent,ability,Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types);
  
 //FOR MA_HEAD_TORSO_EFFORT
 effort_type=MA_HEAD_TORSO_EFFORT;
@@ -21693,19 +21695,146 @@ no_analysis_types++;
  }
  
 
- Analysis_type_Effort_level[agent][ability][MA_NO_VIS_EFFORT].num_analysis_types=no_analysis_types;
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ 
+//FOR MA_HEAD_TORSO_EFFORT
+effort_type=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_VIS;
+no_analysis_types++;
+
+ if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING||HUMAN1_CURRENT_STATE_MM==HRI_STANDING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LEAN_FORWARD_STATE_HUM_VIS;
+no_analysis_types++;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LEAN_FORWARD_STATE_HUM_VIS;
+no_analysis_types++;
+
+ }
+ 
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ 
+ 
+ 
+ ///////**** For Reachability
+
+agent=HUMAN1_MA;
+ability=REACH_ABILITY;
+
+//FOR MA_NO_VIS_EFFORT
+effort_type=MA_NO_REACH_EFFORT;
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_REACH;
+no_analysis_types++;
+
+Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+
+//FOR MA_HEAD_EFFORT
+effort_type=MA_ARM_EFFORT;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_REACH;
+no_analysis_types++;
+
+
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ 
+//FOR MA_HEAD_TORSO_EFFORT
+effort_type=MA_ARM_TORSO_EFFORT;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_REACH;
+no_analysis_types++;
+
+ if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_STRAIGHT_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LEAN_FORWARD_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_TURN_AROUND_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+no_analysis_types++;
+
+
+ }
+ 
+ if(HUMAN1_CURRENT_STATE_MM==HRI_STANDING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_STRAIGHT_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LEAN_FORWARD_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_TURN_AROUND_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+no_analysis_types++;
+ }
  
 
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ 
+//FOR MA_HEAD_TORSO_EFFORT
+effort_type=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_REACH;
+no_analysis_types++;
+
+ if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING||HUMAN1_CURRENT_STATE_MM==HRI_STANDING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_STRAIGHT_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LEAN_FORWARD_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_TURN_AROUND_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+no_analysis_types++;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_STRAIGHT_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LEAN_FORWARD_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_TURN_AROUND_STATE_HUM_REACH;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+no_analysis_types++;
+
+ }
+ 
+ Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+ 
+ //END for REACHABILITY
+ printf(" Returning update_analysis_type_effort_level_group()\n");
 #endif
   
 }
 
 int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_level)
 {
+  update_analysis_type_effort_level_group();
+  
   int performing_agent=desired_level.performing_agent;
   int target_agent=desired_level.target_agent;
   int effort_for_agent=desired_level.effort_for_agent;
-  int task=desired_level.task_id;
+  int task=desired_level.task;
   
   int maxi_reach_accept=desired_level.maxi_reach_accept;
   int maxi_vis_accept=desired_level.maxi_vis_accept;
@@ -21718,6 +21847,34 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
    accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_non_accepted_reach_states=0;
    accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_non_accepted_vis_states=0;
    
+    
+  if(effort_for_agent==HUMAN1_MA)
+  {
+    int ability=REACH_ABILITY;
+    printf(" for reachability Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types=%d\n",Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types);
+    
+   for(int i=0;i<Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types;i++)
+   {
+     accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[i]=Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].analysis_types[i];
+   }
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states=Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types;
+  
+   printf("accepted_states_for_HRI_task[%d][%d][%d][%d].no_accepted_reach_states=%d\n",performing_agent,target_agent,effort_for_agent,task,accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states);
+   
+   ability=VIS_ABILITY;
+   
+   printf(" For visibility Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types=%d\n",Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types);
+   
+   for(int i=0;i<Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types;i++)
+   {
+     printf(" for Vis: Adding analysis type = %d \n",Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].analysis_types[i]);
+     
+     accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_visibility[i]=Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].analysis_types[i];
+   }
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_vis_states=Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types;
+   
+  }
+  /*
   if(effort_for_agent==HUMAN1_MA)
   {
     if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
@@ -21785,7 +21942,7 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
        }
     }
   }
-  
+  */
 }
 
 

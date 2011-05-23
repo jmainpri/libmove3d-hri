@@ -199,5 +199,8 @@ extern int show_all_grasps_for_this_placement_at_place(p3d_rob *hand, p3d_rob *o
 extern int init_agents_for_MA_and_ASA();
 extern int set_all_Mightability_Analyses_to_update();
 extern int get_candidate_points_for_HRI_task(HRI_task_desc curr_task, int is_performing_agent_master, int consider_object_dimension);
+extern int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_level);
+extern int get_HRI_task_id_type_by_name(char task_name[50], int &task_type);
+
 #endif /* __CEXTRACT__ */
 
