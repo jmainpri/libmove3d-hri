@@ -428,6 +428,7 @@ char taken_by_hand[50];
 strcpy(taken_by_hand,"PR2_GRIPPER");
 #endif
 
+int validate_task_result=0;
 
 switch(CURRENT_HRI_MANIPULATION_TASK)
  {
@@ -454,7 +455,7 @@ CURRENT_CANDIDATE_GRASP_FOR_TASK=&candidate_grasps_for_task;
    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
    res_traj.task_type=CURRENT_HRI_MANIPULATION_TASK;
   
- int validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK,  curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of give from human to robot so the arguments have been swapped for take task
+  validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK,  curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of give from human to robot so the arguments have been swapped for take task
   }
  break;
  
@@ -470,7 +471,7 @@ CURRENT_CANDIDATE_GRASP_FOR_TASK=&candidate_grasps_for_task;
   gpCompute_stable_placements (object, curr_placementList ); //this will give just based on the object and infinite plane the different ways an object can be put onto the place with different faces touching the plane. It will not give different orientation of the object along the vertical axis
 res_traj.task_type=CURRENT_HRI_MANIPULATION_TASK;
   
- int validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of make accessible from human to robot so the arguments have been swapped for take task
+ validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of make accessible from human to robot so the arguments have been swapped for take task
   }
  break;
  
@@ -488,6 +489,7 @@ case HIDE_OBJECT:
  UPDATE_MIGHTABILITY_MAP_INFO=1;
   SHOW_MIGHTABILITY_MAP_INFO=1;   
  
+  return validate_task_result;
  
 }
 
