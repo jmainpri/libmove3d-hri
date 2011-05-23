@@ -292,7 +292,7 @@ int show_Object_Oriented_Mightabilities();
 int test_inside(int container_index, int object_index);
 int voronoi(p3d_rob *container, p3d_rob *object);
 int follow_human_head_to_object(HRI_TASK_AGENT for_agent, char *object_name);
-
+int update_human_posture_state();
 // agent_state_task_constraint accepted_states_for_HRP2[MAXI_NUM_OF_HRI_TASKS]; 
 // agent_state_task_constraint accepted_states_for_HUMAN1[MAXI_NUM_OF_HRI_TASKS]; 
 // agent_state_task_constraint accepted_states_for_JIDO[MAXI_NUM_OF_HRI_TASKS]; 
@@ -335,6 +335,8 @@ double mini_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
 double maxi_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
 
 std::vector<int> rob_index_list;
+
+int active_arm_for_HRI_task[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_OF_HANDS_OF_AGENT];//It will be just used for finding candidate points for performing HRI tasks. There will be no effect on calculating Mightability Maps
 
 int agents_for_MA_initialized=0;
 extern int agents_for_ASA_prepared;
@@ -486,6 +488,8 @@ int execute_Mightability_Map_functions()
 	  ////g3d_drawDisc(mean_point.x,mean_point.y,mean_point.z,.2,Green,NULL); 
            
 	   ////return 1;
+	       
+	   update_human_posture_state();
 	  update_robots_and_objects_status();
 	  update_horizontal_surfaces();
 	  //////////update_Mightability_Maps();
@@ -4346,6 +4350,36 @@ int init_indices_for_agents_joints_for_MA()
   agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[LSHOULDER]=agents_for_ASA[for_agent].joint_indx.L_shoulder_x_jnt;
 }
 
+int init_active_arms_for_HRI_tasks()
+{
+  int agent;
+  
+#ifdef HUMAN1_EXISTS_FOR_MA
+  agent= HUMAN1_MA;
+  active_arm_for_HRI_task[agent][MA_RIGHT_HAND]=1;
+  active_arm_for_HRI_task[agent][MA_LEFT_HAND]=1;
+#endif
+  
+#ifdef HUMAN2_EXISTS_FOR_MA
+  agent= HUMAN2_MA;
+  active_arm_for_HRI_task[agent][MA_RIGHT_HAND]=1;
+  active_arm_for_HRI_task[agent][MA_LEFT_HAND]=1;
+#endif
+  
+#ifdef PR2_EXISTS_FOR_MA
+  agent= PR2_MA;
+  active_arm_for_HRI_task[agent][MA_RIGHT_HAND]=1;
+  active_arm_for_HRI_task[agent][MA_LEFT_HAND]=0;
+#endif
+  
+#ifdef JIDO_EXISTS_FOR_MA
+  agent= JIDO_MA;
+  active_arm_for_HRI_task[agent][MA_RIGHT_HAND]=1;
+  active_arm_for_HRI_task[agent][MA_LEFT_HAND]=0;
+#endif
+  
+}
+
 int Create_and_init_Mightability_Maps(char *around_object)
 {
   printf(" Inside Create_and_init_Mightability_Maps()\n");
@@ -4391,7 +4425,8 @@ int Create_and_init_Mightability_Maps(char *around_object)
 	 ////virtually_update_human_state_new(envPt_MM->robot[indices_of_MA_agents[HUMAN1_MA]], HRI_SITTING);
 	 //// return 1;
 	   
-  
+   update_human_posture_state();
+   printf(" HUMAN1_CURRENT_STATE_MM= %d\n",HUMAN1_CURRENT_STATE_MM);
   printf(" Calling find_Mightability_Maps() \n");
   //////////////find_affordance_new();
   find_Mightability_Maps(around_object);
@@ -4406,6 +4441,8 @@ int Create_and_init_Mightability_Maps(char *around_object)
   init_flags_to_show_MM();
   init_accepted_states_for_agent_obj_MA();
   init_accepted_states_of_agents_for_tasks();
+  
+  init_active_arms_for_HRI_tasks();
   
   CALCULATE_AFFORDANCE=1;
 
@@ -9566,25 +9603,27 @@ int virtually_update_human_state_new(p3d_rob *for_agent, int state) //1 means si
 	    
 	    if(strcasestr(hri_human_MM->HumanPt->name,"HERAKLES"))
 	    {
+	      int MA_agent_type=HUMAN1_MA;
+	      
 	      if(state==HRI_SITTING)
 	      {
 	      HUMAN_curr_pos_for_state_change[8] = hri_human_MM->state[state].c7+0.05;
-	     
-	      int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
-	      int q_index=for_agent->joints[jnt_indx]->index_dof;
+  
+	      ////int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
+	      int q_index=agents_for_ASA[MA_agent_type].Q_indx.R_hip_y_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(-90);
 	       
 	       
-	      jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	      ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.L_hip_y_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(-90);
 	       
-	       jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.L_knee_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(75);
 	       
-	         jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	         ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.R_knee_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(75);
 	      }
 	      
@@ -9592,21 +9631,21 @@ int virtually_update_human_state_new(p3d_rob *for_agent, int state) //1 means si
 	      {
 	      HUMAN_curr_pos_for_state_change[8] = 1.06;
 	     
-	      int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
-	      int q_index=for_agent->joints[jnt_indx]->index_dof;
+	      ////int jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rHipY");
+	      int q_index=agents_for_ASA[MA_agent_type].Q_indx.R_hip_y_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
 	       
 	       
-	      jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	      ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lHipY");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.L_hip_y_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
 	       
-	       jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	       ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "lKnee");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.L_knee_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
 	       
-	         jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
-	      q_index=for_agent->joints[jnt_indx]->index_dof;
+	         ////jnt_indx=p3d_get_robot_jnt_index_by_name(for_agent, (char*) "rKnee");
+	      q_index=agents_for_ASA[MA_agent_type].Q_indx.R_knee_Q;//for_agent->joints[jnt_indx]->index_dof;
 	       HUMAN_curr_pos_for_state_change[q_index] = DTOR(0);
 	      }
               //p3d_jnt* jntRAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rAnkleY" ); // 27
@@ -20415,6 +20454,10 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 		 ////{
 		   for(int j1=0;j1<agents_for_MA_obj.for_agent[test_for_agent].no_of_arms;j1++)
 		   {
+		     if(active_arm_for_HRI_task[test_for_agent][j1]==0)
+		     {
+		       continue;
+		     }
 		    /////if((need_placement_on_plane==1&& grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_map_cell_obj_info.is_horizontal_surface==1&&grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].accepted_reach[i]][j1]==1)||(need_placement_on_plane==0&&grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].accepted_reach[i]][j1]==1))
 		    if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].accepted_reach[i]][j1]==1)
 		    {
@@ -21566,4 +21609,229 @@ int set_all_Mightability_Analyses_to_update()
     }
 }
 
+analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][50];//3rd index will be synchronized with the enum of the corresponding effort levels
+
+
+int update_analysis_type_effort_level_group()
+{
+  int agent;
+  int ability;
+  int no_analysis_types=0;
+  int effort_type;
+  
+#ifdef HUMAN1_EXISTS_FOR_MA
+agent=HUMAN1_MA;
+ability=VIS_ABILITY;
+
+//FOR MA_NO_VIS_EFFORT
+effort_type=MA_NO_VIS_EFFORT;
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_VIS;
+no_analysis_types++;
+
+Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
+
+//FOR MA_HEAD_EFFORT
+effort_type=MA_HEAD_EFFORT;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_VIS;
+no_analysis_types++;
+
+ if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+
+ }
+ 
+ if(HUMAN1_CURRENT_STATE_MM==HRI_STANDING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+
+ }
+ 
+ 
+ Analysis_type_Effort_level[agent][ability][MA_NO_VIS_EFFORT].num_analysis_types=no_analysis_types;
+ 
+//FOR MA_HEAD_TORSO_EFFORT
+effort_type=MA_HEAD_TORSO_EFFORT;
+
+no_analysis_types=0;
+
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_CURRENT_STATE_HUM_VIS;
+no_analysis_types++;
+
+ if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_SITTING_LEAN_FORWARD_STATE_HUM_VIS;
+no_analysis_types++;
+
+
+ }
+ 
+ if(HUMAN1_CURRENT_STATE_MM==HRI_STANDING)
+ {
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_STRAIGHT_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
+no_analysis_types++;
+Analysis_type_Effort_level[agent][ability][effort_type].analysis_types[no_analysis_types]=MM_STANDING_LEAN_FORWARD_STATE_HUM_VIS;
+no_analysis_types++;
+
+ }
+ 
+
+ Analysis_type_Effort_level[agent][ability][MA_NO_VIS_EFFORT].num_analysis_types=no_analysis_types;
+ 
+
+#endif
+  
+}
+
+int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_level)
+{
+  int performing_agent=desired_level.performing_agent;
+  int target_agent=desired_level.target_agent;
+  int effort_for_agent=desired_level.effort_for_agent;
+  int task=desired_level.task_id;
+  
+  int maxi_reach_accept=desired_level.maxi_reach_accept;
+  int maxi_vis_accept=desired_level.maxi_vis_accept;
+  int mini_non_vis_req=desired_level.mini_non_vis_req;
+  int mini_non_reach_req=desired_level.mini_non_reach_req;
+  
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states=0;
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_vis_states=0;
+    
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_non_accepted_reach_states=0;
+   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_non_accepted_vis_states=0;
+   
+  if(effort_for_agent==HUMAN1_MA)
+  {
+    if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
+    {
+      switch(maxi_reach_accept)
+      {
+	case MA_NO_REACH_EFFORT:
+	   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+	   
+	break;
+	
+	case MA_ARM_EFFORT:
+	   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+	   accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	break;
+	
+	case MA_ARM_TORSO_EFFORT:
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_SITTING_STRAIGHT_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_SITTING_LEAN_FORWARD_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+
+          accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]= MM_SITTING_TURN_AROUND_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+         accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]= MM_SITTING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+
+	   
+	break;
+	
+	case MA_WHOLE_BODY_CURR_POS_EFFORT_REACH:
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_SITTING_STRAIGHT_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_SITTING_LEAN_FORWARD_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+
+          accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]= MM_SITTING_TURN_AROUND_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+	  
+         accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]= MM_SITTING_TURN_AROUND_LEAN_STATE_HUM_REACH;
+	  accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states++;
+
+	   
+	break;
+	
+      }
+	
+       if(desired_level.maxi_reach_accept==MA_NO_REACH_EFFORT||desired_level.maxi_reach_accept==MA_ARM_EFFORT)
+       {
+      accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+       }
+       
+       if(desired_level.maxi_vis_accept==MA_NO_REACH_EFFORT||desired_level.maxi_vis_accept==MA_ARM_EFFORT)
+       {
+      accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_reach[accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states]=MM_CURRENT_STATE_HUM_REACH;
+       }
+    }
+  }
+  
+}
+
+
+int update_human_posture_state()
+{
+int for_agent;
+  #ifdef HUMAN1_EXISTS_FOR_MA
+  for_agent=HUMAN1_MA;
+   double R_knee_val, L_knee_val;
+   p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&HUMAN_curr_pos_for_state_change);
+  R_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.R_knee_Q];
+       
+  L_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.L_knee_Q];
+  
+	  if(fabs(R_knee_val)>=DTOR(45)&&fabs(L_knee_val)>=DTOR(45))
+	  {
+	    ////printf(" Human is sitting\n");
+	    HUMAN1_CURRENT_STATE_MM=HRI_SITTING;
+	  }
+	  else
+	  {
+	     ////printf(" Human is standing\n");
+	     HUMAN1_CURRENT_STATE_MM=HRI_STANDING;
+	  }
+	       
+#endif
+
+#ifdef HUMAN2_EXISTS_FOR_MA
+  for_agent=HUMAN2_MA;
+   double R_knee_val, L_knee_val;
+   p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&HUMAN_curr_pos_for_state_change);
+  R_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.R_knee_Q];
+       
+  L_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.L_knee_Q];
+  
+	  if(fabs(R_knee_val)>=DTOR(45)&&fabs(L_knee_val)>=DTOR(45))
+	  {
+	    ////printf(" Human is sitting\n");
+	    HUMAN2_CURRENT_STATE_MM=HRI_SITTING;
+	  }
+	  else
+	  {
+	     ////printf(" Human is standing\n");
+	     HUMAN2_CURRENT_STATE_MM=HRI_STANDING;
+	  }
+	       
+#endif
+}
 ////#endif

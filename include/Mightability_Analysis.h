@@ -12,8 +12,8 @@
 #define MM_SHOW_DEBUG_MODE_BUTTONS
 ////#define HUMAN2_EXISTS_FOR_MA
 #define HUMAN1_EXISTS_FOR_MA
-#define JIDO_EXISTS_FOR_MA
-///#define PR2_EXISTS_FOR_MA
+////#define JIDO_EXISTS_FOR_MA
+#define PR2_EXISTS_FOR_MA
 //#define USE_HH_LEARNING
 ////#define USE_SYM_GEO_PLAN
 
@@ -988,6 +988,7 @@ typedef struct agent_agent_task_constraint
 // 
 // }HRI_task_node;
 
+
 typedef enum MA_transition_vis_effort_type 
 {
  MA_NO_VIS_EFFORT=0,
@@ -1023,7 +1024,25 @@ typedef struct HRI_task_agent_effort_level
  
  MA_transition_vis_effort_type maxi_vis_accept;
  MA_transition_reach_effort_type maxi_reach_accept;
+ MA_transition_vis_effort_type mini_non_vis_req;
+ MA_transition_reach_effort_type mini_non_reach_req;
  
 }HRI_task_agent_effort_level;
+
+typedef enum ability_type_for_effort_level
+{
+ VIS_ABILITY=0,
+ REACH_ABILITY,
+ 
+ MAXI_NUM_ABILITY_TYPE_FOR_EFFORT
+}ability_type_for_effort_level;
+
+typedef struct analysis_type_effort_level_group
+{
+ 
+ int num_analysis_types;
+ int analysis_types[50];
+  
+}analysis_type_effort_level_group;
 
 #endif
