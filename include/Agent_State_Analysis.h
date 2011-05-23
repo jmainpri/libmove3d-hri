@@ -238,6 +238,17 @@ typedef struct agents_joint_indices_for_ASA
  int L_shoulder_z_jnt;
  int L_elbow_jnt;
   
+ int R_hip_x_jnt;
+ int R_hip_y_jnt;
+ int R_hip_z_jnt;
+ 
+ int L_hip_x_jnt;
+ int L_hip_y_jnt;
+ int L_hip_z_jnt;
+
+ int R_knee_jnt;
+ int L_knee_jnt;
+ 
 }agents_joint_indices_for_ASA;
 
 typedef struct agents_Q_indices_for_ASA
@@ -281,6 +292,17 @@ typedef struct agents_Q_indices_for_ASA
  int L_shoulder_y_Q;
  int L_shoulder_z_Q;
  int L_elbow_Q;
+ 
+ int R_hip_x_Q;
+ int R_hip_y_Q;
+ int R_hip_z_Q;
+ 
+ int L_hip_x_Q;
+ int L_hip_y_Q;
+ int L_hip_z_Q;
+ 
+ int R_knee_Q;
+ int L_knee_Q;
  
 }agents_Q_indices_for_ASA;
 
