@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #include <list>
 #include <string>
 #include <iostream>
@@ -676,7 +676,11 @@ int is_hand_in_rest_config(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for
   shoulder_z_Q=agents_for_ASA[for_agent].Q_indx.R_shoulder_z_Q;
   elbow_Q=agents_for_ASA[for_agent].Q_indx.R_elbow_Q;
  
-  if(agents_tmp_config_ASA[for_agent][shoulder_x_Q]<DTOR(70)||agents_tmp_config_ASA[for_agent][shoulder_z_Q]>DTOR(20)||agents_tmp_config_ASA[for_agent][shoulder_z_Q]<DTOR(-20)||agents_tmp_config_ASA[for_agent][elbow_Q]>DTOR(20)||agents_tmp_config_ASA[for_agent][elbow_Q]<DTOR(-20))
+  if(agents_tmp_config_ASA[for_agent][shoulder_x_Q]<DTOR(70)||
+     agents_tmp_config_ASA[for_agent][shoulder_z_Q]>DTOR(20)||
+     agents_tmp_config_ASA[for_agent][shoulder_z_Q]<DTOR(-20)||
+     agents_tmp_config_ASA[for_agent][elbow_Q]>DTOR(20)||
+     agents_tmp_config_ASA[for_agent][elbow_Q]<DTOR(-20))
    {
      return 0;
    }
@@ -688,7 +692,11 @@ int is_hand_in_rest_config(HRI_TASK_AGENT_ENUM for_agent, MA_agent_hand_name for
   shoulder_z_Q=agents_for_ASA[for_agent].Q_indx.L_shoulder_z_Q;
   elbow_Q=agents_for_ASA[for_agent].Q_indx.L_elbow_Q;
   ////printf("agents_tmp_config_ASA[for_agent][shoulder_x_Q] =%lf\n",RTOD(agents_tmp_config_ASA[for_agent][shoulder_x_Q]));
-  if(agents_tmp_config_ASA[for_agent][shoulder_x_Q]>DTOR(-70)||agents_tmp_config_ASA[for_agent][shoulder_z_Q]>DTOR(20)||agents_tmp_config_ASA[for_agent][shoulder_z_Q]<DTOR(-20)||agents_tmp_config_ASA[for_agent][elbow_Q]>DTOR(20)||agents_tmp_config_ASA[for_agent][elbow_Q]<DTOR(-20))
+  if(agents_tmp_config_ASA[for_agent][shoulder_x_Q]>DTOR(-70)||
+     agents_tmp_config_ASA[for_agent][shoulder_z_Q]>DTOR(20)||
+     agents_tmp_config_ASA[for_agent][shoulder_z_Q]<DTOR(-20)||
+     agents_tmp_config_ASA[for_agent][elbow_Q]>DTOR(20)||
+     agents_tmp_config_ASA[for_agent][elbow_Q]<DTOR(-20))
    {
      return 0;
    }
@@ -1088,18 +1096,18 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     {
       /////printf(" **** Human is NOT turning \n");
       Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_NOT_TURNING;
-      
     }
   }
   
-   Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_yaw;
-   Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_pitch;
-   Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
+  Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_yaw;
+  Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_pitch;
+  Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
     
-    curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
-   
+  curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
     
-  if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold||fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
+  if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||
+     fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold||
+     fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
   {
     curr_config.diff_prev_config.agent_torso_has_turned=1;
     ///////printf(">>>>>>>> Human torso has turned \n");
@@ -1128,14 +1136,16 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=0;
   if(prev_config.diff_prev_config.agent_torso_has_turned==1)
     {
-      curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=prev_config.conti_diff_info.agent_torso_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=
+      prev_config.conti_diff_info.agent_torso_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
       curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=0;
     }
     
-    if(curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period>=curr_min_time_period)
+    if(curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period>=
+       curr_min_time_period)
     {
       //////printf(" **** Human is turning \n");
       Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_TURNING;
@@ -1149,7 +1159,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_torso_is_not_turning];
     if(prev_config.diff_prev_config.agent_torso_has_turned==0)
     {
-      curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=
+      prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1166,7 +1177,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
      robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
     }
     
-    if(curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period>=curr_min_time_period)
+    if(curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period>=
+       curr_min_time_period)
     {
       /////printf(" **** Human is NOT turning \n");
       Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_STATIC;
@@ -1184,7 +1196,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
    ////printf(" Prev val of Head not turned continuously for period = %lf \n",prev_config.conti_diff_info.agent_head_has_not_turned_conti_for_period);
    
-  if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold||fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
+  if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold
+     ||fabs(curr_config.config[Q_index_pitch]-prev_config.config[Q_index_pitch])>=curr_threshold
+     ||fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
   {
     curr_config.diff_prev_config.agent_head_has_turned=1;
     ////printf(">>>>>>>> Human head has turned \n");
@@ -1206,7 +1220,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     
   if(prev_config.diff_prev_config.agent_head_has_turned==1)
     {
-      curr_config.conti_diff_info.agent_head_has_turned_conti_for_period=prev_config.conti_diff_info.agent_head_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_head_has_turned_conti_for_period=
+      prev_config.conti_diff_info.agent_head_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
       
     }
     else
@@ -1215,7 +1230,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
       
     }
     
-    if(curr_config.conti_diff_info.agent_head_has_turned_conti_for_period>=curr_min_time_period)
+    if(curr_config.conti_diff_info.agent_head_has_turned_conti_for_period>=
+       curr_min_time_period)
     {
       ////printf(" **** Human head is turning \n");
       Ag_Activity_Fact[for_agent].head=AGENT_HEAD_TURNING;
@@ -1230,7 +1246,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     if(prev_config.diff_prev_config.agent_head_has_turned==0)
     {
       ////printf(" Adding head not turned time, curr_not_turn_time=+=prev_config.conti_diff_info.agent_head_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config 
-      curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=prev_config.conti_diff_info.agent_head_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_head_has_not_turned_conti_for_period=
+      prev_config.conti_diff_info.agent_head_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1252,7 +1269,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
   ////printf(" R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
   
-  if(fabs(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])>=curr_threshold||fabs(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])>=curr_threshold||fabs(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3])>=curr_threshold)
+  if(fabs(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])>=curr_threshold||
+     fabs(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])>=curr_threshold||
+     fabs(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3])>=curr_threshold)
   {
     curr_config.diff_prev_config.agent_R_hand_has_moved=1;
     //////printf(" >>>>>>>>>> Human's Right Hand has moved\n");
@@ -1278,7 +1297,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period=0;
   if(prev_config.diff_prev_config.agent_R_hand_has_moved==1)
     {
-      curr_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period=prev_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period=
+      prev_config.conti_diff_info.agent_R_hand_has_moved_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1297,7 +1317,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_not_moving];
     if(prev_config.diff_prev_config.agent_R_hand_has_moved==0)
     {
-      curr_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period=prev_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period=
+      prev_config.conti_diff_info.agent_R_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1317,7 +1338,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   
   
   curr_config.diff_prev_config.agent_L_hand_has_moved=0;
-  if(fabs(curr_config.L_hand_pos[0][3]-prev_config.L_hand_pos[0][3])>=curr_threshold||fabs(curr_config.L_hand_pos[1][3]-prev_config.L_hand_pos[1][3])>=curr_threshold||fabs(curr_config.L_hand_pos[2][3]-prev_config.L_hand_pos[2][3])>=curr_threshold)
+  if(fabs(curr_config.L_hand_pos[0][3]-prev_config.L_hand_pos[0][3])>=curr_threshold||
+     fabs(curr_config.L_hand_pos[1][3]-prev_config.L_hand_pos[1][3])>=curr_threshold||
+     fabs(curr_config.L_hand_pos[2][3]-prev_config.L_hand_pos[2][3])>=curr_threshold)
   {
     curr_config.diff_prev_config.agent_L_hand_has_moved=1;
      ///////printf(" >>>>>>>>>> Human's Left Hand has moved\n");
@@ -1345,7 +1368,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period=0;
   if(prev_config.diff_prev_config.agent_L_hand_has_moved==1)
     {
-      curr_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period=prev_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period=
+      prev_config.conti_diff_info.agent_L_hand_has_moved_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1364,7 +1388,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_hand_is_not_moving];
     if(prev_config.diff_prev_config.agent_L_hand_has_moved==0)
     {
-      curr_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period=prev_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
+      curr_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period=
+      prev_config.conti_diff_info.agent_L_hand_has_not_moved_conti_for_period+curr_config.time_diff_from_prev_config;
     }
     else
     {
@@ -1380,7 +1405,10 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   }
   
   ////get_agents_static_hand_mode(for_agent,MA_LEFT_HAND,Ag_Activity_Fact[for_agent].left_hand_mode);
-  get_agents_hand_info(for_agent,MA_LEFT_HAND, Ag_Activity_Fact[for_agent].left_hand_mode, Ag_Activity_Fact[for_agent].left_hand_occup, Ag_Activity_Fact[for_agent].left_hand_rest_info);
+  get_agents_hand_info(for_agent,MA_LEFT_HAND, 
+                       Ag_Activity_Fact[for_agent].left_hand_mode, 
+                       Ag_Activity_Fact[for_agent].left_hand_occup, 
+                       Ag_Activity_Fact[for_agent].left_hand_rest_info);
   
   human1_prev_configs.agents_config_info.push_back(curr_config);
   ////printf(
@@ -1407,7 +1435,9 @@ int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]
   
 }
 
-int did_human_activity_facts_change(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &prev_fact, agents_activity_facts &curr_fact)
+int did_human_activity_facts_change(HRI_TASK_AGENT_ENUM for_agent, 
+                                    agents_activity_facts &prev_fact, 
+                                    agents_activity_facts &curr_fact)
 {
   ///printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[Ag_Activity_Fact[for_agent].agent_index]->name);
   
