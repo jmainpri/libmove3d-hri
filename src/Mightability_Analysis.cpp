@@ -20611,6 +20611,11 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 		 ////{
 		   for(int j1=0;j1<agents_for_MA_obj.for_agent[test_for_agent].no_of_arms;j1++)
 		   {
+		     if(active_arm_for_HRI_task[test_for_agent][j1]==0)
+		     {
+		       continue;
+		     }
+		     
 		    if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[test_for_agent][accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].accepted_reach[i]][j1]==1)
 		    {
 		     cell_OK_reach=1;
