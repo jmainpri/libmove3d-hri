@@ -362,4 +362,26 @@ typedef struct agents_prev_conf_info
   
 }agents_prev_conf_info;
 
+typedef struct Agent_Activity_fact_by_names//NOTE: NEED to synchronize the similar data  structure STRUCT_AGENT_ACTIVITY_FACTS in sparkStruct.h
+{
+ char agent_motion[50];
+ char body_turn[50];
+ char torso_turn[50];
+ char head_turn[50];
+
+ char right_hand_status[50];
+ char right_hand_config_mode[50];
+ char right_hand_occup_mode[50];
+ char right_hand_rest_mode_type[50];
+ char right_hand_on_support[50];
+ char right_hand_holding_object[50];
+
+ char left_hand_status[50];
+ char left_hand_config_mode[50];
+ char left_hand_occup_mode[50];
+ char left_hand_rest_mode_type[50];
+ char left_hand_on_support[50];
+ char left_hand_holding_object[50];
+}Agent_Activity_fact_by_names;
+
 #endif

@@ -50,6 +50,7 @@ int index_test_cube_ASA;
 configPt test_cube_tmp_config;
 
 configPt agents_tmp_config_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+Agent_Activity_fact_by_names Hum_facts_by_name;
 
 std::map<int,std::string > agent_motion_status_map;
 std::map<int,std::string > agent_head_status_map;
@@ -1548,12 +1549,90 @@ int copy_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fac
   ////Ag_Activity_Fact[for_agent].
 }
 
+int get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &ag_act_fact, Agent_Activity_fact_by_names &Hum_facts_by_name)
+{
+  
+  strcpy(Hum_facts_by_name.agent_motion, agent_motion_status_map[ag_act_fact.whole_body].c_str());
+  
+  strcpy(Hum_facts_by_name.body_turn, agent_whole_body_turn_status_map[ag_act_fact.whole_body_turn].c_str());
+  strcpy(Hum_facts_by_name.torso_turn, agent_torso_status_map[ag_act_fact.torso].c_str());
+  strcpy(Hum_facts_by_name.head_turn,agent_head_status_map[ag_act_fact.head].c_str());
+    
+     strcpy(Hum_facts_by_name.right_hand_status,agent_hand_status_map[ag_act_fact.right_hand].c_str());
+     strcpy(Hum_facts_by_name.right_hand_config_mode,agent_hand_config_mode_map[ag_act_fact.right_hand_mode].c_str());
+     
+     if(ag_act_fact.right_hand_mode==AGENT_HAND_AT_REST_MODE)
+     {
+       strcpy(Hum_facts_by_name.right_hand_rest_mode_type,agent_hand_rest_info_map[ag_act_fact.right_hand_rest_info.rest_type].c_str());
+       
+       if(ag_act_fact.right_hand_rest_info.rest_type==AGENT_HAND_REST_ON_SUPPORT)
+       { 
+       strcpy(Hum_facts_by_name.right_hand_on_support, ag_act_fact.right_hand_rest_info.hand_on_support_obj);
+       }
+       else
+       {
+       strcpy(Hum_facts_by_name.right_hand_on_support,"NOT_RELEVANT");
+       }
+     }
+     else
+     {
+       strcpy(Hum_facts_by_name.right_hand_rest_mode_type,"NOT_RELEVANT");
+     }
+     
+     strcpy(Hum_facts_by_name.right_hand_occup_mode,agent_hand_occupancy_info_map[ag_act_fact.right_hand_occup.occupancy_mode].c_str());
+     
+     if(ag_act_fact.right_hand_occup.occupancy_mode==AGENT_HAND_HOLDING_OBJECT)
+     {
+       strcpy(Hum_facts_by_name.right_hand_holding_object,ag_act_fact.right_hand_occup.object_in_hand);
+     }
+     else
+     {
+       strcpy(Hum_facts_by_name.right_hand_holding_object,"NOT_RELEVANT");
+     }
+     
+     
+     strcpy(Hum_facts_by_name.left_hand_status,agent_hand_status_map[ag_act_fact.left_hand].c_str());
+     strcpy(Hum_facts_by_name.left_hand_config_mode,agent_hand_config_mode_map[ag_act_fact.left_hand_mode].c_str());
+     
+     if(ag_act_fact.left_hand_mode==AGENT_HAND_AT_REST_MODE)
+     {
+       strcpy(Hum_facts_by_name.left_hand_rest_mode_type,agent_hand_rest_info_map[ag_act_fact.left_hand_rest_info.rest_type].c_str());
+       
+       if(ag_act_fact.left_hand_rest_info.rest_type==AGENT_HAND_REST_ON_SUPPORT)
+       { 
+       strcpy(Hum_facts_by_name.left_hand_on_support, ag_act_fact.left_hand_rest_info.hand_on_support_obj);
+       }
+        else
+       {
+       strcpy(Hum_facts_by_name.left_hand_on_support,"NOT_RELEVANT");
+       }
+     }
+     else
+     {
+       strcpy(Hum_facts_by_name.left_hand_rest_mode_type,"NOT_RELEVANT");
+     }
+     
+     strcpy(Hum_facts_by_name.left_hand_occup_mode,agent_hand_occupancy_info_map[ag_act_fact.left_hand_occup.occupancy_mode].c_str());
+     
+     if(ag_act_fact.left_hand_occup.occupancy_mode==AGENT_HAND_HOLDING_OBJECT)
+     {
+       strcpy(Hum_facts_by_name.left_hand_holding_object,ag_act_fact.left_hand_occup.object_in_hand);
+     }
+      else
+     {
+       strcpy(Hum_facts_by_name.left_hand_holding_object,"NOT_RELEVANT");
+     }
+     
+  
+}
+
 int print_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &ag_act_fact)
 {
 
   printf(" ========= Status for agent %s =======\n",envPt_ASA->robot[ag_act_fact.agent_index]->name);
 
   printf(" %s \n",agent_motion_status_map[ag_act_fact.whole_body].c_str());
+  
   printf(" %s \n",agent_whole_body_turn_status_map[ag_act_fact.whole_body_turn].c_str());
   printf(" %s \n",agent_torso_status_map[ag_act_fact.torso].c_str());
   printf(" %s \n",agent_head_status_map[ag_act_fact.head].c_str());
@@ -1604,19 +1683,23 @@ int print_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fa
 
 int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK])
 {
-  for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
-    {
-      switch(i)
-	{
-	case HUMAN1_MA:
-	  if(find_facts_for[i]==1)
-	    {
-	      if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
-		{
-		  print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
-		  copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
-		}
-	    }
+
+
+ for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+ {
+   switch(i)
+   {
+     case HUMAN1_MA:
+       if(find_facts_for[i]==1)
+       {
+	 if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
+	 {
+	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name);
+	 print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
+	 copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
+	 }
+       }
+
        
 	  break;
 	}
