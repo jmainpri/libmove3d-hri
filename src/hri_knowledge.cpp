@@ -1188,25 +1188,28 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
       }
 
       if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
-	/*** for Agent itself ( the one that perceive ) , we use a specific visibility*/
-	if(a_i == agents->source_agent_idx){
-	  /** VISIBILITY in fov only and taking into account own agent: we do the actual visibility procesing only for entities in fov and foa ie: that should be perceived if not hidden. For other we remember past values */
-	  /// We first remember past visibility values
-	  for(e_j=0; e_j<present_ents_nb; e_j++) {
-	    ge_j = present_ents_global_idxs[e_j];
-	    kn_on_ent = &agent->knowledge->entities[ge_j];
-	    vis_result[e_j] = kn_on_ent->visibility;
-	  }
-	  /// make sure we can add an entity in the the present entities table to take into account agent itself
-	  if(present_ents_nb<ents->entities_nb)
-	    g3d_compute_visibility_in_fov_for_given_entities(present_ents, ents->entities[agent->entity_idx] , agent, vis_result, present_ents_nb);
-	  else
-	    printf("Number of present entities equal total number of entities. Impossible to use g3d_compute_visibility_in_fov_for_given_entities functions that must be used without agent itself in present entities\n");
-	}
-	else {	  
-	  /** VISIBLITY we recompute visibility from scratch moving pan and tilt to cover all pan and tilt spectrum with fov delta. */
-	  g3d_compute_visibility_for_given_entities(present_ents, agent, vis_result, present_ents_nb); 
-	}
+
+	g3d_compute_visibility_for_given_entities(present_ents, agent, vis_result, present_ents_nb); 
+
+	// /*** for Agent itself ( the one that perceive ) , we use a specific visibility*/
+	// if(a_i == agents->source_agent_idx){
+	//   /** VISIBILITY in fov only and taking into account own agent: we do the actual visibility procesing only for entities in fov and foa ie: that should be perceived if not hidden. For other we remember past values */
+	//   /// We first remember past visibility values
+	//   for(e_j=0; e_j<present_ents_nb; e_j++) {
+	//     ge_j = present_ents_global_idxs[e_j];
+	//     kn_on_ent = &agent->knowledge->entities[ge_j];
+	//     vis_result[e_j] = kn_on_ent->visibility;
+	//   }
+	//   /// make sure we can add an entity in the the present entities table to take into account agent itself
+	//   if(present_ents_nb<ents->entities_nb)
+	//     g3d_compute_visibility_in_fov_for_given_entities(present_ents, ents->entities[agent->entity_idx] , agent, vis_result, present_ents_nb);
+	//   else
+	//     printf("Number of present entities equal total number of entities. Impossible to use g3d_compute_visibility_in_fov_for_given_entities functions that must be used without agent itself in present entities\n");
+	// }
+	// else {	  
+	//   /** VISIBLITY we recompute visibility from scratch moving pan and tilt to cover all pan and tilt spectrum with fov delta. */
+	//   g3d_compute_visibility_for_given_entities(present_ents, agent, vis_result, present_ents_nb); 
+	// }
 	  
 
 	

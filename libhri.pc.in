@@ -7,5 +7,5 @@ Flags=@LIBHRI_COMPILATION_FLAGS@
 Name: libhri
 Description: the LAAS Human-Robot Interaction libraries  
 Version: @PACKAGE_VERSION@
-Libs: -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -L${libdir} -lhri
+Libs: -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -L${libdir} -lhri
 Cflags: -I${includedir} ${Flags}
