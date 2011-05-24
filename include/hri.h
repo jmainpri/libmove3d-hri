@@ -57,6 +57,7 @@
 #ifdef USE_MIGHTABILITY_MAPS
 #include "Mightability_Analysis.h"
 #include "HRI_tasks.h"
+#include "Agent_State_Analysis.h"
 #endif
 
 #ifdef USE_HRP2_GIK
