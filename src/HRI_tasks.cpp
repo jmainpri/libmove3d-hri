@@ -4970,6 +4970,7 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
  ////free_final_configs_stored();
  g3d_draw_allwin_active();
  printf(" returning form validate_HRI_task()\n");
+ return 1;
   ////robots_status_for_Mightability_Maps[r_ctr].has_moved
   
 }
