@@ -1585,10 +1585,10 @@ int hri_agent_load_default_arm_posture(HRI_AGENT * agent, configPt q)
   }
 }
 
-// Set the agent as grasping to grasp at the object at the center of BB,
-// this will allow to update the robot and the object configuration
-// aditionaly a matrix is taken as input to offset the object from the current
-// position
+//! Set the input agent as grasping an object from the center of its BB
+//! the attach transform between the arm and the object is set at the default value 
+//! which is shifted with the input matrix t, this function forces to update the object
+//! position and orientation when updating the robot configuration
 int hri_agent_is_grasping_obj_at_center(HRI_AGENT* agent, const char* OBJECT , int armId , p3d_matrix4 t)
 {
   if (agent->is_human) 
