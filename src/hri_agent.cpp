@@ -1615,7 +1615,7 @@ int hri_agent_is_grasping_obj_at_center(HRI_AGENT* agent, const char* OBJECT , i
   // Get the default Att Matrix
   p3d_matrix4 tAtt;
   p3d_mat4Mult( armData.getCcCntrt()->Tatt_default, t , tAtt );
-  p3d_mat4Copy( tAtt, armData.getCcCntrt()->Tatt_default );
+  p3d_mat4Copy( tAtt, armData.getCcCntrt()->Tatt );
   
   // Set the New Virtual Dof
   p3d_matrix4 rotMat;
