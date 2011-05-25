@@ -102,6 +102,7 @@ int IS_PERFORMING_AGENT_MASTER;
 int TASK_IS_FOR_PROACTIVE_BEHAVIOR;
 int HRI_TASK_PLAN_IN_CARTESIAN=0;
 
+char SUPPORT_NAME_FOR_HUMAN_TO_PUT_OBJ[50];
 
 //TODO : Put in HRI_tasks_Proto.h
 
@@ -490,7 +491,7 @@ CURRENT_CANDIDATE_GRASP_FOR_TASK=&candidate_grasps_for_task;
   gpCompute_stable_placements (object, curr_placementList ); //this will give just based on the object and infinite plane the different ways an object can be put onto the place with different faces touching the plane. It will not give different orientation of the object along the vertical axis
 res_traj.task_type=CURRENT_HRI_MANIPULATION_TASK;
   
- validate_task_result=JIDO_find_solution_to_take_new(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of make accessible from human to robot so the arguments have been swapped for take task
+ validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of make accessible from human to robot so the arguments have been swapped for take task
   }
  break;
  
@@ -1754,7 +1755,7 @@ if(PLAN_IN_CARTESIAN == 1)
                         goal_pos.x=curr_candidate_points->point[i1].x;
                         goal_pos.y=curr_candidate_points->point[i1].y;
                         goal_pos.z=curr_candidate_points->point[i1].z;
-
+printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]]->name);
                       int plac_ctr=0 ;
                         for ( std::list<gpPlacement>::iterator iplacement=curr_placementList.begin(); iplacement!=curr_placementList.end(); ++iplacement )
                         {
@@ -1813,7 +1814,7 @@ if(PLAN_IN_CARTESIAN == 1)
 
             p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
 	    double wrist_alignment_angle=get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[from_agent]->perspective->camjoint->abs_pos);
-                           if(  wrist_alignment_angle > 150*DEGTORAD)
+                           if(  task==GIVE_OBJECT && wrist_alignment_angle > 150*DEGTORAD)
                             { 
                             printf(" Wrist Alignment %lf  is not good \n", wrist_alignment_angle*RADTODEG);
                             continue; 
@@ -1854,6 +1855,12 @@ if(PLAN_IN_CARTESIAN == 1)
                                     p3d_destroy_config ( manipulation->robot(), refConf );
                                     p3d_destroy_config ( manipulation->robot(), obj_refConf );
                                     p3d_destroy_config ( manipulation->robot(), qcur );
+				    
+				    strcpy(SUPPORT_NAME_FOR_HUMAN_TO_PUT_OBJ,envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]]->name);
+				    
+				    printf(" SUPPORT_NAME_FOR_HUMAN_TO_PUT_OBJ = %s\n",SUPPORT_NAME_FOR_HUMAN_TO_PUT_OBJ);
+				    
+				    
                       return 1;
 		  }
 		  else
