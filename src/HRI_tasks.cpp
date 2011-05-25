@@ -2638,7 +2638,7 @@ if(PLAN_IN_CARTESIAN == 1)
       result= 0;*/
    }
       manipulation->robot()->isCarryingObject = FALSE;
-      (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(NULL);
+     
 			
    result= 0;
    p3d_destroy_config ( manipulation->robot(), refConf );
