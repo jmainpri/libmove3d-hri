@@ -1585,7 +1585,71 @@ int hri_agent_load_default_arm_posture(HRI_AGENT * agent, configPt q)
   }
 }
 
-int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* OBJECT , int armId)
+// Set the agent as grasping to grasp at the object at the center of BB,
+// this will allow to update the robot and the object configuration
+// aditionaly a matrix is taken as input to offset the object from the current
+// position
+int hri_agent_is_grasping_obj_at_center(HRI_AGENT* agent, const char* OBJECT , int armId , p3d_matrix4 t)
+{
+  if (agent->is_human) 
+  {
+    printf("human is not yet managed by hri_agent_is_grasping_obj");
+    return false;
+  }
+  
+  p3d_rob* rob = agent->robotPt;
+  p3d_rob* obj = p3d_get_robot_by_name(OBJECT);
+  
+#ifdef LIGHT_PLANNER
+  ArmManipulationData& armData = (*rob->armManipulationData)[armId];
+  
+  // Set manipulation joint to be at the object pose
+  configPt q = p3d_get_robot_config(rob);
+  
+  // Get the BB center
+  p3d_vector3 objCenter;
+  objCenter[0] = (obj->BB.xmax + obj->BB.xmin)/2;
+  objCenter[1] = (obj->BB.ymax + obj->BB.ymin)/2;
+  objCenter[2] = (obj->BB.zmax + obj->BB.zmin)/2;
+  
+  // Get the default Att Matrix
+  p3d_matrix4 tAtt;
+  p3d_mat4Mult( armData.getCcCntrt()->Tatt_default, t , tAtt );
+  p3d_mat4Copy( tAtt, armData.getCcCntrt()->Tatt_default );
+  
+  // Set the New Virtual Dof
+  p3d_matrix4 rotMat;
+  double Tx, Ty, Tz;
+  double Rx, Ry, Rz;
+  p3d_matInvertXform( tAtt, rotMat );
+  p3d_mat4ExtractPosReverseOrder(rotMat, &Tx, &Ty, &Tz,
+                                         &Rx, &Ry, &Rz);
+  
+  p3d_jnt* jnt = armData.getManipulationJnt();
+
+  q[jnt->index_dof+0] = objCenter[0];
+  q[jnt->index_dof+1] = objCenter[1];
+  q[jnt->index_dof+2] = objCenter[2];
+  q[jnt->index_dof+3] = Rx;
+  q[jnt->index_dof+4] = Ry;
+  q[jnt->index_dof+5] = Rz;
+  
+  p3d_set_and_update_this_robot_conf(rob,q);
+  
+  // Fix manipulation constraint
+  deactivateCcCntrts(rob,armId);
+  p3d_set_object_to_carry_to_arm(rob, armId, OBJECT );
+  setAndActivateTwoJointsFixCntrt(rob,armData.getManipulationJnt(),
+                                  armData.getCcCntrt()->pasjnts[ armData.getCcCntrt()->npasjnts-1 ]);
+  
+  p3d_destroy_config(rob,q);
+#else
+  printf("WARNING : Compile with LIGHT_PLANNER Flag\n");
+#endif
+  return true;
+}
+
+int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* OBJECT , int armId )
 {
   if (agent->is_human) 
     {
@@ -1612,8 +1676,8 @@ int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* O
 
     for(int i=0;i< jnt->dof_equiv_nbr;i++)
     {
-	q[jnt->index_dof+i] = objQ[obj->joints[1]->index_dof+i];
-     }
+      q[jnt->index_dof+i] = objQ[obj->joints[1]->index_dof+i];
+    }
 
     p3d_set_and_update_this_robot_conf(rob,q);
 
