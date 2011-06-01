@@ -475,7 +475,7 @@ CURRENT_CANDIDATE_GRASP_FOR_TASK=&candidate_grasps_for_task;
    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
    res_traj.task_type=CURRENT_HRI_MANIPULATION_TASK;
   
-  validate_task_result=JIDO_find_solution_to_take_new(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK,  curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of give from human to robot so the arguments have been swapped for take task
+  validate_task_result=JIDO_find_solution_to_take(CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK,  curr_task.for_agent, taken_by_hand, curr_task.by_agent, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList, res_traj);//NOTE: Since it is interpretation of give from human to robot so the arguments have been swapped for take task
   }
  break;
  
@@ -1816,7 +1816,7 @@ printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points
 	    double wrist_alignment_angle=get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[from_agent]->perspective->camjoint->abs_pos);
                            if(  task==GIVE_OBJECT && wrist_alignment_angle > 150*DEGTORAD)
                             { 
-                            printf(" Wrist Alignment %lf  is not good \n", wrist_alignment_angle*RADTODEG);
+                            printf(" Wrist Alignment %lf is not good \n", wrist_alignment_angle*RADTODEG);
                             continue; 
                             }
                             printf(" Wrist Alignment %lf  is good \n", wrist_alignment_angle*RADTODEG);
@@ -1871,6 +1871,7 @@ printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points
 			}
 		     }
    }
+   return 0;
  
 }
 
@@ -1994,6 +1995,7 @@ if(PLAN_IN_CARTESIAN == 1)
    manipulation->setSafetyDistanceValue ( 0.0 );
    printf(" >>>> Warning: For planning HRI task: Actual safety distance valus was %lf, which has been reset to %lf \n",orig_safety_dist, manipulation->getSafetyDistanceValue());
    
+   p3d_rob* support_to_place=NULL;
  
    gpGrasp_context_collision_filter(graspList, ( p3d_rob* ) p3d_get_robot_by_name ( curr_robot_hand_name ), object, handProp);
    p3d_set_freeflyer_pose2( ( p3d_rob* ) p3d_get_robot_by_name ( curr_robot_hand_name ),5,5,5,0,0,0);
@@ -2032,8 +2034,10 @@ if(PLAN_IN_CARTESIAN == 1)
          {
 	    //gpActivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
           printf(" No IK Found to grasp for test %d\n", i);
+	  g3d_draw_allwin_active();
           continue;
          }
+         g3d_draw_allwin_active();
          printf ( "graspConf= %p\n", graspConf );
          if ( graspConf!=NULL )
          {
@@ -2136,8 +2140,10 @@ if(PLAN_IN_CARTESIAN == 1)
                           }
                          tmp_placement_list.clear();
                          tmp_placement_list= curr_placementList;
-	                 gpPlacement_on_support_filter ( object, envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]],tmp_placement_list,curr_placementList);                          
-                          printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]]->name);
+			 support_to_place = envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]];
+			 
+	                 gpPlacement_on_support_filter ( object, support_to_place,tmp_placement_list,curr_placementList);                          
+                          printf(" Support name for placement =%s\n",support_to_place->name);
                           printf("After gpPlacement_on_support_filter(), curr_placementList.size = %d \n",  curr_placementList.size());
                           if(curr_placementList.size()==0)
                           {
@@ -2229,6 +2235,7 @@ if(PLAN_IN_CARTESIAN == 1)
                               if(placeConf==NULL)
                               {
                                printf(" No IK Found to place\n");
+			       g3d_draw_allwin_active();
                                continue;
                               }
 
@@ -2277,6 +2284,7 @@ if(PLAN_IN_CARTESIAN == 1)
                               //ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
 
                                p3d_rob* support= ( p3d_rob* ) p3d_get_robot_by_name ( "IKEA_SHELF" );
+			       
                                p3d_set_and_update_this_robot_conf ( manipulation->robot(), placeConf );
 //                                MANIPULATION_TASK_MESSAGE place_status= manipulation->armPickTakeToFree(armID, graspConf, placeConf, object, support, place_trajs);
 
@@ -2453,7 +2461,13 @@ if(PLAN_IN_CARTESIAN == 1)
                                     p3d_destroy_config ( manipulation->robot(), obj_refConf );
                                     p3d_destroy_config ( manipulation->robot(), qcur );
                                    return 1;
-                                  }////else {printf ( " no path found for place \n"); return 1;}
+                                  }
+                                  else 
+				  {
+				    printf ( " no path found for place \n");
+				    ////return 1;
+				    
+				  }
                                ////}
 
                               }
@@ -4378,10 +4392,10 @@ int get_placements_at_position(p3d_rob *object, point_co_ordi point, std::list<g
    placementListOut.sort();
    placementListOut.reverse();
 
-  for(std::list<gpPlacement>::iterator iterP=placementListOut.begin(); iterP!=placementListOut.end(); iterP++)
-  { 
+  ////for(std::list<gpPlacement>::iterator iterP=placementListOut.begin(); iterP!=placementListOut.end(); iterP++)
+  ////{ 
     ////std::cout << "stability " << iterP->stability << std::endl;
-  }
+  ////}
 
   return 0;
 }
@@ -4895,11 +4909,49 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   ////if(get_robot_proactive_solution_info( curr_task, curr_task_to_validate.traj)==0)
   if(for_proactive_info==1)
   {
-  if(get_robot_proactive_solution_info(curr_task, curr_task_to_validate.traj)==0)
-   {
-   printf(" Fail to validate current task \n");
-   return 0;
-   }
+    HRI_task_agent_effort_level desired_level;
+     desired_level.performing_agent=curr_task.by_agent;
+  desired_level.target_agent=curr_task.for_agent;
+  
+  if(curr_task.for_agent==HUMAN1_MA)
+    desired_level.effort_for_agent=curr_task.for_agent;
+  if(curr_task.by_agent==HUMAN1_MA)
+   desired_level.effort_for_agent=curr_task.by_agent;
+  
+  desired_level.task=curr_task.task_type;
+  
+    int proactive_solution_res=0;
+    int cur_vis_effort=MA_NO_VIS_EFFORT;
+    int cur_reach_effort=MA_NO_REACH_EFFORT;
+    
+    while(proactive_solution_res==0&&cur_vis_effort<MA_MAXI_NUM_TRANS_VIS_EFFORTS&&cur_reach_effort<MA_MAXI_NUM_TRANS_REACH_EFFORT)
+    {
+ 
+  desired_level.maxi_reach_accept=(MA_transition_reach_effort_type)cur_reach_effort;//MA_ARM_EFFORT;//MA_ARM_EFFORT;//MA_ARM_TORSO_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+  desired_level.maxi_vis_accept=(MA_transition_vis_effort_type)cur_vis_effort;//MA_HEAD_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+  
+  set_accepted_effort_level_for_HRI_task(desired_level);
+  
+  proactive_solution_res=get_robot_proactive_solution_info(curr_task, curr_task_to_validate.traj);
+  
+  if(proactive_solution_res==0)
+     {
+   printf(" Fail to validate current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
+   ////return 0;
+  cur_reach_effort++;
+  cur_vis_effort++;
+     }
+     else
+     {
+       printf(" Found solution for current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
+       break;
+     }
+    }
+     if(proactive_solution_res==0)
+     {
+       printf(" Fail to validate current task for all effort level \n");
+       return 0;
+     }
   }
   else
   {
