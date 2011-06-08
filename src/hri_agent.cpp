@@ -1480,20 +1480,30 @@ int hri_agent_compute_state_posture(HRI_AGENT * agent, int state, configPt q)
 
   // Only supports ACHILE human model. Everything else returns FALSE.
 
-  if(agent->type == HRI_ACHILE) {
+  if(agent->type == HRI_ACHILE || agent->type == HRI_HERAKLES ) {
+    
+    p3d_jnt* jntHead = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"HeadZ" ); // 5
+    
+    p3d_jnt* jntRHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rHipY" ); // 23
+    p3d_jnt* jntRKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rKnee" ); // 25 
+    p3d_jnt* jntRAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"rAnkleY" ); // 27
+    
+    p3d_jnt* jntLHip = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lHipY" ); // 30
+    p3d_jnt* jntLKnee = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lKnee" ); // 32 
+    p3d_jnt* jntLAnkle = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"lAnkleY" ); // 34
 
     necktobase_dist = agent->robotPt->joints[5]->abs_pos[2][3]-agent->robotPt->joints[1]->abs_pos[2][3];
-    hiptoknee_dist = DISTANCE3D(agent->robotPt->joints[23]->abs_pos[0][3],
-                                agent->robotPt->joints[23]->abs_pos[1][3],
-                                agent->robotPt->joints[23]->abs_pos[2][3],
-                                agent->robotPt->joints[25]->abs_pos[0][3],
-                                agent->robotPt->joints[25]->abs_pos[1][3],
-                                agent->robotPt->joints[25]->abs_pos[2][3]); // Constant -> 0.47
-    kneetoankle_dist = DISTANCE3D(agent->robotPt->joints[25]->abs_pos[0][3],
-                                  agent->robotPt->joints[25]->abs_pos[1][3],
-                                  agent->robotPt->joints[25]->abs_pos[2][3],
-                                  agent->robotPt->joints[27]->abs_pos[0][3],
-                                  agent->robotPt->joints[27]->abs_pos[1][3],
+    hiptoknee_dist = DISTANCE3D(agent->robotPt->joints[jntRHip->index]->abs_pos[0][3],
+                                agent->robotPt->joints[jntRHip->index]->abs_pos[1][3],
+                                agent->robotPt->joints[jntRHip->index]->abs_pos[2][3],
+                                agent->robotPt->joints[jntRKnee->index]->abs_pos[0][3],
+                                agent->robotPt->joints[jntRKnee->index]->abs_pos[1][3],
+                                agent->robotPt->joints[jntRKnee->index]->abs_pos[2][3]); // Constant -> 0.47
+    kneetoankle_dist = DISTANCE3D(agent->robotPt->joints[jntRKnee->index]->abs_pos[0][3],
+                                  agent->robotPt->joints[jntRKnee->index]->abs_pos[1][3],
+                                  agent->robotPt->joints[jntRKnee->index]->abs_pos[2][3],
+                                  agent->robotPt->joints[jntRAnkle->index]->abs_pos[0][3],
+                                  agent->robotPt->joints[jntRAnkle->index]->abs_pos[1][3],
                                   agent->robotPt->joints[27]->abs_pos[2][3]); // Constant -> 0.39
     basetohip_dist = agent->robotPt->joints[1]->abs_pos[2][3]-agent->robotPt->joints[23]->abs_pos[2][3];
     ankletoground_dist = 0.09; // Fixed distance in ACHILE model
@@ -1533,12 +1543,12 @@ int hri_agent_compute_state_posture(HRI_AGENT * agent, int state, configPt q)
         break;
     }
     q[8] = neck_height - necktobase_dist;
-    q[agent->robotPt->joints[23]->index_dof] = -lhip_angle;
-    q[agent->robotPt->joints[25]->index_dof] = lknee_angle;
-    q[agent->robotPt->joints[27]->index_dof] = -lankle_angle;
-    q[agent->robotPt->joints[30]->index_dof] = -rhip_angle;
-    q[agent->robotPt->joints[32]->index_dof] = rknee_angle;
-    q[agent->robotPt->joints[34]->index_dof] = -rankle_angle;
+    q[agent->robotPt->joints[jntRHip->index]->index_dof] = -lhip_angle;
+    q[agent->robotPt->joints[jntRKnee->index]->index_dof] = lknee_angle;
+    q[agent->robotPt->joints[jntRAnkle->index]->index_dof] = -lankle_angle;
+    q[agent->robotPt->joints[jntLHip->index]->index_dof] = -rhip_angle;
+    q[agent->robotPt->joints[jntLKnee->index]->index_dof] = rknee_angle;
+    q[agent->robotPt->joints[jntLAnkle->index]->index_dof] = -rankle_angle;
 
     agent->actual_state = state;
 
