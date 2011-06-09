@@ -16856,6 +16856,171 @@ candidate_points_to_give.weight[i]+=2.0*max_weight*exp(-(((point_to_bottle_dist)
   return 1;
 }
 
+int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank)
+{
+  printf("Inside assign_weights_on_candidte_points_to_give_obj with performing_agent_rank=%d\n",performing_agent_rank);
+  int obje_index=get_index_of_robot_by_name(object_name);
+  
+  int i;
+  p3d_vector4 meanPoint;
+  p3d_vector4 point_in_global_frame;
+  p3d_vector4 point_in_human_frame;
+  p3d_matrix4 hum_pos, hum_pos_inverse;
+  double relative_yaw, relative_pitch; 
+  
+  p3d_mat4Copy(envPt_MM->robot[indx_for_agent]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos);
+  p3d_matInvertXform(hum_pos, hum_pos_inverse);
+  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof); /* Allocation of temporary robot configuration */
+
+  for(i=0;i<3;++i)
+    meanPoint[i]= hum_pos[i][3] + 0.5*hum_pos[i][0];
+  //meanPoint[3]= 1.0;
+  p3d_get_robot_config_into(envPt_MM->robot[rob_indx.HUMAN],&hum_cur_pos);
+
+
+  ////double yaw=M_PI/3.0;
+
+  ////double orig_pan=hum_cur_pos[HUMANq_PAN]; 
+  i=0;
+  double Amplitude=1.0;
+  ////double yaw_mean=hum_cur_pos[HUMANq_PAN];
+  ////double pitch_mean=hum_cur_pos[HUMANq_TILT];
+  double yaw_mean=0;
+  double pitch_mean=0;
+  double sig_yaw=M_PI/2.0;
+  double sig_pitch=M_PI/2.0;
+  double max_weight=0;
+
+  ////////////////printf("candidate_points_to_give.no_points=%d\n",candidate_points->no_points);
+
+   double object_pos[3];
+   double sig_dist=2.0;
+   object_pos[0]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[0][3];
+   object_pos[1]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[1][3];
+   object_pos[2]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[2][3];
+   double point_to_obj_dist;
+	
+  for(i=0;i<candidate_points->no_points;i++)
+    {
+      point_in_global_frame[0] = candidate_points->point[i].x;
+      point_in_global_frame[1] = candidate_points->point[i].y;
+      point_in_global_frame[2] = candidate_points->point[i].z;
+      point_in_global_frame[3] = 1;
+  
+      point_to_obj_dist=sqrt((object_pos[0]-point_in_global_frame[0])*(object_pos[0]-point_in_global_frame[0])+(object_pos[1]-point_in_global_frame[1])*(object_pos[1]-point_in_global_frame[1])+(object_pos[2]-point_in_global_frame[2])*(object_pos[2]-point_in_global_frame[2]));
+  
+         candidate_points->weight[i]= 1.0/point_to_obj_dist;
+	 
+	 /*
+      switch (performing_agent_rank)
+      {
+	case 1: //Master
+        
+	
+    ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
+        point_to_obj_dist=sqrt((object_pos[0]-point_in_global_frame[0])*(object_pos[0]-point_in_global_frame[0])+(object_pos[1]-point_in_global_frame[1])*(object_pos[1]-point_in_global_frame[1])+(object_pos[2]-point_in_global_frame[2])*(object_pos[2]-point_in_global_frame[2]));
+  
+         candidate_points->weight[i]= 1.0/point_to_obj_dist;
+	
+	break;
+        	
+        
+	case 0: //Slave
+      
+      ////Assigning weight wrt human axis
+      p3d_matvec4Mult(hum_pos_inverse, point_in_global_frame, point_in_human_frame);
+      /////printf("%f %f %f\n", point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2]);
+      ////  p3d_psp_cartesian2spherical(point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2],0,0,0,&relative_yaw,&relative_pitch);
+      Cartesian_to_Spherical(point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2],0,0,0,&relative_yaw,&relative_pitch);
+      /////printf("%f %f\n", relative_yaw,relative_pitch);
+  
+      ////////candidate_points_to_put.weight[i]+=(1.0-(fabs(relative_yaw))/M_PI);
+
+      ////printf(" For point %d \n",i);
+      //     candidate_points_to_give.weight[i]=Amplitude*exp(-(((yaw_mean-relative_yaw)*(yaw_mean-relative_yaw)/2.0*sig_yaw*sig_yaw)+((pitch_mean-relative_pitch)*(pitch_mean-relative_pitch)/2.0*sig_pitch*sig_pitch)));
+
+      candidate_points->weight[i]= 1.0/( 2.0 + sqrt( pow(point_in_global_frame[0]-meanPoint[0], 2) + pow(point_in_global_frame[1]-meanPoint[1], 2) + pow(point_in_global_frame[2]-meanPoint[2], 2) ) );
+       
+       break;
+      }
+      */
+      if(max_weight<candidate_points->weight[i])
+	max_weight=candidate_points->weight[i];
+      ////////candidate_points_to_show.weight[i]=Amplitude*exp(-(((yaw_mean-relative_yaw)*(yaw_mean-relative_yaw)/2.0*sig_yaw*sig_yaw)));
+  
+      ////printf(" max_weight=%lf\n",max_weight);
+      /*if(max_weight>100)
+	{
+	  printf(" relative_yaw=%lf, relative_pitch=%lf, weight for candidate point %d to give with pos (%lf,%lf,%lf) is %lf\n",relative_yaw,relative_pitch, i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points->weight[i]);
+
+	  exit(0);
+	}*/
+      ////printf(" relative_yaw=%lf, relative_pitch=%lf, weight for candidate point %d to give with pos (%lf,%lf,%lf) is %lf\n",relative_yaw,relative_pitch, i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points->weight[i]);
+
+      /*
+    ////Assigning weight based on the closeness to the point which is at dist 0.3 m from the human 
+    double human_pos[3];
+    double sig_hum_dist=0.7;
+    double mean_dist=0.3;
+    human_pos[0]=ACBTSET->human[ACBTSET->actual_human]->HumanPt->joints[1]->abs_pos[0][3];
+    human_pos[1]=ACBTSET->human[ACBTSET->actual_human]->HumanPt->joints[1]->abs_pos[1][3];
+    human_pos[2]=ACBTSET->human[ACBTSET->actual_human]->HumanPt->joints[1]->abs_pos[2][3];
+    ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
+    double point_to_human_dist=sqrt((human_pos[0]-point_in_global_frame[0])*(human_pos[0]-point_in_global_frame[0])+(human_pos[1]-point_in_global_frame[1])*(human_pos[1]-point_in_global_frame[1])+(human_pos[2]-point_in_global_frame[2])*(human_pos[2]-point_in_global_frame[2]));
+    printf(" point to human dist = %lf \n", point_to_human_dist);
+    candidate_points_to_put.weight[i]+=Amplitude/2.0*exp(-(((mean_dist-point_to_human_dist)*(mean_dist-point_to_human_dist)/2.0*sig_hum_dist*sig_hum_dist)));
+      */
+
+      /*
+    ////Assigning weight based on the closeness to the bottle current position
+    double bottle_pos[3];
+    double sig_dist=2.0;
+    bottle_pos[0]=ACBTSET->object->joints[1]->abs_pos[0][3];
+    bottle_pos[1]=ACBTSET->object->joints[1]->abs_pos[1][3];
+    bottle_pos[2]=ACBTSET->object->joints[1]->abs_pos[2][3];
+    ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
+    double point_to_bottle_dist=sqrt((bottle_pos[0]-point_in_global_frame[0])*(bottle_pos[0]-point_in_global_frame[0])+(bottle_pos[1]-point_in_global_frame[1])*(bottle_pos[1]-point_in_global_frame[1])+(bottle_pos[2]-point_in_global_frame[2])*(bottle_pos[2]-point_in_global_frame[2]));
+  
+    candidate_points_to_show.weight[i]+=max_weight*exp(-(((point_to_bottle_dist)*(point_to_bottle_dist)/2.0*sig_dist*sig_dist)));
+      */
+      /*if(fabs(point_to_bottle_dist)<0.00001)
+	candidate_points_to_put.weight[i]+=1;
+	else
+	candidate_points_to_put.weight[i]+=(1.0/point_to_bottle_dist);
+      */
+    } 
+  
+  /*
+//////////printf(" max_weight=%lf\n",max_weight);
+int obj_index=get_index_of_robot_by_name ( object_name );
+
+for(i=0;i<candidate_points_to_give.no_points;i++)
+{
+point_in_global_frame[0] = candidate_points_to_give.point[i].x;
+point_in_global_frame[1] = candidate_points_to_give.point[i].y;
+point_in_global_frame[2] = candidate_points_to_give.point[i].z;
+point_in_global_frame[3] = 1;
+////Assigning weight based on the closeness to the bottle current position
+double bottle_pos[3];
+double sig_dist=2.0;
+  
+bottle_pos[0]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[0][3];
+bottle_pos[1]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[1][3];
+bottle_pos[2]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[2][3];
+////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
+double point_to_bottle_dist=sqrt((bottle_pos[0]-point_in_global_frame[0])*(bottle_pos[0]-point_in_global_frame[0])+(bottle_pos[1]-point_in_global_frame[1])*(bottle_pos[1]-point_in_global_frame[1])+(bottle_pos[2]-point_in_global_frame[2])*(bottle_pos[2]-point_in_global_frame[2]));
+  
+//////////printf(" Old weight for candidate point %d to put with pos (%lf,%lf,%lf) is %lf\n", i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points_to_show.weight[i]);
+candidate_points_to_give.weight[i]+=2.0*max_weight*exp(-(((point_to_bottle_dist)*(point_to_bottle_dist)/2.0*sig_dist*sig_dist)));
+  
+//////////printf(" New weight for candidate point %d to put with pos (%lf,%lf,%lf) is %lf\n", i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points_to_show.weight[i]);
+}
+  */
+  normalize_weights(candidate_points);
+  MY_FREE(hum_cur_pos,double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof);
+
+  return 1;
+}
 
 
 int get_human_head_relative_yaw_pitch_for(HRI_TASK_AGENT for_agent, point_co_ordi for_point, double &relative_yaw, double &relative_pitch)
@@ -21874,6 +22039,8 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
     
   if(effort_for_agent==HUMAN1_MA)
   {
+    if(desired_level.reach_relevant==1)
+    {
     int ability=REACH_ABILITY;
     printf(" for reachability Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types=%d\n",Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types);
     
@@ -21884,8 +22051,10 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
    accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states=Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types;
   
    printf("accepted_states_for_HRI_task[%d][%d][%d][%d].no_accepted_reach_states=%d\n",performing_agent,target_agent,effort_for_agent,task,accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_reach_states);
-   
-   ability=VIS_ABILITY;
+    }
+    if(desired_level.vis_relevent==1)
+    {
+   int ability=VIS_ABILITY;
    
    printf(" For visibility Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types=%d\n",Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types);
    
@@ -21896,7 +22065,7 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
      accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].accepted_visibility[i]=Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].analysis_types[i];
    }
    accepted_states_for_HRI_task[performing_agent][target_agent][effort_for_agent][task].no_accepted_vis_states=Analysis_type_Effort_level[effort_for_agent][ability][maxi_vis_accept].num_analysis_types;
-   
+    }
   }
   /*
   if(effort_for_agent==HUMAN1_MA)

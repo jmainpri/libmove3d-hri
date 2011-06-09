@@ -341,7 +341,8 @@ int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipul
      break;
      
      case SHOW_OBJECT:
-	assign_weights_on_candidte_points_to_show_obj(obj_to_manipulate, curr_resultant_candidate_points, indices_of_MA_agents[performed_by], indices_of_MA_agents[performed_for]);
+	////assign_weights_on_candidte_points_to_show_obj(obj_to_manipulate, curr_resultant_candidate_points, indices_of_MA_agents[performed_by], indices_of_MA_agents[performed_for]);
+	assign_weights_on_candidte_points_to_show_obj_new(obj_to_manipulate, curr_resultant_candidate_points, indices_of_MA_agents[performed_by], indices_of_MA_agents[performed_for], performing_agent_rank);
       break;
       
      case GIVE_OBJECT:
@@ -2821,7 +2822,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            if(task==GIVE_OBJECT||task==SHOW_OBJECT)
                            {
                            p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
-                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 150*DEGTORAD)
+                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 45*DEGTORAD)
                             { 
                             printf(" Wrist Alignment is not good \n");
                             continue; 
@@ -5560,14 +5561,28 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   desired_level.maxi_reach_accept=(MA_transition_reach_effort_type)cur_reach_effort;//MA_ARM_EFFORT;//MA_ARM_EFFORT;//MA_ARM_TORSO_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
   desired_level.maxi_vis_accept=(MA_transition_vis_effort_type)cur_vis_effort;//MA_HEAD_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
   
-  set_accepted_effort_level_for_HRI_task(desired_level);
+  desired_level.vis_relevent=1;
+  desired_level.reach_relevant=1;
   
+   if(curr_task.task_type==SHOW_OBJECT||curr_task.task_type==HIDE_OBJECT)
+    {
+    desired_level.reach_relevant=0;
+    }
+    
+    //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
+    //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
+    if(curr_task.task_type==HIDE_OBJECT)
+    {
+  set_accepted_effort_level_for_HRI_task(desired_level);
+    }
+ 
   if(for_proactive_info==1)
   {
   find_solution_curr_res=get_robot_proactive_solution_info(curr_task, curr_task_to_validate.traj);
   }
   else
   {
+  
     find_solution_curr_res=find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj);
    
   }

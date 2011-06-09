@@ -1024,6 +1024,9 @@ typedef struct HRI_task_agent_effort_level
  int effort_for_agent;
  int task;
  
+ int vis_relevent;
+ int reach_relevant;
+ 
  MA_transition_vis_effort_type maxi_vis_accept;
  MA_transition_reach_effort_type maxi_reach_accept;
  MA_transition_vis_effort_type mini_non_vis_req;
