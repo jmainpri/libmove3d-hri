@@ -342,7 +342,7 @@ HRI_REACHABILITY hri_is_reachable(HRI_ENTITY * object, HRI_AGENT *agent)
     // Very simple first draft. We only use distance. We should use Amit processing.
     //    
     if(agent->is_human){
-      if(distance < 1)
+      if(distance < 0.8)
 	reachability =  HRI_REACHABLE;
       else
 	reachability =  HRI_UNREACHABLE;
