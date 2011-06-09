@@ -52,7 +52,9 @@ typedef struct point_co_ordi
 
 typedef enum HRI_TASK_AGENT_ENUM
 {
+  #ifdef HUMAN1_EXISTS_FOR_MA
   HUMAN1_MA=0,
+#endif
   
 #ifdef HUMAN2_EXISTS_FOR_MA
   HUMAN2_MA,
@@ -655,7 +657,7 @@ point_co_ordi point[MAX_CANDIDATE_POINT_FOR_TASK];
 double weight[MAX_CANDIDATE_POINT_FOR_TASK];
 int status[MAX_CANDIDATE_POINT_FOR_TASK]; //0 is not tested for validity, 1 is accepted, 2 is rejected, 3 is found a valid solution for that individual task, but rejected when next task fails, i.e. rejected for the case of backtracking 
 int curr_solution_point_index;//It will store the index by which the current solution for the task can be accessed directly from the array point.
-int horizontal_surface_of[MAX_CANDIDATE_POINT_FOR_TASK];//To store the index of the object, horizontal surface of which belongs to the candidate point
+int horizontal_surface_of[MAX_CANDIDATE_POINT_FOR_TASK];//To store the index of the object, horizontal surface of which belongs to the candidate point. 
 int no_points; 
 }candidate_poins_for_task;
 

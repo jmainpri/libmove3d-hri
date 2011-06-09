@@ -343,6 +343,9 @@ extern int agents_for_ASA_prepared;
 extern int agents_for_ASA_initialized;
 
 extern agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+
+p3d_matrix4 WRIST_FRAME;
+p3d_matrix4 HEAD_FRAME;
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -373,6 +376,10 @@ int execute_Mightability_Map_functions()
       ////g3d_drawDisc(standing_human_eye_pos.x,standing_human_eye_pos.y,standing_human_eye_pos.z,.1,Green,NULL); 
       //follow_human_head_to_object(HUMAN2_MA, "YELLOW_BOTTLE");
       ////g3d_drawDisc(agent_eye_pos.x,agent_eye_pos.y,agent_eye_pos.z,.1,Green,NULL); 
+      
+      //TO SHOW the frames for finding wrist alignment
+      ////////g3d_draw_frame(WRIST_FRAME, 0.1);
+      ////////g3d_draw_frame(HEAD_FRAME, 0.2);
       
      /* Showing and saving the different effort level of give
      if(reach_effort_to_give<=5)
@@ -1457,6 +1464,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
 #endif
 
 #ifdef HUMAN2_EXISTS_FOR_MA
+#ifdef JIDO_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_HUMAN2_JIDO()
 {
   for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
@@ -1747,7 +1755,7 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
     }
   }
 }
-
+#endif
 #endif
 
 #ifdef JIDO_EXISTS_FOR_MA
@@ -4383,7 +4391,7 @@ int init_active_arms_for_HRI_tasks()
 int Create_and_init_Mightability_Maps(char *around_object)
 {
   printf(" Inside Create_and_init_Mightability_Maps()\n");
-  
+  printf(" ****** MAXI_NUM_OF_AGENT_FOR_HRI_TASK =%d \n",MAXI_NUM_OF_AGENT_FOR_HRI_TASK);
   if(agents_for_MA_initialized==0)
   {
     printf(">>>> MA_ERROR: First Initialize Agents for MA, and then prepare the agent for state analysis. Most probably the function to init is init_agents_for_MA_and_ASA() and function to prepare for ASA is prepare_for_Agent_State_Analysis(char *threshold_file_path).\n");
@@ -20653,6 +20661,11 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 			   
 			 for(int j1=0;j1<agents_for_MA_obj.for_agent[test_for_agent].no_of_arms;j1++)
 		         {
+			   if(active_arm_for_HRI_task[test_for_agent][j1]==0)
+		          {
+		         continue;
+		          }
+		          
 		         if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x_ctr][y_ctr][z_ctr].Mightability_Map.reachable[test_for_agent][accepted_states_for_HRI_task[performed_by][performed_for][test_for_agent][curr_task].accepted_reach[i]][j1]==1)
 		          {
 		           cell_OK_reach=1;
@@ -20824,8 +20837,14 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
 	      resultant_candidate_point->point[resultant_candidate_point->no_points].z=cell_z_world;
 	      
 	      resultant_candidate_point->weight[resultant_candidate_point->no_points]=0;
+	      if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_map_cell_obj_info.is_horizontal_surface==1)
+	      {
               resultant_candidate_point->horizontal_surface_of[resultant_candidate_point->no_points]=	grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_map_cell_obj_info.horizontal_surface_of;
-	      
+	      }
+	      else
+	      {
+		resultant_candidate_point->horizontal_surface_of[resultant_candidate_point->no_points]=-1;
+	      }
 	      resultant_candidate_point->no_points++;
 	      
 	      ////if(resultant_candidate_point->no_points>1000)
@@ -21954,9 +21973,10 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
 int update_human_posture_state()
 {
 int for_agent;
+ double R_knee_val, L_knee_val;
   #ifdef HUMAN1_EXISTS_FOR_MA
   for_agent=HUMAN1_MA;
-   double R_knee_val, L_knee_val;
+  
    p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&HUMAN_curr_pos_for_state_change);
   R_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.R_knee_Q];
        
@@ -21977,7 +21997,7 @@ int for_agent;
 
 #ifdef HUMAN2_EXISTS_FOR_MA
   for_agent=HUMAN2_MA;
-   double R_knee_val, L_knee_val;
+   ////double R_knee_val, L_knee_val;
    p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&HUMAN_curr_pos_for_state_change);
   R_knee_val=HUMAN_curr_pos_for_state_change[agents_for_ASA[for_agent].Q_indx.R_knee_Q];
        
