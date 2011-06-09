@@ -2064,7 +2064,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            p3d_matrix4 Tplacement;
                            iplacement->computePoseMatrix ( Tplacement );
                            p3d_set_freeflyer_pose ( object, Tplacement );
-			   g3d_draw_allwin_active();
+			   ////////g3d_draw_allwin_active();
 			   int kcd_with_report=0;
                            int res = p3d_col_test_robot(object,kcd_with_report);
                            if(res>0)
@@ -2132,7 +2132,7 @@ if(PLAN_IN_CARTESIAN == 1)
             ManipulationUtils::unFixAllHands(manipulation->robot());
             gpSet_grasp_configuration ( manipulation->robot(), *igrasp, armID );
             p3d_get_robot_config_into ( manipulation->robot(), &graspConf );
-            g3d_draw_allwin_active();
+            ////////g3d_draw_allwin_active();
 
             p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
 	    double wrist_alignment_angle=get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[from_agent]->perspective->camjoint->abs_pos);
@@ -2159,7 +2159,7 @@ if(PLAN_IN_CARTESIAN == 1)
                   {
                      printf ( " path found to take for grasp_ctr=%d, and IK %d \n",grasp_ctr,i );
 		      elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
-                                   printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+                                   printf("Proactive Planner Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
 				   
 		      traj_sub_task.armID=armID;
                                   traj_sub_task.sub_task_type=REACH_TO_TAKE;
@@ -5537,8 +5537,8 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   
   ////if(find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj)==0)
   ////if(get_robot_proactive_solution_info( curr_task, curr_task_to_validate.traj)==0)
-  if(for_proactive_info==1)
-  {
+  ////if(for_proactive_info==1)
+  ////{
     HRI_task_agent_effort_level desired_level;
      desired_level.performing_agent=curr_task.by_agent;
   desired_level.target_agent=curr_task.for_agent;
@@ -5550,11 +5550,11 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   
   desired_level.task=curr_task.task_type;
   
-    int proactive_solution_res=0;
+    int find_solution_curr_res=0;
     int cur_vis_effort=MA_NO_VIS_EFFORT;
     int cur_reach_effort=MA_NO_REACH_EFFORT;
     
-    while(proactive_solution_res==0&&cur_vis_effort<MA_MAXI_NUM_TRANS_VIS_EFFORTS&&cur_reach_effort<MA_MAXI_NUM_TRANS_REACH_EFFORT)
+    while(find_solution_curr_res==0&&cur_vis_effort<MA_MAXI_NUM_TRANS_VIS_EFFORTS&&cur_reach_effort<MA_MAXI_NUM_TRANS_REACH_EFFORT)
     {
  
   desired_level.maxi_reach_accept=(MA_transition_reach_effort_type)cur_reach_effort;//MA_ARM_EFFORT;//MA_ARM_EFFORT;//MA_ARM_TORSO_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
@@ -5562,9 +5562,17 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   
   set_accepted_effort_level_for_HRI_task(desired_level);
   
-  proactive_solution_res=get_robot_proactive_solution_info(curr_task, curr_task_to_validate.traj);
+  if(for_proactive_info==1)
+  {
+  find_solution_curr_res=get_robot_proactive_solution_info(curr_task, curr_task_to_validate.traj);
+  }
+  else
+  {
+    find_solution_curr_res=find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj);
+   
+  }
   
-  if(proactive_solution_res==0)
+  if(find_solution_curr_res==0)
      {
    printf(" Fail to validate current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
    ////return 0;
@@ -5577,20 +5585,20 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
        break;
      }
     }
-     if(proactive_solution_res==0)
+     if(find_solution_curr_res==0)
      {
        printf(" Fail to validate current task for all effort level \n");
        return 0;
      }
-  }
-  else
+  ////}
+  /*else
   {
    if(find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj)==0)
    {
    printf(" Fail to validate current task \n");
    return 0;
    }
-  }
+  }*/
   ////curr_task_to_validate.traj=res_trajs;
 
   printf(" Num of sub task traj for the current task = %d \n", curr_task_to_validate.traj.sub_task_traj.size());
