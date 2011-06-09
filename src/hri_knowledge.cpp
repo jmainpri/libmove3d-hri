@@ -312,6 +312,7 @@ HRI_REACHABILITY hri_is_reachable(HRI_ENTITY * object, HRI_AGENT *agent)
   configPt qs,q;
   p3d_vector3 Tcoord;
   HRI_REACHABILITY reachability,reachabilitySecondArm;
+  double distance = 0.0;
 
   // Target object
   if((object->type == HRI_OBJECT_PART) || (object->type == HRI_AGENT_PART)) {
@@ -325,37 +326,51 @@ HRI_REACHABILITY hri_is_reachable(HRI_ENTITY * object, HRI_AGENT *agent)
     Tcoord[2] = (object->robotPt->BB.zmax + object->robotPt->BB.zmin)/2;
   }
 
-  if(DISTANCE3D(Tcoord[0],Tcoord[1],Tcoord[2],
-                (agent->robotPt->BB.xmax + agent->robotPt->BB.xmin)/2,
-                (agent->robotPt->BB.ymax + agent->robotPt->BB.ymin)/2,
-                (agent->robotPt->BB.zmax + agent->robotPt->BB.zmin)/2) > 1.5) {
+  distance = DISTANCE3D(Tcoord[0],Tcoord[1],Tcoord[2],
+			(agent->robotPt->BB.xmax + agent->robotPt->BB.xmin)/2,
+			(agent->robotPt->BB.ymax + agent->robotPt->BB.ymin)/2,
+			(agent->robotPt->BB.zmax + agent->robotPt->BB.zmin)/2); 
 
+  if( distance > 1.5) {
     reachability = HRI_UNREACHABLE;
   }
   else {
-
-    qs = MY_ALLOC(double, agent->robotPt->nb_dof); /* ALLOC */
-
-
-    p3d_get_robot_config_into(agent->robotPt, &qs); /* Saving agent config */
-
-    reachability = hri_is_reachable_single_arm(object,agent,GIK_LATREACH,&Tcoord);
-
-    // If agent has two arms and object not reachable with first hand we try with second
-    if(agent->manip->type == TWO_ARMED && (reachability != HRI_REACHABLE)) {
-      p3d_set_and_update_this_robot_conf(agent->robotPt, qs);
-      reachabilitySecondArm = hri_is_reachable_single_arm(object,agent,GIK_RATREACH,&Tcoord);
-      if(reachabilitySecondArm ==  HRI_REACHABLE) {
+    //
+    // TO MODIFY!
+    // Matthieu Warnier 06/09/2011
+    // Simplify reachability processing for human
+    // Very simple first draft. We only use distance. We should use Amit processing.
+    //    
+    if(agent->is_human){
+      if(distance < 1)
 	reachability =  HRI_REACHABLE;
-      }
-      else if(reachabilitySecondArm ==  HRI_HARDLY_REACHABLE){
-	reachability =  HRI_HARDLY_REACHABLE;
-      }
+      else
+	reachability =  HRI_UNREACHABLE;
     }
+    else {
+      qs = MY_ALLOC(double, agent->robotPt->nb_dof); /* ALLOC */
 
-    p3d_set_and_update_this_robot_conf(agent->robotPt,qs);
 
-    MY_FREE(qs, double, agent->robotPt->nb_dof); /* FREE */
+      p3d_get_robot_config_into(agent->robotPt, &qs); /* Saving agent config */
+
+      reachability = hri_is_reachable_single_arm(object,agent,GIK_LATREACH,&Tcoord);
+
+      // If agent has two arms and object not reachable with first hand we try with second
+      if(agent->manip->type == TWO_ARMED && (reachability != HRI_REACHABLE)) {
+	p3d_set_and_update_this_robot_conf(agent->robotPt, qs);
+	reachabilitySecondArm = hri_is_reachable_single_arm(object,agent,GIK_RATREACH,&Tcoord);
+	if(reachabilitySecondArm ==  HRI_REACHABLE) {
+	  reachability =  HRI_REACHABLE;
+	}
+	else if(reachabilitySecondArm ==  HRI_HARDLY_REACHABLE){
+	  reachability =  HRI_HARDLY_REACHABLE;
+	}
+      }
+
+      p3d_set_and_update_this_robot_conf(agent->robotPt,qs);
+
+      MY_FREE(qs, double, agent->robotPt->nb_dof); /* FREE */
+    }
   }
   return reachability;
 }
