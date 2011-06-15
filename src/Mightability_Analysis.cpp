@@ -258,6 +258,7 @@ p3d_vector4 FOV_left_up_abs, FOV_left_down_abs, FOV_right_up_abs, FOV_right_down
 p3d_vector3 points_on_FOV_screen[4000]; //To store all the points on the screen
 int no_points_on_FOV_screen=0;
 point_co_ordi mean_point;
+extern configPt robot_config_before_planning=NULL;
 
 std::list<gpTriangle> global_htris;
 ////std::vector<std::pair<int,std::string> > HRI_task_NAME_ID_pair;
@@ -11270,10 +11271,12 @@ int update_Mightability_Maps_new()
   ChronoOn();
 for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
  {
+   p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[i]],&HRI_AGENTS_FOR_MA_actual_pos[i]);
   p3d_rob *agent_Pt=envPt_MM->robot[indices_of_MA_agents[i]];
     switch(i)
     {
       case HUMAN1_MA:
+	
 	
 	if(NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]==1)
         {
@@ -13218,7 +13221,7 @@ int update_robots_and_objects_status()
       r = envPt_MM->robot[r_ctr];
 
       //double cur_x=r->ROBOT_POS[6];
-      if(strcasestr(r->name,"visball"))
+      if(strcasestr(r->name,"visball")||strcasestr(r->name,"PR2_GRIPPER"))
 	{
 	  continue;
 	}
@@ -13236,7 +13239,8 @@ int update_robots_and_objects_status()
 		{
 		  robots_status_for_Mightability_Maps[r_ctr].has_moved=1;
                   at_least_one_object_has_moved=1;
-		  ////////printf(" >>>> Robot = %s has moved.\n",r->name);
+		  printf(" >>**>> Robot = %s has moved.\n",r->name);
+		  
 		  /*
 		    robots_status_for_Mightability_Maps[r_ctr].prev_x=robots_status_for_Mightability_Maps[r_ctr].curr_x;
 		    robots_status_for_Mightability_Maps[r_ctr].prev_y=robots_status_for_Mightability_Maps[r_ctr].curr_y;
@@ -13290,6 +13294,14 @@ int update_robots_and_objects_status()
     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
     {
       
+      
+      if(at_least_one_object_has_moved==1)
+      {
+      NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+      /////NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;// TMP commented to speed up at the execution 
+       continue;
+      }
+      
       if(i==HUMAN1_MA)
 	continue;
       
@@ -13297,29 +13309,30 @@ int update_robots_and_objects_status()
       {
        ///////////////printf(" >>>> NEED_ALL_REACHABILITY_UPDATE_AGENT %d\n",i);
 	NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;
-	////NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
+	NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
       }
       
-      if(at_least_one_object_has_moved==1)
-      {
-      NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
-      }
-      else
-      {
       for(int j=0;j<agents_for_MA_obj.for_agent[i].head_params.no_joints_neck;j++)
        {
-      if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
-        {
+      ////////if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
+      if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
+        { 
+	  printf("for joint %d, val by Q[%d] = %lf, val by j[%d] = %lf \n",j,agents_for_MA_obj.for_agent[i].head_params.Q_indices[j], robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]], agents_for_MA_obj.for_agent[i].head_params.joint_indices[j], r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v);
+	  printf(">>**>> Need current visibility update for agent %d, due to %d th joint of neck has changed \n",i, j);
 	 NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
 	 ////MA_agent_has_turned_head[i]=1;
-	
+	robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].has_moved=1;
        break;
         }
        }
-      }
+      
+      
+   
+      
     }
      
     
+    printf(" Returning form update_robots_and_objects_status()\n");
   return 1;
 }
 
@@ -13646,7 +13659,7 @@ int object_index=get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE);
 	  cur_rob_pos=MY_ALLOC(double,r->nb_dof); 
 	  p3d_get_robot_config_into(r,&cur_rob_pos);
   
-	  ////////printf(" Updating obstacle cells for Object = %s \n",r->name);
+	  printf(" Updating obstacle cells for Object = %s \n",r->name);
 	  if(strcasestr(r->name,"visball"))
 	    {
 	      robots_status_for_Mightability_Maps[r_ctr].has_moved=0;
@@ -13884,6 +13897,7 @@ int object_index=get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE);
 	    ////////////////p3d_copy_config_into(r,r->ROBOT_POS, &(robots_status_for_Mightability_Maps[r_ctr].rob_prev_config));
 	    ////////robots_status_for_Mightability_Maps[r_ctr].prev_BB=r->BB;
              p3d_col_activate_robot(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY]);
+	     printf(" Storing the config of %s for next MM updation \n",envPt_MM->robot[r_ctr]->name);
 	    p3d_get_robot_config_into ( r,&robots_status_for_Mightability_Maps[r_ctr].rob_prev_config ); 
 	}
    
@@ -19375,7 +19389,7 @@ int Draw_Bounding_Box(double min_x, double min_y, double min_z, double max_x, do
 
 int show_Object_Oriented_Mightabilities()
 {
-    int no = envPt_MM->no;
+  int no = envPt_MM->no;
   int nr = envPt_MM->nr;
   int i=0, j, k;
   double radius=grid_around_HRP2.GRID_SET->pace/2.0;
@@ -20547,10 +20561,20 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
   p3d_set_freeflyer_pose2(envPt_MM->robot[obj_index], 0,0,10,0,0,0);
   
   //To update the MM assuming the object is not there as a constraint for visibility and reachability
+     
+  
   update_robots_and_objects_status();
+     /////set_all_Mightability_Analyses_to_update();
+  int tmp_mm_info=UPDATE_MIGHTABILITY_MAP_INFO;
+  
+  UPDATE_MIGHTABILITY_MAP_INFO=0;
+  
   update_horizontal_surfaces();
+ 
   update_Mightability_Maps_new();
-
+ 
+  UPDATE_MIGHTABILITY_MAP_INFO=tmp_mm_info;
+  
   double obj_BB_height=envPt_MM->robot[obj_index]->BB.zmax-envPt_MM->robot[obj_index]->BB.zmin;
   double obj_BB_length=envPt_MM->robot[obj_index]->BB.xmax-envPt_MM->robot[obj_index]->BB.xmin;
   double obj_BB_width=envPt_MM->robot[obj_index]->BB.ymax-envPt_MM->robot[obj_index]->BB.ymin;
@@ -21028,8 +21052,16 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
   
   //To reupdate the MM with object at original position 
   update_robots_and_objects_status();
+  ////set_all_Mightability_Analyses_to_update();
+  int tmp_mm_info=UPDATE_MIGHTABILITY_MAP_INFO;
+  
+  UPDATE_MIGHTABILITY_MAP_INFO=0;
+  
   update_horizontal_surfaces();
+ 
   update_Mightability_Maps_new();
+ 
+  UPDATE_MIGHTABILITY_MAP_INFO=tmp_mm_info;
 
   
   }

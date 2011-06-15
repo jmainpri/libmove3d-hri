@@ -78,6 +78,7 @@ extern int CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS;
 extern HRI_AGENT *HRI_AGENTS_FOR_MA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern double mini_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
 extern double maxi_visibility_threshold_for_task[MAXI_NUM_OF_HRI_TASKS];
+extern struct object_Symbolic_Mightability_Maps_Relation object_MM;
 
 ////action_performance_node curret_task;
 std::vector<HRI_task_node> HRI_task_list;
@@ -332,7 +333,9 @@ int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipul
    /////if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==1)
    init_visibility_acceptance_for_tasks();
  
+ 
    find_candidate_points_for_current_HRI_task_for_object(CURR_TASK,  performed_by, performed_for,performing_agent_rank, curr_resultant_candidate_points, obj_to_manipulate, consider_object_dimension);
+   
    
    switch (CURR_TASK)
    {
@@ -356,14 +359,19 @@ int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipul
       
    }
   
-   
+ 
    reverse_sort_HRI_task_weighted_candidate_points(curr_resultant_candidate_points);
+    
+
    CANDIDATE_POINTS_FOR_TASK_FOUND=1;
    
    ////CANDIDATE_POINTS_FOR_CURRENT_TASK=curr_resultant_candidate_points;
    copy_HRI_task_candidate_points(curr_resultant_candidate_points,&resultant_current_candidate_point);
    CANDIDATE_POINTS_FOR_CURRENT_TASK=&resultant_current_candidate_point;
    ////MY_FREE(curr_resultant_candidate_points, candidate_poins_for_task,1);
+    
+
+     return 1;
 }
 /*
 int store_initial_world_state_for_action(action_performance_node curret_task, std::list<action_performance_node> &task_list)
@@ -542,7 +550,7 @@ if(CURRENT_TASK_PERFORMED_BY==JIDO_MA||CURRENT_TASK_PERFORMED_FOR==JIDO_MA)
 #ifdef PR2_EXISTS_FOR_MA
  if(CURRENT_TASK_PERFORMED_BY==PR2_MA||CURRENT_TASK_PERFORMED_FOR==PR2_MA)
  {
- //case JIDO_MA:
+ //case PR2_MA:
   init_manipulation_planner(envPt_MM->robot[indices_of_MA_agents[PR2_MA]]->name);
 // break;
 
@@ -563,7 +571,9 @@ performing_agent_rank=0;//Slave
 
 find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
 
+
 get_grasp_list_for_object(CURRENT_OBJECT_TO_MANIPULATE, grasps_for_object);
+
 candidate_grasps_for_task=grasps_for_object;
 
 char by_hand[50];
@@ -592,6 +602,8 @@ switch(CURRENT_HRI_MANIPULATION_TASK)
   reduce_grasp_list_for_hand_over_task(grasps_for_object, CURRENT_OBJECT_TO_MANIPULATE, by_hand, to_hand, candidate_grasps_for_task );
 
    get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
+  
+   
   }
  break;
  
@@ -640,6 +652,7 @@ case HIDE_OBJECT:
 
  if(is_performing_agent_supported_by_planner==1)
  {
+  
  validate_task_result=JIDO_perform_task ( CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, CURRENT_TASK_PERFORMED_BY, by_hand, CURRENT_TASK_PERFORMED_FOR, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList,  res_traj);
  }
  else
@@ -1302,7 +1315,7 @@ int JIDO_find_solution_to_take_new(char *obj_to_manipulate, HRI_TASK_TYPE task, 
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
  
@@ -1427,7 +1440,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
    ////for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
@@ -1626,7 +1639,7 @@ int JIDO_find_solution_to_take(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
  
@@ -1751,7 +1764,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
@@ -1838,7 +1851,7 @@ printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points
 		   #ifdef PR2_EXISTS_FOR_MA
                    if(by_agent==PR2_MA)
                     {
-                   fixAllJointsWithoutArm(manipulation->robot(),0);
+                   fixAllJointsWithoutArm(manipulation->robot(),armID);
                     }
                   #endif
                   status= manipulation->armToFree ( armID, refConf, graspConf,TRUE, NULL,  take_trajs );
@@ -1894,7 +1907,7 @@ int JIDO_find_solution_to_take_new3(char *obj_to_manipulate, HRI_TASK_TYPE task,
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
  
@@ -2019,7 +2032,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
    ////////for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
@@ -2150,7 +2163,7 @@ if(PLAN_IN_CARTESIAN == 1)
 		   #ifdef PR2_EXISTS_FOR_MA
                    if(by_agent==PR2_MA)
                     {
-                   fixAllJointsWithoutArm(manipulation->robot(),0);
+                   fixAllJointsWithoutArm(manipulation->robot(),armID);
                     }
                   #endif
                   status= manipulation->armToFree ( armID, refConf, graspConf,TRUE, NULL,  take_trajs );
@@ -2178,7 +2191,7 @@ if(PLAN_IN_CARTESIAN == 1)
                                    manipulation->setSafetyDistanceValue ( orig_safety_dist );
 
                                     p3d_destroy_config ( manipulation->robot(), refConf );
-                                    p3d_destroy_config ( manipulation->robot(), obj_refConf );
+                                    p3d_destroy_config ( object, obj_refConf );
                                     p3d_destroy_config ( manipulation->robot(), qcur );
 				    
 				    if(  task==MAKE_OBJECT_ACCESSIBLE )
@@ -2212,7 +2225,7 @@ int JIDO_find_solution_to_take_new2(char *obj_to_manipulate, HRI_TASK_TYPE task,
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
  
@@ -2337,7 +2350,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
@@ -2453,7 +2466,7 @@ if(PLAN_IN_CARTESIAN == 1)
 		   #ifdef PR2_EXISTS_FOR_MA
                    if(by_agent==PR2_MA)
                     {
-                   fixAllJointsWithoutArm(manipulation->robot(),0);
+                   fixAllJointsWithoutArm(manipulation->robot(),armID);
                     }
                   #endif
                   status= manipulation->armToFree ( armID, refConf, graspConf,TRUE, NULL,  take_trajs );
@@ -2508,12 +2521,14 @@ if(PLAN_IN_CARTESIAN == 1)
 
 int JIDO_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs)
 {
+
+  
   //FOR PR2 DO fixAllJointsWithoutArm(m_manipulation->robot(),0);
   int armID= 0;
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
 
@@ -2575,8 +2590,8 @@ if(PLAN_IN_CARTESIAN == 1)
    
    std::vector <MANPIPULATION_TRAJECTORY_CONF_STR> confs;
    std::vector <SM_TRAJ> smTrajs;
-   ManipulationData configs ( manipulation->robot() );
-   ArmManipulationData mData = ( *manipulation->robot()->armManipulationData ) [0];
+   ////////ManipulationData configs ( manipulation->robot() );
+   ArmManipulationData mData = ( *manipulation->robot()->armManipulationData ) [armID];
    p3d_rob* object= ( p3d_rob* ) p3d_get_robot_by_name ( ( char* ) obj_to_manipulate );
    
    p3d_matrix4 Tplacement0, T;
@@ -2584,7 +2599,7 @@ if(PLAN_IN_CARTESIAN == 1)
 //   gpGrasp grasp;
    MANIPULATION_TASK_MESSAGE status;
    int result;
-   gpHand_properties armHandProp = ( *manipulation->robot()->armManipulationData ) [0].getHandProperties();
+   gpHand_properties armHandProp = ( *manipulation->robot()->armManipulationData ) [armID].getHandProperties();
    std::vector <double>  m_objStart ( 6 ), m_objGoto ( 6 );
    configPt q = NULL;
    gpHand_properties handProp = mData.getHandProperties();
@@ -2611,9 +2626,13 @@ if(PLAN_IN_CARTESIAN == 1)
    configPt refConf= NULL, approachConf= NULL, graspConf= NULL, openConf= NULL, liftConf= NULL, placeConf= NULL, obj_refConf=NULL;
  
    refConf= p3d_get_robot_config ( manipulation->robot() );
+   ////refConf= p3d_get_robot_config ( envPt_MM->robot[indices_of_MA_agents[by_agent]] );
    obj_refConf= p3d_get_robot_config ( object );
 
+   //// ManipulationUtils::copyConfigToFORM ( manipulation->robot(), refConf );
 
+    
+    
 ////   ( *manipulation->robot()->armManipulationData ) [armID]. ( handFree ) ;
 
    p3d_multiLocalPath_disable_all_groupToPlan ( manipulation->robot() );
@@ -2633,7 +2652,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
@@ -2642,6 +2661,7 @@ if(PLAN_IN_CARTESIAN == 1)
       p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
       printf ( "grasp id= %d\n",igrasp->ID );
       p3d_set_freeflyer_pose ( object, Tplacement0 );
+      g3d_draw_allwin_active();
 
 
       p3d_mat4Mult ( igrasp->frame, handProp.Tgrasp_frame_hand, handFrame );
@@ -2651,7 +2671,7 @@ if(PLAN_IN_CARTESIAN == 1)
       p3d_get_freeflyer_pose ( object, Tobject );
       ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
       gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
-      for ( int i=0; i<5; ++i )
+      for ( int i=0; i<1; ++i )
       {
 	ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
@@ -2668,7 +2688,7 @@ if(PLAN_IN_CARTESIAN == 1)
 	  g3d_draw_allwin_active();
           continue;
          }
-         g3d_draw_allwin_active();
+         
          printf ( "graspConf= %p\n", graspConf );
          if ( graspConf!=NULL )
          {
@@ -2679,7 +2699,7 @@ if(PLAN_IN_CARTESIAN == 1)
             ManipulationUtils::unFixAllHands(manipulation->robot());
             gpSet_grasp_configuration ( manipulation->robot(), *igrasp, armID );
             p3d_get_robot_config_into ( manipulation->robot(), &graspConf );
-            g3d_draw_allwin_active();
+           
 
             approachConf= manipulation->getManipulationConfigs().getApproachFreeConf ( object, armID, *igrasp, graspConf, tAtt );
 
@@ -2691,7 +2711,7 @@ if(PLAN_IN_CARTESIAN == 1)
             ////else
             ////{
                p3d_set_and_update_this_robot_conf ( manipulation->robot(), approachConf );
-               g3d_draw_allwin_active();
+               
                openConf= manipulation->getManipulationConfigs().getOpenGraspConf ( object, armID, *igrasp, graspConf );
                printf ( "approachConf= %p\n", approachConf );
                if ( openConf==NULL )
@@ -2708,18 +2728,24 @@ if(PLAN_IN_CARTESIAN == 1)
 //                   ManipulationUtils::copyConfigToFORM ( manipulation->robot(), approachConf );
 //                   ManipulationUtils::copyConfigToFORM ( manipulation->robot(), openConf );
 //                   ManipulationUtils::copyConfigToFORM ( manipulation->robot(), graspConf );
-
+                    manipulation->cleanRoadmap();
+		  ////p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
                     //Added by Mokhtar to fix the issue of object colliding with environment in the generated plan
                    p3d_multiLocalPath_disable_all_groupToPlan ( manipulation->robot() );
                    p3d_multiLocalPath_set_groupToPlan ( manipulation->robot(), manipulation->getUpBodyMLP(), 1 );
 		  #ifdef PR2_EXISTS_FOR_MA
 		    if(by_agent==PR2_MA)
 		    {
-		    fixAllJointsWithoutArm(manipulation->robot(),0);
+		    fixAllJointsWithoutArm(manipulation->robot(),armID);
 		    }
 		  #endif
+		   g3d_draw_allwin_active();
+		   
+		   p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+              
+	       
                   status= manipulation->armPickGoto ( armID, refConf, object, graspConf, openConf,  approachConf, take_trajs );
-
+                  
 //                   p3d_destroy_config( manipulation->robot(), graspConf );
                   p3d_destroy_config( manipulation->robot(), approachConf );
                   p3d_destroy_config( manipulation->robot(), openConf );
@@ -2822,7 +2848,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            if(task==GIVE_OBJECT||task==SHOW_OBJECT)
                            {
                            p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
-                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 45*DEGTORAD)
+                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 120*DEGTORAD)
                             { 
                             printf(" Wrist Alignment is not good \n");
                             continue; 
@@ -2832,7 +2858,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
-   fixAllJointsWithoutArm(manipulation->robot(),0);
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
                             ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
@@ -2840,7 +2866,7 @@ if(PLAN_IN_CARTESIAN == 1)
                            // it is reactivated in armPickGoTo, so we need to deactivate again:
                            gpDeactivate_object_fingertips_collisions( manipulation->robot(), object->joints[1]->o, armHandProp, armID);
 
-                           for ( int j=0; j<5; ++j )
+                           for ( int j=0; j<1; ++j )
                            {
                               deactivateCcCntrts(manipulation->robot(), armID);
                             /*
@@ -2902,6 +2928,7 @@ if(PLAN_IN_CARTESIAN == 1)
                                 {
                                 printf(" Visibility NOT OK \n");
                                 p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+				////g3d_draw_allwin_active();
                                 continue;
                                 } 
                                 
@@ -2982,7 +3009,7 @@ if(PLAN_IN_CARTESIAN == 1)
 		  #ifdef PR2_EXISTS_FOR_MA
 		    if(by_agent==PR2_MA)
 		    {
-		    fixAllJointsWithoutArm(manipulation->robot(),0);
+		    fixAllJointsWithoutArm(manipulation->robot(),armID);
 		    }
 		  #endif
                                   ////ManipulationUtils::copyConfigToFORM ( manipulation->robot(), graspConf );
@@ -3047,7 +3074,7 @@ if(PLAN_IN_CARTESIAN == 1)
                                   manipulation->getManipulationData().setGrasp(&(*igrasp));
 
                                   p3d_set_and_update_this_robot_conf ( manipulation->robot(), placeConf );
-                                  ManipulationUtils::copyConfigToFORM ( manipulation->robot(), placeConf );
+                                  ////ManipulationUtils::copyConfigToFORM ( manipulation->robot(), placeConf );
 
                                   g3d_draw_allwin_active();
 
@@ -3089,7 +3116,7 @@ if(PLAN_IN_CARTESIAN == 1)
                                    manipulation->setSafetyDistanceValue ( orig_safety_dist );
 
                                     p3d_destroy_config ( manipulation->robot(), refConf );
-                                    p3d_destroy_config ( manipulation->robot(), obj_refConf );
+                                    p3d_destroy_config (object, obj_refConf );
                                     p3d_destroy_config ( manipulation->robot(), qcur );
                                    return 1;
                                   }
@@ -3287,7 +3314,7 @@ if(PLAN_IN_CARTESIAN == 1)
 			
    result= 0;
    p3d_destroy_config ( manipulation->robot(), refConf );
-   p3d_destroy_config ( manipulation->robot(), obj_refConf );
+   p3d_destroy_config ( object, obj_refConf );
    p3d_destroy_config ( manipulation->robot(), qcur );
    p3d_set_freeflyer_pose ( object, Tplacement0 );
 
@@ -5758,6 +5785,7 @@ int show_plan_for_this_sub_task(HRI_task_node &for_task, traj_for_HRI_sub_task &
    
    }
   }
+  
   if(sub_task_index>0)
   {
    for(int j=0;j<envPt_MM->nr;j++)
@@ -5768,7 +5796,7 @@ int show_plan_for_this_sub_task(HRI_task_node &for_task, traj_for_HRI_sub_task &
 
    }
   }
-
+ 
   g3d_draw_allwin_active();
     #if defined(WITH_XFORMS)
 
@@ -5976,4 +6004,36 @@ performing_agent_rank=0;//Slave
  
   MY_FREE(curr_resultant_candidate_points, candidate_poins_for_task,1);
 
+}
+
+
+int get_clean_the_table_plan()
+{
+  int i=HUMAN1_MA;
+  int nr_ctr=1;
+  for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
+		{
+		
+		    if(object_MM.object[nr_ctr].geo_MM.visible[i][j]>0)
+		    {
+		      //printf(" Drawing disc\n"); 
+		      
+		      
+		    }
+		 
+		}
+	      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
+		{
+		for(int k=0;k<agents_for_MA_obj.for_agent[i].no_of_arms;k++)
+		  {
+		  
+		     if(object_MM.object[nr_ctr].geo_MM.reachable[i][j][k]>0)
+		    {
+		      //printf(" Drawing disc\n"); 
+		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
+		   
+		    }
+		   
+		  }
+		}
 }
