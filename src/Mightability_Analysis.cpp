@@ -13317,7 +13317,7 @@ int update_robots_and_objects_status()
       ////////if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
       if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
         { 
-	  printf("for joint %d, val by Q[%d] = %lf, val by j[%d] = %lf \n",j,agents_for_MA_obj.for_agent[i].head_params.Q_indices[j], robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]], agents_for_MA_obj.for_agent[i].head_params.joint_indices[j], r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v);
+	  //////////printf("for joint %d, val by Q[%d] = %lf, val by j[%d] = %lf \n",j,agents_for_MA_obj.for_agent[i].head_params.Q_indices[j], robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]], agents_for_MA_obj.for_agent[i].head_params.joint_indices[j], r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v);
 	  printf(">>**>> Need current visibility update for agent %d, due to %d th joint of neck has changed \n",i, j);
 	 NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
 	 ////MA_agent_has_turned_head[i]=1;
@@ -13332,7 +13332,7 @@ int update_robots_and_objects_status()
     }
      
     
-    printf(" Returning form update_robots_and_objects_status()\n");
+   //////// printf(" Returning form update_robots_and_objects_status()\n");
   return 1;
 }
 
