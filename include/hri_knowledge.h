@@ -208,12 +208,12 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
   int is_looked_at_isexported;
 
   HRI_TRUE_FALSE_UK_V isSeen;
-  int isSeenchanged;
-  int isSeenexported;
+  int isSeenischanged;
+  int isSeenisexported;
 
   HRI_TRUE_FALSE_UK_V is_pointed_at;
   int is_pointed_at_ischanged;
-  int is_pointed_at_isexported
+  int is_pointed_at_isexported;
 
   HRI_VISIBILITY_PLACEMENT is_placed_from_visibility; /* oof, fov, ... */
   int visibility_placement_ischanged;
