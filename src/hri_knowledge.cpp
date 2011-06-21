@@ -231,9 +231,9 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     knowledge->entities[i].is_pointed_at_isexported = FALSE;
 
     knowledge->entities[i].is_located_from_agent = HRI_UK_RELATION;
-    knowledge->entities[i].front_behind_result = HRI_UK_RELATION;
-    knowledge->entities[i].left_right_result = HRI_UK_RELATION; 
-    knowledge->entities[i].far_near_result = HRI_UK_RELATION; 
+    knowledge->entities[i].is_front_behind_from_agent = HRI_UK_RELATION;
+    knowledge->entities[i].is_left_right_from_agent = HRI_UK_RELATION; 
+    knowledge->entities[i].is_far_near_from_agent = HRI_UK_RELATION; 
     knowledge->entities[i].spatial_relation_ischanged = FALSE;
     knowledge->entities[i].spatial_relation_isexported = FALSE;
 
@@ -1179,9 +1179,9 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
        kn_on_ent->reachability_isexported = FALSE;
 
        kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
-       kn_on_ent->front_behind_result = HRI_UK_RELATION;
-       kn_on_ent->left_right_result = HRI_UK_RELATION; 
-       kn_on_ent->far_near_result = HRI_UK_RELATION; 
+       kn_on_ent->is_front_behind_from_agent = HRI_UK_RELATION;
+       kn_on_ent->is_left_right_from_agent = HRI_UK_RELATION; 
+       kn_on_ent->is_far_near_from_agent = HRI_UK_RELATION; 
        kn_on_ent->spatial_relation_ischanged = TRUE;
        kn_on_ent->spatial_relation_isexported = FALSE;       
 
