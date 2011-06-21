@@ -227,6 +227,9 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     knowledge->entities[i].is_pointed_at_isexported = FALSE;
 
     knowledge->entities[i].is_located_from_agent = HRI_UK_RELATION;
+    knowledge->entities[i].front_behind_result = HRI_UK_RELATION;
+    knowledge->entities[i].left_right_result = HRI_UK_RELATION; 
+    knowledge->entities[i].far_near_result = HRI_UK_RELATION; 
     knowledge->entities[i].spatial_relation_ischanged = FALSE;
     knowledge->entities[i].spatial_relation_isexported = FALSE;
 
