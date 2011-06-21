@@ -1166,6 +1166,10 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
        kn_on_ent->is_looked_at_ischanged = TRUE;
        kn_on_ent->is_looked_at_isexported = FALSE;
 
+       kn_on_ent->isSeen = HRI_UK_V;
+       kn_on_ent->isSeenischanged = TRUE;
+       kn_on_ent->isSeenisexported = FALSE;
+
        kn_on_ent->is_pointed_at = HRI_UK_V;
        kn_on_ent->is_pointed_at_ischanged = TRUE;
        kn_on_ent->is_pointed_at_isexported = FALSE;
@@ -1175,6 +1179,9 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
        kn_on_ent->reachability_isexported = FALSE;
 
        kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
+       kn_on_ent->front_behind_result = HRI_UK_RELATION;
+       kn_on_ent->left_right_result = HRI_UK_RELATION; 
+       kn_on_ent->far_near_result = HRI_UK_RELATION; 
        kn_on_ent->spatial_relation_ischanged = TRUE;
        kn_on_ent->spatial_relation_isexported = FALSE;       
 
