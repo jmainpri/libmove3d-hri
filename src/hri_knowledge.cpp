@@ -222,6 +222,10 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     knowledge->entities[i].is_looked_at_ischanged = FALSE;
     knowledge->entities[i].is_looked_at_isexported = FALSE;
 
+    knowledge->entities[i].isSeen = HRI_UK_V;
+    knowledge->entities[i].isSeenischanged = FALSE;
+    knowledge->entities[i].isSeenisexported = FALSE;
+
     knowledge->entities[i].is_pointed_at = HRI_UK_V;
     knowledge->entities[i].is_pointed_at_ischanged = FALSE;
     knowledge->entities[i].is_pointed_at_isexported = FALSE;
@@ -1373,6 +1377,30 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	else
 	  kn_on_ent->is_looked_at = HRI_FALSE_V;
       }
+
+      ////////////////////////////////////////////
+      // isSeen. We use the value processed above.
+      /////////////////////////////////////////////
+      
+      
+      if ( ((((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOA) || (((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOV)) && (kn_on_ent->visibility  == HRI_VISIBLE)) {
+	if (kn_on_ent->isSeen != HRI_TRUE_V){
+	  kn_on_ent->isSeen = HRI_TRUE_V;
+	  kn_on_ent->isSeenischanged = TRUE;
+	  kn_on_ent->isSeenisexported = FALSE;
+	}	      	      
+      }
+      else {
+	if (kn_on_ent->isSeen == HRI_TRUE_V){
+	  kn_on_ent->isSeenischanged = TRUE;
+	  kn_on_ent->isSeenisexported = FALSE;
+	}	 
+	if( (res == HRI_UK_VIS_PLACE) || (kn_on_ent->visibility  == HRI_UK_VIS))
+	  kn_on_ent->isSeen = HRI_UK_V;
+	else
+	  kn_on_ent->isSeen = HRI_FALSE_V;
+      }
+
       
       //We try to process pointsAt continuously to avoid nearly synchronous add/remove of these facts. 
 
