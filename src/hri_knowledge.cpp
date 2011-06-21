@@ -683,6 +683,76 @@ HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent
   return HRI_NO_RELATION;
 }
 
+HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * agent, HRI_SPATIAL_RELATION * front_behind, HRI_SPATIAL_RELATION * left_right , HRI_SPATIAL_RELATION * far_near)
+{
+  p3d_vector4 targetRealCoord;
+  p3d_vector4 targetRelativeCoord;
+  p3d_matrix4 inv;
+  p3d_BB *objectBB;
+  double rho, phi, theta;
+  int isFar;
+  double farLimit = 5.0; //TODO: Make this changeable
+
+  if( (agent == NULL) || (object == NULL) ) {
+    return HRI_NO_RELATION;
+  }
+
+  if(object->type == HRI_OBJECT_PART || object->type == HRI_AGENT_PART)
+    objectBB = &object->partPt->BB;
+  else
+    objectBB = &object->robotPt->BB;
+
+  targetRealCoord[0] = (objectBB->xmax+objectBB->xmin)/2;
+  targetRealCoord[1] = (objectBB->ymax+objectBB->ymin)/2;
+  targetRealCoord[2] = (objectBB->zmax+objectBB->zmin)/2;
+  targetRealCoord[3] = 1;
+
+  p3d_matInvertXform(agent->robotPt->joints[1]->abs_pos, inv);
+
+  p3d_matvec4Mult(inv, targetRealCoord, targetRelativeCoord);
+
+  p3d_cartesian2spherical(targetRelativeCoord[0],targetRelativeCoord[1],targetRelativeCoord[2],
+                          &rho, &theta, &phi);
+
+
+  isFar = (farLimit < DISTANCE2D(targetRelativeCoord[0],targetRelativeCoord[1],0,0));
+  if(isFar)
+    *far_near = HRI_FAR;
+  else
+    *far_near = HRI_NEAR;
+  //  printf("real coord %f %f %f\n",targetRealCoord[0],targetRealCoord[1],targetRealCoord[2]);
+  //  printf("relative coord %f %f %f\n",targetRelativeCoord[0],targetRelativeCoord[1],targetRelativeCoord[2]);
+  //  printf("Phi is %f, isFar is %d\n",phi,isFar);
+
+  /* Phi is the horizontal one */
+
+  /* FRONT / BEHIND */
+  if(ABS(phi) < 3*M_PI/8) { /* In front */
+    *front_behind = HRI_FRONT;
+  }
+  else if(ABS(phi) > 5*M_PI/8) {
+    *front_behind = HRI_BEHIND;
+  }
+  else
+    *front_behind = HRI_NO_RELATION;
+
+  /* LEFT / RIGHT */
+  if((ABS(phi) > M_PI/8) && (ABS(phi) < 7*M_PI/8)) { /* In front */
+    if(phi > 0)
+      *left_right = HRI_LEFT;
+    else
+      *left_right = HRI_RIGHT;
+  }
+  else
+    *left_right = HRI_NO_RELATION;
+ 
+  if(ABS(phi) > M_PI)
+     printf("Bad angle value, This shouldn't happen.\n");
+  
+  return HRI_NO_RELATION;
+}
+
+
 /// This functions computes the inferred positions as the center of the bounding box of the other entity (object or agent parts)
 int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity){
   double vecX=0;
@@ -1165,6 +1235,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   HRI_VISIBILITY * vis_result;
   HRI_REACHABILITY reachability_result;
   HRI_SPATIAL_RELATION spatial_relation_result; 
+  HRI_SPATIAL_RELATION far_near_result; 
+  HRI_SPATIAL_RELATION left_right_result; 
+  HRI_SPATIAL_RELATION front_behind_result; 
   HRI_PLACEMENT_RELATION placement_relation_result;
 
   if(agents == NULL || ents == NULL) {
@@ -1351,16 +1424,24 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
       if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
 	// SPATIAL RELATION      
 	if( ent->type != HRI_AGENT_PART) {
-	  if(ent->disappeared)
+	  if(ent->disappeared){
 	    spatial_relation_result = HRI_UK_RELATION;
+	    front_behind_result = HRI_UK_RELATION;
+	    left_right_result = HRI_UK_RELATION; 
+	    far_near_result = HRI_UK_RELATION; 
+	  }
 	  else
-	    spatial_relation_result = hri_spatial_relation(ent, agent);
-	  if ( kn_on_ent->is_located_from_agent ==  spatial_relation_result) {
+	    spatial_relation_result = hri_spatial_relation_new(ent, agent,&front_behind_result , &left_right_result , &far_near_result );
+	  if (  ( kn_on_ent->is_front_behind_from_agent == front_behind_result) &&
+		( kn_on_ent->is_left_right_from_agent == left_right_result) && 
+		( kn_on_ent->is_far_near_from_agent == far_near_result)){
 	    if (kn_on_ent->spatial_relation_ischanged)
 	      kn_on_ent->spatial_relation_ischanged = FALSE;
 	  }
 	  else {
-	    kn_on_ent->is_located_from_agent  = spatial_relation_result;
+	    kn_on_ent->is_front_behind_from_agent = front_behind_result;
+	    kn_on_ent->is_left_right_from_agent = left_right_result;
+	    kn_on_ent->is_far_near_from_agent = far_near_result;
 	    kn_on_ent->spatial_relation_ischanged = TRUE;
 	    kn_on_ent->spatial_relation_isexported = FALSE;
 	  }

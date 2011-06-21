@@ -176,6 +176,12 @@ typedef enum ENUM_HRI_SPATIAL_RELATION {
   HRI_FAR_RIGHT = 15,
   HRI_FAR_FRONT_RIGHT = 16,
   HRI_UK_RELATION = 17, /* Unknown relation. meaning we don't know */
+  HRI_FRONT = 18,
+  HRI_BEHIND = 19,
+  HRI_LEFT = 20,
+  HRI_RIGHT = 21,
+  HRI_FAR = 22,
+  HRI_NEAR = 23
 } HRI_SPATIAL_RELATION;
 
 typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
@@ -212,6 +218,10 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
   HRI_SPATIAL_RELATION is_located_from_agent; /* Front, right, .... */
   int spatial_relation_ischanged;
   int spatial_relation_isexported;
+  HRI_SPATIAL_RELATION is_left_right_from_agent;
+  HRI_SPATIAL_RELATION is_front_behind_from_agent;
+  HRI_SPATIAL_RELATION is_far_near_from_agent;
+
 
   HRI_PLACEMENT_RELATION * is_placed; /* on, in, ... */
   HRI_PLACEMENT_RELATION * is_placed_old; /* To limit number of messages send to ontology */
