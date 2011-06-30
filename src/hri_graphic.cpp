@@ -61,7 +61,8 @@ void g3d_hri_main()
 		}
 	*/
 	  }
-
+	  
+	  hri_draw_mindist();
 	  hri_draw_kinect_points();
 
     // Display things (Debug information) that is not

@@ -15,11 +15,12 @@
 #include <limits>
 
 std::string hri_text_to_display;
-double								hri_cost_to_display=0;
-bool								hri_draw_distance=true;
+double				hri_cost_to_display=0;
+double                          hri_mindist=0;
+bool				hri_draw_distance=false;
 std::vector<double>		hri_disp_dist; // to draw the distance between the human and the robot
 std::vector<double>		hri_histo_dist; // to save all distances that have been computed
-static const double		hri_safe_radius = 1.0; // in meters
+static const double		hri_safe_radius = 2.0; // in meters
 
 //! Enables colision detection
 //! between the robot and the human
@@ -40,11 +41,19 @@ void hri_set_normal_dist(p3d_rob* rob)
 
 }
 
+//! set the display mode
+void hri_set_mindist_display(bool draw)
+{
+  hri_draw_distance = draw;
+}
+
 //! Comptue the distance between the
 //! robot and the closest human agent
 double hri_robot_min_distance( HRI_AGENTS* agents )
 {
 	p3d_rob* rob = agents->robots[agents->source_agent_idx]->robotPt;
+
+	std::cout << "Compute dist for : " << rob->name << std::endl;
 
 //	printf("hri_robot_min_distance\n");
 	hri_set_human_robot_dist(rob,agents);
@@ -89,10 +98,27 @@ double hri_robot_min_distance( HRI_AGENTS* agents )
 		}
 		case p3d_col_mode_pqp:
 		{
-			minDist =  pqp_robot_robot_distance(rob,
-																					GLOBAL_AGENTS->humans[0]->robotPt,
-																					body[k],
-																					other[k]);
+		        minDist =  pqp_robot_robot_distance(rob,GLOBAL_AGENTS->humans[0]->robotPt, body[k], other[k]);
+
+			// Only handles two humans
+			if( GLOBAL_AGENTS->humans_no > 1 )
+			  {
+			    p3d_vector3 body2,other2;
+			    double minDist2 = pqp_robot_robot_distance(rob,GLOBAL_AGENTS->humans[1]->robotPt, body2, other2);
+
+			    if(minDist2 < minDist)
+			      {
+				minDist = minDist2;
+
+				body[k][0] = body2[0];
+				body[k][1] = body2[1];
+				body[k][2] = body2[2];
+
+				other[k][0] = other2[0];
+				other[k][1] = other2[1];
+				other[k][2] = other2[2];
+			      }
+			  }
 			break;
 		}
 	}
@@ -132,20 +158,41 @@ double hri_distance_cost(HRI_AGENTS* agents, double& distance)
 {
 	distance = hri_robot_min_distance(agents);
 
-	double penetrationDist = (hri_safe_radius - distance)/hri_safe_radius;
+	double penetrationRatio = (hri_safe_radius - distance)/hri_safe_radius;
 
-	double Cost = 0.00001;
+	double Cost=0.0;
+	// double Cost = 0.00001;
+
 	// Compute of the hri cost function
-	if ( penetrationDist > 0 )
+	if ( penetrationRatio > 0 )
 	{
-		Cost += (exp(penetrationDist-1) - exp(-1) ) / ( 1 - exp(-1) );
-		//            Cost += _PenetrationDist[k];
+	  const double k = 2.0;
+	  Cost = pow( penetrationRatio , k );
+	  //Cost += (exp(penetrationDist-1) - exp(-1) ) / ( 1 - exp(-1) );
+	  // Cost += _PenetrationDist[k];
 	}
 
 
 	// Set the Hri Cost To Display
-	hri_cost_to_display = distance;
+	hri_mindist = hri_cost_to_display = distance;
 
 	return Cost;
 }
 
+void hri_draw_mindist()
+{
+  if( (!hri_draw_distance) || (hri_mindist > hri_safe_radius) )
+    return;
+
+  double color[4];
+
+  color[0]= 1.0; 
+  color[1]= 0.0; 
+  color[2]= 0.0; 
+  color[3]= 1.0;
+
+  glLineWidth(3.);
+
+  g3d_drawOneLine(hri_disp_dist[0],hri_disp_dist[1],hri_disp_dist[2],
+		  hri_disp_dist[3],hri_disp_dist[4],hri_disp_dist[5],Any,color);
+}

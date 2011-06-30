@@ -14,5 +14,7 @@
 
 double hri_robot_min_distance(HRI_AGENTS* agents);
 double hri_distance_cost( HRI_AGENTS* agents, double& distance );
+void hri_set_mindist_display(bool draw);
+void hri_draw_mindist();
 
 #endif
