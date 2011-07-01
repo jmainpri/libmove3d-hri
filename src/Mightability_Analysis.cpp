@@ -13298,7 +13298,7 @@ int update_robots_and_objects_status()
       if(at_least_one_object_has_moved==1)
       {
       NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
-      /////NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;// TMP commented to speed up at the execution 
+      ////////NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;// NOTE: comment this line to speed up at the execution, TODO: Make separate function to update the current reachability and visibility only during execution 
        continue;
       }
       

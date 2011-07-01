@@ -123,4 +123,16 @@ typedef struct symbolic_HRI_task_desc
 
 }symbolic_HRI_task_desc;
 
+typedef struct grasp_lift_info
+{
+  ////std::vector <p3d_traj*> take_trajs;
+  p3d_traj* reach_traj;
+  p3d_traj* pre_grasp_traj;
+  p3d_traj* grasp_traj;
+  
+  configPt graspConf;
+  configPt liftConf;
+  
+}grasp_lift_info;
+
 #endif

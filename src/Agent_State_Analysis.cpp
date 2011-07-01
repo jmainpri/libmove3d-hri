@@ -72,7 +72,7 @@ static int alloc_agents_tmp_config_for_ASA();
 static int create_agents_facts_name_maps();
 static int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]);
 static int prepare_for_Agent_State_Analysis();
-static int is_object_laying_on_a_support(int obj_index, int &support_index);
+
 
 int hri_execute_Agent_State_Analysis_functions()
 {
