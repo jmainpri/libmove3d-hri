@@ -56,7 +56,7 @@ HRI_AGENTS * hri_create_agents()
   std::cout << "hri_create_agents" << std::endl;
 
   // set the drawing function of the libhri
- ext_g3d_draw_hri_features = g3d_hri_main;
+  ext_g3d_draw_hri_features = g3d_hri_main;
 
   int i, i_r=0, i_h=0;
   HRI_AGENTS * agents;
@@ -71,7 +71,7 @@ HRI_AGENTS * hri_create_agents()
 
   for(i=0; i<env->nr; i++){
     
-    std::cout << env->robot[i]->name << std::endl;
+    //std::cout << env->robot[i]->name << std::endl;
     
     if(strcasestr(env->robot[i]->name,"ROBOT")) {
       new_agent = hri_create_agent(env->robot[i]);
@@ -90,6 +90,20 @@ HRI_AGENTS * hri_create_agents()
       }
     }
   }
+    
+    // Set Herakleses t-shirts colors
+    int color=0;
+    for (i=0; i<agents->humans_no; i++) 
+    {
+        if (strcasestr(agents->humans[i]->robotPt->name,"HERAKLES") ||
+            strcasestr(agents->humans[i]->robotPt->name,"ACHILE") ) {
+            if (color != 0) {
+                if(!hri_agent_set_human_t_shirt_color(agents->humans[i],color))
+                    std::cout << "Could not set color" << std::endl;
+            }
+            color++;
+        }
+    }
 
   agents->all_agents_no = agents->robots_no + agents->humans_no;
   agents->all_agents = MY_ALLOC(HRI_AGENT *, agents->all_agents_no);
@@ -1276,6 +1290,50 @@ static int hri_compute_leg_angles(double hipknee, double kneeankle, double ankle
   }
   return TRUE;
 }
+
+/**
+ * Sets the human agents color
+ * searches for the classic color of Achile T-shirt and 
+ * changes it with the integer passed as parameter
+ */
+int hri_agent_set_human_t_shirt_color(HRI_AGENT * agent,int color)
+{
+    // Get Move3D robot
+    p3d_rob* robot = agent->robotPt;
+    
+    for (int i=1; i<= robot->njoints; i++) 
+    {
+        p3d_obj* obj = robot->joints[i]->o;
+        
+        if(obj == NULL)
+            continue;
+        
+        for(int j = 0; j < obj->np; j++)
+        {
+            p3d_poly* poly = obj->pol[j];
+            
+            if(poly->color_vect == NULL)
+                continue;
+            
+            if ((poly->color_vect[0] == 0.9921569 )  
+                && poly->color_vect[1] == 0.4666667 
+                && poly->color_vect[2] == 0.4666667) {
+                
+                double color_vect[4];
+                
+                g3d_get_color_vect(color, color_vect);
+                
+                poly->color = color;
+                
+                poly->color_vect[0] = color_vect[0];
+                poly->color_vect[1] = color_vect[1];
+                poly->color_vect[2] = color_vect[2];
+                poly->color_vect[3] = color_vect[3];
+            }
+        }
+    }
+}
+
 /**
  * sets the agent standing
  */
