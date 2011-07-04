@@ -31,7 +31,8 @@ extern int get_indices_for_MA_agents();
 
 p3d_env *envPt_ASA;//ASA:Agent's State Analysis
 
-agents_prev_conf_info human1_prev_configs;
+////////agents_prev_conf_info human1_prev_configs;
+agents_prev_conf_info agent_prev_configs_info[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
@@ -351,6 +352,36 @@ int init_thresholds_for_ASA(char *file_name_with_path)
 	  fclose(Thr_FP);
 	  break;
 
+#ifdef HUMAN2_EXISTS_FOR_MA
+           case HUMAN2_MA:
+	  Thr_FP = fopen (file_name_with_path, "r"); 
+	  if(Thr_FP==NULL)
+	    {
+	      printf(" >>>> ASA ERROR: Can not open the threshold file %s for reading the values for human\n", file_name_with_path);
+	      return 0;
+	  
+	    }
+	
+	  printf(" Opening the threshold file %s for reading the threshold values for human\n", file_name_with_path);
+	 
+	  for( j=0; j<MAXI_NUM_OF_THRESHOLDS_FOR_ASA; j++)
+	    {
+	      if(fgets(line, 150, Thr_FP) != NULL)
+		{
+		  sscanf (line, "%s %lf %s", &th_name, &th_val, &req_conversion_type);
+		  if(strcmp("DTOR", req_conversion_type)==0)
+		    {
+		      printf(" Got %s, conv type= %s \n",line, req_conversion_type);
+		      th_val=DTOR(th_val);
+		    }
+		  agents_for_ASA[HUMAN2_MA].ASA_threshold[j]=th_val;
+		  printf(" Setting %s = % lf\n", th_name, agents_for_ASA[HUMAN2_MA].ASA_threshold[j]);
+		}
+	    }
+	    
+	    fclose(Thr_FP);
+#endif
+
 #ifdef JIDO_EXISTS_FOR_MA
 	case JIDO_MA:
 	
@@ -361,49 +392,11 @@ int init_thresholds_for_ASA(char *file_name_with_path)
   return 1;
 }
 
-int init_indices_of_agent_for_ASA()
+int init_indices_for_human(int for_agent)
 {
-  for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
-    {
-      switch(i)
-	{
-#ifdef JIDO_EXISTS_FOR_MA
-	case JIDO_MA:
-	  //       agents_for_ASA[i].agent_index=get_index_of_robot_by_name("JIDOKUKA_ROBOT");
-	  //       strcpy(agents_for_ASA[i].agent_name,"JIDOKUKA_ROBOT");
-	  agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
-	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
-      
-	  agents_for_ASA[i].joint_indx.body_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "platformJoint");
-      
-	  agents_for_ASA[i].joint_indx.torso_yaw=-1;
-	  agents_for_ASA[i].joint_indx.torso_pitch=-1;
-	  agents_for_ASA[i].joint_indx.torso_roll=-1;
-      
-	  agents_for_ASA[i].joint_indx.head_yaw=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "Pan");
-      
-	  agents_for_ASA[i].joint_indx.head_pitch=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "Tilt");
-      
-	  agents_for_ASA[i].joint_indx.head_roll=-1;
-      
-	  agents_for_ASA[i].joint_indx.R_hand_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "RightWrist");
-      
-	  agents_for_ASA[i].joint_indx.L_hand_jnt=-1;
-      
-	  break;
-#endif
-      
-#ifdef HRP2_EXISTS_FOR_MA
-	case HRP2_MA:
-	  agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
-	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
-	  break;
-#endif
-
-	case HUMAN1_MA:
-	  // 	agents_for_ASA[i].agent_index=get_index_of_robot_by_name("ACHILE_HUMAN1");
-	  //       strcpy(agents_for_ASA[i].agent_name,"ACHILE_HUMAN1");
-	  agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
+  int i=for_agent;
+  
+   agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
 	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
       
 	  agents_for_ASA[i].joint_indx.body_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "Pelvis");
@@ -427,7 +420,8 @@ int init_indices_of_agent_for_ASA()
 	  agents_for_ASA[i].joint_indx.head_yaw=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "HeadZ");
 	  agents_for_ASA[i].joint_indx.head_pitch=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "HeadY");
 	  agents_for_ASA[i].joint_indx.head_roll=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "HeadX");
-      
+          ////printf(" >>>>>*** After assigning joint indices for head, yaw index= %d, pitch index= %d, roll index = %d\n",agents_for_ASA[i].joint_indx.head_yaw, agents_for_ASA[i].joint_indx.head_pitch, agents_for_ASA[i].joint_indx.head_roll);
+	  
 	  agents_for_ASA[i].Q_indx.head_Q_yaw=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.head_yaw]->index_dof;
 	  agents_for_ASA[i].Q_indx.head_Q_pitch=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.head_pitch]->index_dof;
 	  agents_for_ASA[i].Q_indx.head_Q_roll=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.head_roll]->index_dof;
@@ -472,13 +466,58 @@ int init_indices_of_agent_for_ASA()
       
 	  agents_for_ASA[i].joint_indx.L_knee_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lKnee");
 	  agents_for_ASA[i].Q_indx.L_knee_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_knee_jnt]->index_dof;
+}
+
+int init_indices_of_agent_for_ASA()
+{
+  for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+    {
+      switch(i)
+	{
+#ifdef JIDO_EXISTS_FOR_MA
+	case JIDO_MA:
+	  //       agents_for_ASA[i].agent_index=get_index_of_robot_by_name("JIDOKUKA_ROBOT");
+	  //       strcpy(agents_for_ASA[i].agent_name,"JIDOKUKA_ROBOT");
+	  agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
+	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
+      
+	  agents_for_ASA[i].joint_indx.body_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "platformJoint");
+      
+	  agents_for_ASA[i].joint_indx.torso_yaw=-1;
+	  agents_for_ASA[i].joint_indx.torso_pitch=-1;
+	  agents_for_ASA[i].joint_indx.torso_roll=-1;
+      
+	  agents_for_ASA[i].joint_indx.head_yaw=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "Pan");
+      
+	  agents_for_ASA[i].joint_indx.head_pitch=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "Tilt");
+      
+	  agents_for_ASA[i].joint_indx.head_roll=-1;
+      
+	  agents_for_ASA[i].joint_indx.R_hand_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "RightWrist");
+      
+	  agents_for_ASA[i].joint_indx.L_hand_jnt=-1;
+      
+	  break;
+#endif
+      
+#ifdef HRP2_EXISTS_FOR_MA
+	case HRP2_MA:
+	  agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
+	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
+	  break;
+#endif
+
+	case HUMAN1_MA:
+	  // 	agents_for_ASA[i].agent_index=get_index_of_robot_by_name("ACHILE_HUMAN1");
+	  //       strcpy(agents_for_ASA[i].agent_name,"ACHILE_HUMAN1");
+	 init_indices_for_human(HUMAN1_MA);
 	  ////agents_for_ASA[i].joint_indx.L_hand_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "lPalm");
       
 	  break;
 
 #ifdef HUMAN2_EXISTS_FOR_MA
 	case HUMAN2_MA:
-	
+	init_indices_for_human(HUMAN2_MA);
 	  break;
 #endif
       
@@ -503,6 +542,11 @@ int init_enable_agents_for_facts()
       find_activity_fact_for[i]=0;
     }
   find_activity_fact_for[HUMAN1_MA]=1;
+  
+#ifdef HUMAN2_EXISTS_FOR_MA
+  find_activity_fact_for[HUMAN2_MA]=1;
+#endif
+  
   
 }
 
@@ -836,8 +880,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   curr_config.config=MY_ALLOC(double,envPt_ASA->robot[index]->nb_dof);
   p3d_get_robot_config_into(envPt_ASA->robot[index],&curr_config.config);
   
-  int R_H_jnt_index=agents_for_ASA[HUMAN1_MA].joint_indx.R_hand_jnt;
-  int L_H_jnt_index=agents_for_ASA[HUMAN1_MA].joint_indx.L_hand_jnt;
+  int R_H_jnt_index=agents_for_ASA[for_agent].joint_indx.R_hand_jnt;
+  int L_H_jnt_index=agents_for_ASA[for_agent].joint_indx.L_hand_jnt;
   
   for(int i=0 ; i<=3 ; i++)
     {
@@ -851,9 +895,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   //printf(" 
   //printf("got human config \n");
   ////return 1;
-  if(human1_prev_configs.agents_config_info.size()<=1)
+  if(agent_prev_configs_info[for_agent].agents_config_info.size()<=1)
     {
-      printf(" Insufficient data \n");
+      printf(" Insufficient data for agent %d\n", for_agent);
     
       
       curr_config.conti_diff_info.agent_has_moved_conti_for_period=0;
@@ -878,23 +922,24 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
       curr_config.diff_prev_config.agent_R_hand_has_moved=-1;
     
     
-      human1_prev_configs.agents_config_info.push_back(curr_config);
+      agent_prev_configs_info[for_agent].agents_config_info.push_back(curr_config);
       return 0;
     }
   
-  if(human1_prev_configs.agents_config_info.size()>=agents_for_ASA[for_agent].ASA_threshold[ASA_maxi_num_prev_states_to_store])
+  ////printf(" agent_prev_configs_info[%d].agents_config_info.size()= %d\n",for_agent,agent_prev_configs_info[for_agent].agents_config_info.size());
+  if(agent_prev_configs_info[for_agent].agents_config_info.size()>=agents_for_ASA[for_agent].ASA_threshold[ASA_maxi_num_prev_states_to_store])
     {
-      ////////printf(" Forgetting the oldest configuration of human \n");  
-      agents_config_info_at_time prev_config=human1_prev_configs.agents_config_info.front();
+      ////printf(" Forgetting the oldest configuration for agent %d \n", for_agent);  
+      agents_config_info_at_time prev_config=agent_prev_configs_info[for_agent].agents_config_info.front();
       MY_FREE(prev_config.config,double,envPt_ASA->robot[index]->nb_dof);
-      human1_prev_configs.agents_config_info.erase(human1_prev_configs.agents_config_info.begin());
+      agent_prev_configs_info[for_agent].agents_config_info.erase(agent_prev_configs_info[for_agent].agents_config_info.begin());
     
     }
     
   int has_body_moved=0;
   
   //Comparing whole base position
-  agents_config_info_at_time prev_config=human1_prev_configs.agents_config_info.back();
+  agents_config_info_at_time prev_config=agent_prev_configs_info[for_agent].agents_config_info.back();
   ////double elapsedTime= ( curr_config.clock-prev_config.clock ) /CLOCKS_PER_SEC;
   ////double elapsedTime=difftime(curr_config.at_time,prev_config.at_time);
   long int mtime, seconds, useconds;
@@ -917,9 +962,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   ////printf(" prev conf time=%lf, curr conf time= %lf, time period : %lf s\n",prev_config.clock, curr_config.clock, elapsedTime);
                
   ////printf(" prev conf time=%ld, curr conf time= %ld, time period : %lf s\n",prev_config.at_time/3600, curr_config.at_time/3600, elapsedTime);
-  int Q_index_x=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_x;
-  int Q_index_y=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_y;
-  int Q_index_z=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_z;
+  int Q_index_x=agents_for_ASA[for_agent].Q_indx.body_Q_x;
+  int Q_index_y=agents_for_ASA[for_agent].Q_indx.body_Q_y;
+  int Q_index_z=agents_for_ASA[for_agent].Q_indx.body_Q_z;
     
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_pos_tolerance];
   ////////printf(" curr_threshold for whole body moved = %lf\n",curr_threshold);
@@ -953,6 +998,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
      
 	}
       NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+      
+      ////printf(" >>> In agent state analysis, the agent %d has moved, so setting the status for Mightability Updation \n", for_agent); 
       robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
      
       curr_config.conti_diff_info.agent_has_not_moved_conti_for_period=0;
@@ -1023,9 +1070,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 	}
     }
   
-  int Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_yaw;
-  int Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_pitch;
-  int Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.body_Q_roll;
+  int Q_index_yaw=agents_for_ASA[for_agent].Q_indx.body_Q_yaw;
+  int Q_index_pitch=agents_for_ASA[for_agent].Q_indx.body_Q_pitch;
+  int Q_index_roll=agents_for_ASA[for_agent].Q_indx.body_Q_roll;
    
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_orient_tolerance];
    
@@ -1111,9 +1158,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 	}
     }
   
-  Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_yaw;
-  Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_pitch;
-  Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.torso_Q_roll;
+  Q_index_yaw=agents_for_ASA[for_agent].Q_indx.torso_Q_yaw;
+  Q_index_pitch=agents_for_ASA[for_agent].Q_indx.torso_Q_pitch;
+  Q_index_roll=agents_for_ASA[for_agent].Q_indx.torso_Q_roll;
     
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
     
@@ -1199,9 +1246,9 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     }
   
   
-  Q_index_yaw=agents_for_ASA[HUMAN1_MA].Q_indx.head_Q_yaw;
-  Q_index_pitch=agents_for_ASA[HUMAN1_MA].Q_indx.head_Q_pitch;
-  Q_index_roll=agents_for_ASA[HUMAN1_MA].Q_indx.head_Q_roll;
+  Q_index_yaw=agents_for_ASA[for_agent].Q_indx.head_Q_yaw;
+  Q_index_pitch=agents_for_ASA[for_agent].Q_indx.head_Q_pitch;
+  Q_index_roll=agents_for_ASA[for_agent].Q_indx.head_Q_roll;
     
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_head_orient_tolerance];
    
@@ -1424,7 +1471,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 			 Ag_Activity_Fact[for_agent].left_hand_occup, 
 			 Ag_Activity_Fact[for_agent].left_hand_rest_info);
   
-    human1_prev_configs.agents_config_info.push_back(curr_config);
+    agent_prev_configs_info[for_agent].agents_config_info.push_back(curr_config);
     ////printf(
     ////
   
@@ -1444,6 +1491,17 @@ int get_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TASK]
 	    }
        
 	  break;
+	  
+#ifdef HUMAN2_EXISTS_FOR_MA
+	case HUMAN2_MA:
+	  if(find_facts_for[i]==1)
+	    {
+	      get_human_activity_facts(HUMAN2_MA);
+	    }
+       
+	  break;
+#endif
+	  
 	}
     }
   
@@ -1702,6 +1760,22 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
 
        
 	  break;
+	  
+#ifdef HUMAN2_EXISTS_FOR_MA
+	  case HUMAN2_MA:
+       if(find_facts_for[i]==1)
+       {
+	 if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
+	 {
+	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name);
+	 print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
+	 copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
+	 }
+       }
+
+       
+	  break;
+#endif
 	}
     }
   
