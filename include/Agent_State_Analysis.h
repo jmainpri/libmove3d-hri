@@ -364,6 +364,7 @@ typedef struct agents_prev_conf_info
 
 typedef struct Agent_Activity_fact_by_names//NOTE: NEED to synchronize the similar data  structure STRUCT_AGENT_ACTIVITY_FACTS in sparkStruct.h
 {
+  char agent_name[100];
  char agent_motion[50];
  char body_turn[50];
  char torso_turn[50];

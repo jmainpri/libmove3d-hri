@@ -1609,7 +1609,7 @@ int copy_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fac
 
 int get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &ag_act_fact, Agent_Activity_fact_by_names &Hum_facts_by_name)
 {
-  
+   strcpy(Hum_facts_by_name.agent_name, envPt_ASA->robot[indices_of_MA_agents[for_agent]]->name);
   strcpy(Hum_facts_by_name.agent_motion, agent_motion_status_map[ag_act_fact.whole_body].c_str());
   
   strcpy(Hum_facts_by_name.body_turn, agent_whole_body_turn_status_map[ag_act_fact.whole_body_turn].c_str());
