@@ -51,7 +51,7 @@ int index_test_cube_ASA;
 configPt test_cube_tmp_config;
 
 configPt agents_tmp_config_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
-Agent_Activity_fact_by_names Hum_facts_by_name;
+Agent_Activity_fact_by_names Hum_facts_by_name[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 std::map<int,std::string > agent_motion_status_map;
 std::map<int,std::string > agent_head_status_map;
@@ -1752,7 +1752,7 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
        {
 	 if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
 	 {
-	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name);
+	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name[i]);
 	 print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
 	 copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
 	 }
@@ -1767,7 +1767,7 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
        {
 	 if(did_human_activity_facts_change(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Prev_Fact_for_print[i], Ag_Activity_Fact[i]))
 	 {
-	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name);
+	 get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i], Hum_facts_by_name[i]);
 	 print_human_activity_facts(HRI_TASK_AGENT_ENUM(i), Ag_Activity_Fact[i]);
 	 copy_human_activity_facts(HRI_TASK_AGENT_ENUM(i),Ag_Activity_Fact[i],Ag_Activity_Prev_Fact_for_print[i]);
 	 }
