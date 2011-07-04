@@ -3354,9 +3354,12 @@ grasp_lift_info curr_grasp_lift_info;
 std::map<int, grasp_lift_info> grasp_id_info_map;
 
 int take_lift_traj_found_for_grasp[200];//0 : not tested, 1 : tested and found valid traj, -1: tested and failed to find a valid traj to grasp and lift
+int AT_LEAST_1_GRASP_LIFT_FOUND=0;//Used to break the task planner for next effort level if the robot failed to find the path to pick the object at first effort level itself
 
 int init_take_lift_traj_info()
 {
+  AT_LEAST_1_GRASP_LIFT_FOUND=0;
+  
 for(int g_ctr=0; g_ctr<200;g_ctr++)
  {
   take_lift_traj_found_for_grasp[g_ctr]=0;
@@ -3393,6 +3396,7 @@ for(int g_ctr=0; g_ctr<200;g_ctr++)
 }
 
 int MAINTAIN_OBJ_FRONT_VIS_CONSTRAINT=0;
+
 
 int robot_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs)
 {
@@ -3546,7 +3550,7 @@ int support_index=-1;
 				 printf(" >>>**>> HRI TASK PLANNER WARNING : The object to grasp has not been found to be on any support. IS THERE ANY PERCEPTION PROBLEM? Any way I will plan assuming the object is hanging in the air \n");
 			       }
 
-
+AT_LEAST_1_GRASP_LIFT_FOUND=1;
 
 
  for ( int i1=0;i1<curr_candidate_points->no_points;i1++ )
@@ -3597,7 +3601,8 @@ int support_index=-1;
                            
                          
             grasp_ctr=0;            
-   
+	    
+   AT_LEAST_1_GRASP_LIFT_FOUND=0;
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
    {
       
@@ -3618,8 +3623,6 @@ int support_index=-1;
       if(take_lift_traj_found_for_grasp[grasp_ctr]==0)
       {
       
-
-
       p3d_mat4Mult ( igrasp->frame, handProp.Tgrasp_frame_hand, handFrame );
       p3d_mat4Mult ( handFrame, manipulation->robot()->ccCntrts[armID]->Tatt2, tAtt );
 
@@ -3724,16 +3727,15 @@ int support_index=-1;
 		      grasp_ctr++;
 		    continue;
 		  }
-		  
-		  
-                     printf ( " ****** path found to grasp the object for grasp_ctr=%d,\n",grasp_ctr );
-		      p3d_set_freeflyer_pose ( object, Tplacement0 );
+		
+		printf ( " ****** path found to grasp the object for grasp_ctr=%d,\n",grasp_ctr );
+		p3d_set_freeflyer_pose ( object, Tplacement0 );
 		      
- manipulation->getManipulationData().setAttachFrame(tAtt);
-            deactivateCcCntrts(manipulation->robot(), armID);
-p3d_mat4Copy(Tplacement0, Tplacement);
-                               Tplacement[2][3]+= 0.05;
-                               p3d_set_freeflyer_pose ( object, Tplacement );
+                manipulation->getManipulationData().setAttachFrame(tAtt);
+                deactivateCcCntrts(manipulation->robot(), armID);
+                p3d_mat4Copy(Tplacement0, Tplacement);
+                Tplacement[2][3]+= 0.05;
+                p3d_set_freeflyer_pose ( object, Tplacement );
                                
 			       ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
                             gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
@@ -3760,12 +3762,14 @@ p3d_mat4Copy(Tplacement0, Tplacement);
 				grasp_ctr++;
                                 continue;
                                }
+                               
+                               AT_LEAST_1_GRASP_LIFT_FOUND=1;
                                printf(" LiftConf found\n");
 			       
 			       //This test is to avoid the situations where robot should not make a big loop but it is doing so. Like between grasp and lift configs TODO: Do such tests between approach and open hand grasp configs also
                                  if (optimizeRedundentJointConfigDist(manipulation->robot(), (*manipulation->robot()->armManipulationData)[armID].getCcCntrt()->argu_i[0], liftConf, object->joints[1]->abs_pos, tAtt, graspConf, armID, manipulation->getManipulationConfigs().getOptimizeRedundentSteps()) == -1)
                                  {
-				    p3d_destroy_config( manipulation->robot(), graspConf );
+				   p3d_destroy_config( manipulation->robot(), graspConf );
                                    p3d_destroy_config(manipulation->robot(), liftConf);
                                    ////liftConf = NULL;
                                    printf(" Fail optimizeRedundentJointConfigDist()\n");
@@ -3865,7 +3869,8 @@ p3d_mat4Copy(Tplacement0, Tplacement);
                            //////////p3d_matrix4 Tplacement;
                            iplacement->computePoseMatrix ( Tplacement );
                            p3d_set_freeflyer_pose ( object, Tplacement );
-			   int kcd_with_report=0;
+			   
+			     int kcd_with_report=0;
                            int res = p3d_col_test_robot(object,kcd_with_report);
                            if(res>0)
 			   {
@@ -3873,24 +3878,48 @@ p3d_mat4Copy(Tplacement0, Tplacement);
 			     continue;
 			     
 			   }
-                           g3d_draw_allwin_active();
+                           
+			   g3d_draw_allwin_active();
+			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
+
+                                printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
+
+                                if(mini_visibility_threshold_for_task[task]>visibility||maxi_visibility_threshold_for_task[task]<visibility) 
+                                {
+                                printf(" Visibility NOT OK \n");
+                                //////////p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+				////g3d_draw_allwin_active();
+				
+                                continue;
+                                } 
+                                 printf(" The object's visibility %lf is good\n",visibility); 
+                                
+			 
                             //p3d_get_freeflyer_pose2 ( object,  &x, &y, &z, &rx, &ry, &rz );
                             //printf(" >>> (x, y, z, rx, ry, rz)=(%lf, %lf, %lf, %lf, %lf, %lf) \n",x, y, z, rx, ry, rz);
                            p3d_mat4Mult ( igrasp->frame, handProp.Tgrasp_frame_hand, handFrame );
                            p3d_mat4Mult ( handFrame, (*manipulation->robot()->armManipulationData)[armID].getCcCntrt()->Tatt2, tAtt );
 
                            //// p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
-
+                           
                            if(task==GIVE_OBJECT||task==SHOW_OBJECT)
                            {
                            p3d_mat4Mult (  Tplacement, tAtt, WRIST_FRAME );
-                           if( get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos) > 120*DEGTORAD)
+			   
+			   double wrist_alignment=get_wrist_head_alignment_angle(WRIST_FRAME, HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos);
+			   printf(" Wrist Alignment = %lf \n",wrist_alignment);
+                           if( wrist_alignment > 120*DEGTORAD)
                             { 
                             printf(" Wrist Alignment is not good \n");
                             continue; 
                             }
+                            else
+			    {
+			       printf(" Wrist Alignment is good \n ");
+			    }
                            }
                            
+                          
                            #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
@@ -3956,22 +3985,10 @@ p3d_mat4Copy(Tplacement0, Tplacement);
                                 g3d_draw_allwin_active();
 
                                
-                                g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 0 );
-
-                                printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
-
-                                if(mini_visibility_threshold_for_task[task]>visibility||maxi_visibility_threshold_for_task[task]<visibility) 
-                                {
-                                printf(" Visibility NOT OK \n");
-                                //////////p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
-				////g3d_draw_allwin_active();
-				
-                                continue;
-                                } 
                                 
                                 
-                                 printf(" IK found to place and the object's visibility %lf is good\n",visibility); 
-                                g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
+                                
+                                ////g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
                                 
                                 ////p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
                               //ManipulationUtils::unFixAllHands(manipulation->robot());
@@ -6453,6 +6470,13 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
  curr_task_to_validate.hri_task.by_agent=curr_task.by_agent;
  curr_task_to_validate.hri_task.for_agent=curr_task.for_agent;
 
+ //Tmp for testing
+ /*double visibility;
+ g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[curr_task_to_validate.hri_task.for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[curr_task_to_validate.hri_task.for_agent]->perspective->fov, p3d_get_robot_by_name(curr_task_to_validate.hri_task.for_object.c_str()), &visibility, 1 );
+ printf(" visibility = %lf\n",visibility);
+ return 0;
+ */
+ 
  configPt tmp_config;
 
  for(int i=0;i<envPt_MM->nr;i++)
@@ -6518,7 +6542,12 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   {
   
     find_solution_curr_res=find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj);
-   
+    
+    if(AT_LEAST_1_GRASP_LIFT_FOUND==0)
+    {
+     printf(" >>>> HRI Task Planner FAIL to pick the object \n");  
+     break;
+    }
   }
   
   if(find_solution_curr_res==0)
@@ -6533,10 +6562,11 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
        printf(" Found solution for current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
        break;
      }
-    }
+    }//End while
+    
      if(find_solution_curr_res==0)
      {
-       printf(" Fail to validate current task for all effort level \n");
+       printf(" HRI Task Planner Fail to validate current task for all effort level \n");
        return 0;
      }
   ////}

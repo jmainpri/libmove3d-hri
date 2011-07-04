@@ -7492,7 +7492,7 @@ int find_reachable_sphere_surface(int for_hand, HRI_TASK_AGENT for_agent)
 #ifdef PR2_EXISTS_FOR_MA
       case PR2_MA:
 	
-	  r=0.8;//Maximum reach boundary for PR2
+	  r=0.85;//Maximum reach boundary for PR2
 	  ////curr_yaw=envPt_MM->robot[rob_indx.HRP2_ROBOT]->ROBOT_POS[11];   
 	
 	  shoulder_back_limit=M_PI/2.0;// The maxi possible angle away from the front axis of HRP2
@@ -13293,7 +13293,7 @@ int update_robots_and_objects_status()
     
     for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
     {
-      
+      r = envPt_MM->robot[indices_of_MA_agents[i]];
       
       if(at_least_one_object_has_moved==1)
       {
@@ -13302,11 +13302,19 @@ int update_robots_and_objects_status()
        continue;
       }
       
-      if(i==HUMAN1_MA)
-	continue;
+      //if(i==HUMAN1_MA)
+	//continue;
       
       if(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].has_moved==1)
       {
+	////////printf(" In Mightability, agent %d has been set as moved, so reachability and visibility will be set to be updated. \n", i);
+	 if(i==HUMAN1_MA)
+	continue;
+	
+#ifdef HUMAN2_EXISTS_FOR_MA
+	if(i==HUMAN2_MA)
+	continue;
+#endif
        ///////////////printf(" >>>> NEED_ALL_REACHABILITY_UPDATE_AGENT %d\n",i);
 	NEED_ALL_REACHABILITY_UPDATE_AGENT[i]=1;
 	NEED_ALL_VISIBILITY_UPDATE_AGENT[i]=1;
@@ -13317,7 +13325,7 @@ int update_robots_and_objects_status()
       ////////if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
       if(fabs(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]]-r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v)>=0.01)
         { 
-	  //////////printf("for joint %d, val by Q[%d] = %lf, val by j[%d] = %lf \n",j,agents_for_MA_obj.for_agent[i].head_params.Q_indices[j], robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]], agents_for_MA_obj.for_agent[i].head_params.joint_indices[j], r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v);
+	  ////printf("for joint %d, val by Q[%d] = %lf, val by j[%d] = %lf \n",j,agents_for_MA_obj.for_agent[i].head_params.Q_indices[j], RTOD(robots_status_for_Mightability_Maps[indices_of_MA_agents[i]].rob_prev_config[agents_for_MA_obj.for_agent[i].head_params.Q_indices[j]]), agents_for_MA_obj.for_agent[i].head_params.joint_indices[j], RTOD(r->joints[agents_for_MA_obj.for_agent[i].head_params.joint_indices[j]]->dof_data[0].v));
 	  printf(">>**>> Need current visibility update for agent %d, due to %d th joint of neck has changed \n",i, j);
 	 NEED_CURRENT_VISIBILITY_UPDATE_AGENT[i]=1;
 	 ////MA_agent_has_turned_head[i]=1;
