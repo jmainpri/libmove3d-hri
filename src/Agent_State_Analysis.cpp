@@ -957,7 +957,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   ////////printf("Elapsed time: %lf milliseconds\n", elapsedTime);
 
   curr_config.time_diff_from_prev_config=elapsedTime;
-  //////////printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
+  printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
   
   ////printf(" prev conf time=%lf, curr conf time= %lf, time period : %lf s\n",prev_config.clock, curr_config.clock, elapsedTime);
                
@@ -1326,8 +1326,16 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_hand_pos_tolerance];
    
   
-    ////printf(" R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
-  
+    printf(" curr R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
+    
+    printf(" prev R_hand_pos= (%lf, %lf, %lf) \n", prev_config.R_hand_pos[0][3], prev_config.R_hand_pos[1][3], prev_config.R_hand_pos[2][3]);
+    
+    printf(" R_hand_pos diff= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3],curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3]);
+    
+    double distance=sqrt((curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])*(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])+(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])*(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])+(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3])*(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3]));
+    
+    printf(" >>**>> Speed = %lf \n",distance/curr_config.time_diff_from_prev_config);
+    
     if(fabs(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])>=curr_threshold||
        fabs(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])>=curr_threshold||
        fabs(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3])>=curr_threshold)
@@ -1609,7 +1617,8 @@ int copy_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent, agents_activity_fac
 
 int get_symbolic_name_human_activity_fact(HRI_TASK_AGENT_ENUM for_agent, agents_activity_facts &ag_act_fact, Agent_Activity_fact_by_names &Hum_facts_by_name)
 {
-   strcpy(Hum_facts_by_name.agent_name, envPt_ASA->robot[indices_of_MA_agents[for_agent]]->name);
+  
+  strcpy(Hum_facts_by_name.agent_name, envPt_ASA->robot[indices_of_MA_agents[for_agent]]->name);
   strcpy(Hum_facts_by_name.agent_motion, agent_motion_status_map[ag_act_fact.whole_body].c_str());
   
   strcpy(Hum_facts_by_name.body_turn, agent_whole_body_turn_status_map[ag_act_fact.whole_body_turn].c_str());

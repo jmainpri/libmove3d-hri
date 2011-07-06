@@ -207,5 +207,8 @@ extern int JIDO_find_solution_to_take_new2(char *obj_to_manipulate, HRI_TASK_TYP
 extern int JIDO_find_solution_to_take_new3(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
 extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, traj_for_HRI_task &res_trajs);
+extern int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list);
+extern int print_this_string_list(std::vector<std::string> &str_list);
+extern int get_clean_the_table_plan(char *Table_name);
 #endif /* __CEXTRACT__ */
 

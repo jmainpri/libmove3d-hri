@@ -377,7 +377,11 @@ int execute_Mightability_Map_functions()
       ////g3d_drawDisc(standing_human_eye_pos.x,standing_human_eye_pos.y,standing_human_eye_pos.z,.1,Green,NULL); 
       //follow_human_head_to_object(HUMAN2_MA, "YELLOW_BOTTLE");
       ////g3d_drawDisc(agent_eye_pos.x,agent_eye_pos.y,agent_eye_pos.z,.1,Green,NULL); 
-      
+//       std::list<std::string> ON_object_list;
+//       get_object_list_on_object("HRP2TABLE", ON_object_list);
+//       print_this_string_list(ON_object_list);
+
+      ////get_clean_the_table_plan("HRP2TABLE");
       //TO SHOW the frames for finding wrist alignment
       ////////g3d_draw_frame(WRIST_FRAME, 0.1);
       ////////g3d_draw_frame(HEAD_FRAME, 0.2);

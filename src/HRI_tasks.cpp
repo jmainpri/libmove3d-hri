@@ -6943,24 +6943,83 @@ performing_agent_rank=0;//Slave
 
 }
 
-int get_object_list_on_object(char* supporting_obj_name, std::list<std::string> &ON_object_list)
+int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list)
 {
   int support_indx=get_index_of_robot_by_name(supporting_obj_name);
+  if(support_indx<0)
+  {
+    printf(" ERROR : Support name is not a valid 'Robot' \n");
+    return -1;
+  }
   int nr=envPt_MM->nr;
+  
+  ON_object_list.clear();
+  
+  for(int i=0; i<nr; i++)
+  {
+    int supp_index;
+    int is_on_any_support=is_object_laying_on_a_support(i,supp_index);
+    if(is_on_any_support==1&&supp_index==support_indx)
+    {
+      ////printf(" Obj %s is on the support %s \n",envPt_MM->robot[i]->name,envPt_MM->robot[supp_index]->name);
+      ON_object_list.push_back(envPt_MM->robot[i]->name);
+      
+    }
+  }
+}
+
+int print_this_string_list(std::vector<std::string> &str_list)
+{
+  ////std::list<std::string>::iterator it;
+ //
+  ////for(it=str_list.begin();it!=str_list.end();++it)
+  for(int i=0;i<str_list.size();i++)
+ {
+   printf(" %s \n",str_list.at(i).c_str());
+ }
   
 }
 
-int get_clean_the_table_plan()
+int get_clean_the_table_plan(char *Table_name)
 {
-  int i=HUMAN1_MA;
-  int nr_ctr=1;
+  
+  std::vector<std::string> ON_object_list;
+  std::vector<int> ON_object_indices;
+  
+  get_object_list_on_object(Table_name, ON_object_list);
+  printf(" Objects on the %s are: \n", Table_name);
+  print_this_string_list(ON_object_list);
+   
+  ON_object_indices.clear();
+  
+  for(int i=0;i<ON_object_list.size();i++)
+  {
+    int obj_indx= get_index_of_robot_by_name((char*)ON_object_list.at(i).c_str());
+    
+    if(obj_indx<0)
+    {
+   printf(" >>> HRI TASK Planner WARNING: Object %s could not be found, so will be ignored \n",ON_object_list.at(i).c_str());
+    }
+    else
+    {
+      ON_object_indices.push_back(obj_indx);
+    }
+  }
+  
+  for(int i=0;i<ON_object_list.size();i++)
+  {
+  int cur_obj_indx=ON_object_indices.at(i);
+  
+  printf(" Testing for object %s \n",envPt_MM->robot[cur_obj_indx]->name);
+  
+  int i=PR2_MA;
+  ////int nr_ctr=1;
   for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
 		{
-		
-		    if(object_MM.object[nr_ctr].geo_MM.visible[i][j]>0)
+		    if(object_MM.object[cur_obj_indx].geo_MM.visible[i][j]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
-		      
+		      printf(" It is visible by %d state of human \n", j);
 		      
 		    }
 		 
@@ -6971,13 +7030,16 @@ int get_clean_the_table_plan()
 		for(int k=0;k<agents_for_MA_obj.for_agent[i].no_of_arms;k++)
 		  {
 		  
-		     if(object_MM.object[nr_ctr].geo_MM.reachable[i][j][k]>0)
+		     if(object_MM.object[cur_obj_indx].geo_MM.reachable[i][j][k]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
 		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
+		      printf(" It is reachable by %d state of human \n", j);
+		      break;
 		   
 		    }
 		   
 		  }
 		}
+  }
 }

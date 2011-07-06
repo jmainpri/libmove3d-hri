@@ -12,6 +12,7 @@ extern bool hri_draw_distance;
 extern std::vector<double> hri_disp_dist;
 
 int STOP_AGENT_STATE_ANALYSIS=0;//Will be used by spark to set/reset
+int MA_ASA_WITHOUT_SPARK=1; // It will be used to execute the MA and ASA functions, when libhri is used without spark, because of the synchronization problem 
 
 void g3d_hri_main()
 {
@@ -28,12 +29,15 @@ void g3d_hri_main()
 	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
 
 #ifdef USE_MIGHTABILITY_MAPS
+if(MA_ASA_WITHOUT_SPARK==1)
+ {
 		  ////printf("Inside g3d_draw_env_custom() \n");
 		  execute_Mightability_Map_functions();
 		  if(STOP_AGENT_STATE_ANALYSIS!=1)
 		  {
 		  hri_execute_Agent_State_Analysis_functions();
 		  }
+ }
 #endif
 	  
 	  if(FALSE) { 
