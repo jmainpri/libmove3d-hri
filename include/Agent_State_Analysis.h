@@ -37,7 +37,7 @@ typedef struct Agent_State_Analysis_thresholds
 */
 
 typedef enum Agent_State_Analysis_thresholds
-{
+{//NOTE: IT is important to add any threshold names in the same order in the threshold file
   ASA_maxi_num_prev_states_to_store=0,
  //// Following will be used for comparing two successive configurations
  ASA_agents_whole_body_pos_tolerance,//in m, will be used for x,y,z

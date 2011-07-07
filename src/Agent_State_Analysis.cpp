@@ -957,7 +957,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   ////////printf("Elapsed time: %lf milliseconds\n", elapsedTime);
 
   curr_config.time_diff_from_prev_config=elapsedTime;
-  printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
+  ////printf("Time diff from prev config= %lf milliseconds\n", curr_config.time_diff_from_prev_config);
   
   ////printf(" prev conf time=%lf, curr conf time= %lf, time period : %lf s\n",prev_config.clock, curr_config.clock, elapsedTime);
                
@@ -1326,15 +1326,15 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
     curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_hand_pos_tolerance];
    
   
-    printf(" curr R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
+    ////printf(" curr R_hand_pos= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3], curr_config.R_hand_pos[2][3]);
     
-    printf(" prev R_hand_pos= (%lf, %lf, %lf) \n", prev_config.R_hand_pos[0][3], prev_config.R_hand_pos[1][3], prev_config.R_hand_pos[2][3]);
+    ////printf(" prev R_hand_pos= (%lf, %lf, %lf) \n", prev_config.R_hand_pos[0][3], prev_config.R_hand_pos[1][3], prev_config.R_hand_pos[2][3]);
     
-    printf(" R_hand_pos diff= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3],curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3]);
+    ////printf(" R_hand_pos diff= (%lf, %lf, %lf) \n", curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3], curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3],curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3]);
     
     double distance=sqrt((curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])*(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])+(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])*(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])+(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3])*(curr_config.R_hand_pos[2][3]-prev_config.R_hand_pos[2][3]));
     
-    printf(" >>**>> Speed = %lf \n",distance/curr_config.time_diff_from_prev_config);
+    ////printf(" >>**>> Speed= %lf \n",distance/(curr_config.time_diff_from_prev_config/1000.0));
     
     if(fabs(curr_config.R_hand_pos[0][3]-prev_config.R_hand_pos[0][3])>=curr_threshold||
        fabs(curr_config.R_hand_pos[1][3]-prev_config.R_hand_pos[1][3])>=curr_threshold||

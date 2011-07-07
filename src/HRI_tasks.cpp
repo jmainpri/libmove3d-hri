@@ -7012,14 +7012,23 @@ int get_clean_the_table_plan(char *Table_name)
   
   printf(" Testing for object %s \n",envPt_MM->robot[cur_obj_indx]->name);
   
-  int i=PR2_MA;
+  int i;
+#ifdef PR2_EXISTS_FOR_MA
+  i=PR2_MA;
+#endif
+
+#ifdef JIDO_EXISTS_FOR_MA
+  i=JIDO_MA;
+#endif
+  
+  
   ////int nr_ctr=1;
   for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
 		{
 		    if(object_MM.object[cur_obj_indx].geo_MM.visible[i][j]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
-		      printf(" It is visible by %d state of human \n", j);
+		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[i]->name);
 		      
 		    }
 		 
@@ -7034,7 +7043,7 @@ int get_clean_the_table_plan(char *Table_name)
 		    {
 		      //printf(" Drawing disc\n"); 
 		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
-		      printf(" It is reachable by %d state of human \n", j);
+		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[i]->name);
 		      break;
 		   
 		    }
