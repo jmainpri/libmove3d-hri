@@ -174,6 +174,37 @@ int hri_link_agents_with_entities(HRI_ENTITIES * entities, HRI_AGENTS * agents)
   return TRUE;
 }
 
+
+/* This functions switch is_present value of entities linked to one agent (agent itself and agent hands and heads) */
+int hriSetEntitiesPresenceFromAgentPresence(HRI_ENTITIES * entities,HRI_AGENT * agent , int presence)
+{
+  int i;
+
+  if(agents == NULL)
+    return FALSE;
+
+  if(agent->agentEntitiesPresence == presence)
+    return TRUE;
+
+  // Change presence for entity agent
+  entities->entities[agent->entity_idx]->is_present = TRUE; 
+
+  // Change presence for entities that are heads of agent.
+  for(i=0; i<agent->head_nb; i++) {
+    agent->head[i]->is_present = presence;
+  }
+  
+  // Change presence for entities that are hands of agent.
+  for(i=0; i<agent->hand_nb; i++) {
+    agent->hand[i]->is_present = presence;
+  }
+
+  agent->agentEntitiesPresence = presence;
+
+  return TRUE;
+}
+ 
+
 int hri_initialize_all_agents_knowledge(HRI_ENTITIES * entities, HRI_AGENTS * agents)
 {
   int i;

@@ -122,6 +122,7 @@ typedef struct STRUCT_HRI_AGENT {
   int head_nb; /* a Human cannot have 2 hands, but a robot can have multiple cameras */
   HRI_ENTITY ** hand;
   int hand_nb;
+  int agentEntitiesPresence;
 
   char * object_name;
   int is_grasping_object;

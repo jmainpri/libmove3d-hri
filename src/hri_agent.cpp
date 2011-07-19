@@ -234,6 +234,7 @@ HRI_AGENT * hri_create_agent(p3d_rob * robot)
   hri_agent->knowledge = hri_create_empty_agent_knowledge(hri_agent);
 
   hri_agent->is_present = FALSE;
+  hri_agent->agentEntitiesPresence = FALSE;
 
   /* TODO: Fix proper state assignment */
   hri_agent->states_no = 0;
