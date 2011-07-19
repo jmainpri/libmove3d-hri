@@ -180,7 +180,7 @@ int hriSetEntitiesPresenceFromAgentPresence(HRI_ENTITIES * entities,HRI_AGENT * 
 {
   int i;
 
-  if(agents == NULL)
+  if(agent == NULL)
     return FALSE;
 
   if(agent->agentEntitiesPresence == presence)
