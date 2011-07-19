@@ -158,7 +158,7 @@ int hri_link_agents_with_entities(HRI_ENTITIES * entities, HRI_AGENTS * agents)
             agents->all_agents[agent_idx]->head[agents->all_agents[agent_idx]->head_nb++] = entities->entities[i];
 	    
           }
-          if(strcasestr(entities->entities[i]->partPt->name, "hand") || strcasestr(entities->entities[i]->partPt->name, "Gkuka6")) {
+          if(strcasestr(entities->entities[i]->partPt->name, "hand") || strcasestr(entities->entities[i]->partPt->name, "Gkuka6") || strcasestr(entities->entities[i]->partPt->name, "Grarm7") ) {
             agents->all_agents[agent_idx]->hand = MY_REALLOC(agents->all_agents[agent_idx]->hand, HRI_ENTITY*,
 							     agents->all_agents[agent_idx]->hand_nb,
 							     agents->all_agents[agent_idx]->hand_nb+1);
