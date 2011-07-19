@@ -232,6 +232,8 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     knowledge->entities[i].entPt = entities->entities[i];
 
     knowledge->entities[i].disappeared_isexported = TRUE;
+    knowledge->entities[i].presenceValueExported = FALSE;
+    knowledge->entities[i].presence_isexported = FALSE;
 
     knowledge->entities[i].motion = HRI_UK_MOTION;
     knowledge->entities[i].motion_ischanged = FALSE;

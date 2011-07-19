@@ -190,6 +190,8 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
   long update_date;
 
   int disappeared_isexported; /* bool to know wether disappear information was exported for this agent */  
+  int presenceValueExported;
+  int presence_isexported;
 
   HRI_MOTION motion;
   int motion_ischanged;
