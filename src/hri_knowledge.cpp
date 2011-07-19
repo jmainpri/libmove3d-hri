@@ -94,13 +94,13 @@ HRI_ENTITIES * hri_create_entities()
       }
 
       /// We get the GHOST object part to have correct values for Bounding Boxes.
-      /// matthieu warnier 13 may 2011 : Gkuka6 is a dirty hack to have one hand for robot as well. I should 
+      /// matthieu warnier 13 may 2011 : Gkuka6 and rarm7 are dirty hacks to have one hand for robot as well for Jido and Pr2. I should 
       /// manage this better by adding something in the  p3d files
       for(j=0; j<env->robot[i]->no; j++) {
         objectrealname = strrchr(env->robot[i]->o[j]->name, '.')+1;
         if((strcasestr(objectrealname,"GHOST") || strcasestr(objectrealname,"G")) &&
            (strcasestr(objectrealname,"SURFACE") || strcasestr(objectrealname,"HAND") ||
-            strcasestr(objectrealname,"HEAD")    ||  strcasestr(objectrealname,"CAMERA") || strcasestr(objectrealname,"Gkuka6")) ) {
+            strcasestr(objectrealname,"HEAD")    ||  strcasestr(objectrealname,"CAMERA") || strcasestr(objectrealname,"Gkuka6") || strcasestr(objectrealname,"Grarm7")) ) {
              entities->entities = MY_REALLOC(entities->entities, HRI_ENTITY*, ent_i, ent_i+1);
              entities->entities[ent_i] = MY_ALLOC(HRI_ENTITY,1);
 	     strcpy(entities->entities[ent_i]->name, objectrealname);
@@ -112,7 +112,7 @@ HRI_ENTITIES * hri_create_entities()
              entities->entities[ent_i]->type = HRI_OBJECT_PART;
 	     if(strcasestr(env->robot[i]->name,"HEAD")||strcasestr(env->robot[i]->name,"CAMERA"))
 	       entities->entities[ent_i]->subtype = HRI_AGENT_HEAD;
-	     else if(strcasestr(env->robot[i]->name,"HAND") || strcasestr(objectrealname,"Gkuka6"))
+	     else if(strcasestr(env->robot[i]->name,"HAND") || strcasestr(objectrealname,"Gkuka6") || strcasestr(objectrealname,"Grarm7"))
 	       entities->entities[ent_i]->subtype = HRI_AGENT_HAND;
 	     else
 	       entities->entities[ent_i]->subtype = HRI_UK_ENTITY_SUBTYPE;
