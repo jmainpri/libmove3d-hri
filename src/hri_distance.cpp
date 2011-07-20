@@ -53,7 +53,7 @@ double hri_robot_min_distance( HRI_AGENTS* agents )
 {
 	p3d_rob* rob = agents->robots[agents->source_agent_idx]->robotPt;
 
-	std::cout << "Compute dist for : " << rob->name << std::endl;
+	//std::cout << "Compute dist for : " << rob->name << std::endl;
 
 //	printf("hri_robot_min_distance\n");
 	hri_set_human_robot_dist(rob,agents);
@@ -84,7 +84,7 @@ double hri_robot_min_distance( HRI_AGENTS* agents )
 			// Get Min indice of distance
 			for(int i=0;i<nof_bodies;i++)
 			{
-				std::cout << "distances[" << i << "] = " << distances[i] << std::endl;
+				//std::cout << "distances[" << i << "] = " << distances[i] << std::endl;
 				if( minDist > distances[i] )
 				{
 					minDist = distances[i];
