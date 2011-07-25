@@ -1613,3 +1613,231 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
   return counter;
 }
+
+
+
+///////////////////////////////////////////////////////////
+/** Action Monitoring Through little spheres Management. */
+///////////////////////////////////////////////////////////
+
+
+/** Spheres initialization */
+
+HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
+{
+  int i;
+  spheres = MY_ALLOC(HRI_ACTION_MONITORING_SPHERES, 1);
+  spheres->spheres = NULL;
+  spheres->nbSpheres = 0;
+
+  for(i=0; i<nbSpheresMax; i++) {
+    spheres->spheres = MY_REALLOC(spheres->spheres , HRI_ACTION_MONITORING_SPHERE*,i,i+1);
+    spheres->spheres[i] = MY_ALLOC(HRI_ACTION_MONITORING_SPHERE,1);
+    spheres->spheres[i]->isSphereActive = FALSE;
+    strcpy(spheres->spheres[i]->objectName,"");
+    spheres->spheres[i]->entityIndex = 0;
+    strcpy(spheres->spheres[i]->agenttName,"");
+    spheres->spheres[i]->agentIndex = 0;
+    spheres->spheres[i]->handIndexInput = -1;
+    spheres->spheres[i]->sphereX = 0.0;
+    spheres->spheres[i]->sphereY = 0.0;
+    spheres->spheres[i]->sphereZ = 0.0;
+    spheres->spheres[i]->sphereRadius = 0;
+    spheres->spheres[i]->filteringTimeThreshold = 0;
+    spheres->spheres[i]->sphereType = SIMPLE_ENTRY;
+    spheres->spheres[i]->monitorResult = FALSE;
+    spheres->spheres[i]->handIndexResult = 0;
+  }
+  spheres->spheres[i]->nbSpheres = 0;
+  spheres->spheres[i]->nbIterSinceLastTest = 0;
+  spheres->spheres[i]->newMonitorTrigger = FALSE;
+  return spheres;
+}
+
+/** Add / Delete sphere in spheres */
+
+int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres ,int nbSphereMax,int monitorIndex,int activateSphere, char* agentName, int agentIndex, char* objectName,int entityIndex, double sphereCenterX, double sphereCenterY, double sphereCenterZ, double sphereRadius, double filteringTimeThreshold, HRI_SPHERE_TYPE sphereType)
+{
+  
+  if( monitorIndex >= nbSphereMax)
+    return FALSE;
+  
+  if(!activateSphere && spheres->spheres[monitorIndex]->isSphereActive){
+    spheres->spheres[monitorIndex]->isSphereActive = FALSE;
+    spheres->nbActiveSpheres--;
+  }
+  else {
+    
+    //Update the number of active spheres
+    if(!spheres->spheres[monitorIndex]->isSphereActive){
+      spheres->nbActiveSpheres++;
+      spheres->spheres[monitorIndex]->isSphereActive = TRUE;
+    }
+    
+    //
+    strcpy(spheres->spheres[monitorIndex]->agentName, agentName);
+    spheres->spheres[monitorIndex]->agentIndex = agentIndex;
+    spheres->spheres[monitorIndex]->sphereType = sphereType;
+    spheres->spheres[monitorIndex]->filteringTimeThreshold = filteringTimeThreshold;
+    
+    //Some spheres are completely define through the parameters
+    if((sphereType == SIMPLE_ENTRY) || (sphereType == SIMPLE_EXIT)){
+      spheres->spheres[monitorIndex]->sphereCenterX = sphereCenterX;
+      spheres->spheres[monitorIndex]->sphereCenterY = sphereCenterY;
+      spheres->spheres[monitorIndex]->sphereCenterZ = sphereCenterZ;
+      spheres->spheres[monitorIndex]->sphereRadius = sphereRadius;
+    }
+    
+    //Some other spheres must be computed from the parameter
+    else {
+      strcpy(spheres->spheres[monitorIndex]->objectName, objectName);
+      spheres->spheres[monitorIndex]->objectIndex = objectIndex;
+      hriGetSpherePositionAndSize(agents,ents,spheres->spheres[monitorIndex]);
+    }   
+
+  }
+  
+  return TRUE;
+}
+
+
+/* compute radius and sphere center from sphere object and type  */
+int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHERE * sphere)
+{
+  p3d_vector3 sphereCenter;
+  double radius;
+  double radius2;
+
+  if(obj == NULL ) {
+    printf("%s:%d hriComputeSpherRadiusAndCenter input is null",__FILE__,__LINE__);
+    return FALSE;
+  }
+
+  if(sourceObj->type == HRI_OBJECT){
+    sphereCenter[0] = (sourceObj->robotPt->BB.xmax + sourceObj->robotPt->BB.xmin)/2;
+    sphereCenter[1] = (sourceObj->robotPt->BB.ymax + sourceObj->robotPt->BB.ymin)/2;
+    sphereCenter[2] = (sourceObj->robotPt->BB.zmax + sourceObj->robotPt->BB.zmin)/2;
+    radius = sourceObj->robotPt->BB.xmax - sphereCenter[0];
+  
+    radius2 = sourceObj->robotPt->BB.ymax - sphereCenter[1];
+    if( radius < radius2 ){
+      radius = radius2
+    }
+
+    radius2 = sourceObj->robotPt->BB.zmax - sphereCenter[2];
+    if( radius < radius2 ){
+      radius = radius2
+    }
+
+    // For PICK_OBJECT we choose a sphere centered on a translation of -radius according z axis of the object center. We choose sphere radius as three time object radius.
+    if(sphere->sphereType == PICK_OBJECT){
+      sphere->sphereCenterX = sphereCenter[0]; 
+      sphere->sphereCenterY = sphereCenter[1];
+      sphere->sphereCenterZ = sphereCenter[2] - radius;
+      sphere->sphereRadius = 2*radius;
+    }
+
+    // For THROW_IN_CONTAINER we choose a sphere centered on a 2*radius z translation of object center with a sphere radius of 2*radius.
+    else if(sphere->sphereType == THROW_IN_CONTAINER){
+      sphere->sphereCenterX = sphereCenter[0]; 
+      sphere->sphereCenterY = sphereCenter[1];
+      sphere->sphereCenterZ = sphereCenter[2] + 2*radius;
+      sphere->sphereRadius = 2*radius;
+    }
+
+  }
+
+  else{
+    printf("%s:%d hriComputeSpherRadiusAndCenter object sphere %s should have type HRI_OBJECT",sourceObj->name,__FILE__,__LINE__);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/**  get sphere center and radius from sphere type and object */
+int hriGetSpherePositionAndSize(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERE * sphere){
+  // If 
+  if((sphere->sphereType == THROW_IN_CONTAINER) || (sphere->sphereType == PICK_OBJECT)){    
+  }
+  else if(sphere->sphereType == PERMANENT_STOP_MONITOR){
+  }  
+} 
+
+/**  test all active monitors. */
+int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres,int nbMaxSpheres, int nbIterBeforeMonitorTest){
+
+  int h_i, i;
+  HRI_ENTITY * ent, ** present_ents;
+  int nbActiveSpheres;
+  int agentId;
+  HRI_AGENT * agent;
+  double distance;
+  
+  if(agents == NULL || ents == NULL) {
+    printf("Not Initialized\n");
+    return FALSE;
+  }
+  
+  nbActiveSpheres = spheres->nbActiveSpheres;
+  spheres->newMonitorTrigger = FALSE;
+    
+  for(i=0; i<nbMaxSpheres; i++) {
+    if(nbActiveSpheres == 0)
+      break;
+
+    if(spheres->spheres[i]->isSphereActive){
+      nbActiveSpheres--;
+      //If monitor has already triggered, we don't need to test it again.
+      if(spheres->spheres[i]->monitorResult)
+	continue;
+      
+      //Get concerned agent
+      agentId = spheres->spheres[i]->agentIndex;
+      
+      // We don't yet use threshold. We may have to. 
+      //Get Agents
+      agent = agents->all_agents[agentId];
+      if(agent->is_present == FALSE)
+	continue;
+
+      //Check all hands or only one according to handIndexInput value.
+      for(h_i=0; h_i<agent->hand_nb ; h_i++) { 	
+	if((handIndexInput>-1) && (handIndexInput != h_i))
+	  continue;
+	ent = agent->hand[h_i];
+	distance = DISTANCE3D(ent->robotPt->joints[1]->abs_pos[0][3],ent->robotPt->joints[1]->abs_pos[1][3],ent->robotPt->joints[1]->abs_pos[2][3],spheres->spheres[i]->sphereCenterX,spheres->spheres[i]->sphereCenterY,spheres->spheres[i]->sphereCenterZ);
+
+	// enter in sphere type
+	if( spheres->spheres[i]->enterInSphereType && (distance<spheres->spheres[i]->sphereRadius)){
+	  //Check on time threshold
+	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue)
+	    spheres->spheres[i]->monitorResult = TRUE;
+	  else{	    
+	    //We should update timeDelayWithMonitorTrue here	    
+	  }
+	}
+	else
+	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;
+	
+	
+	// exit of sphere type
+	else if( !spheres->spheres[i]->enterInSphereType && (distance>spheres->spheres[i]->sphereRadius)){
+	  //Check on time threshold
+	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue)
+	    spheres->spheres[i]->monitorResult = TRUE;
+	  else{	    
+	    //We should update timeDelayWithMonitorTrue here
+	  }
+	}	
+	else
+	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
+	if (spheres->spheres[i]->monitorResult){
+	  spheres->newMonitorTrigger = TRUE;
+	  spheres->handIndexResult = h_i;
+	  breaks;
+	}      
+      }
+    }
+  }
+}
