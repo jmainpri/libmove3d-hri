@@ -1625,6 +1625,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
 HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
 {
+  HRI_ACTION_MONITORING_SPHERES * spheres;
   int i;
   spheres = MY_ALLOC(HRI_ACTION_MONITORING_SPHERES, 1);
   spheres->spheres = NULL;
