@@ -252,6 +252,14 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
   int entities_nb;
 } HRI_KNOWLEDGE;
 
+/** sphere type used for initial sphere geometric dimension processing and monitoring trigger assessment*/
+typedef enum ENUM_HRI_SPHERE_TYPE {
+  SIMPLE_ENTRY = 0, // simple sphere defined through radius and center. To monitor entrance in the sphere;
+  SIMPLE_EXIT = 1,  // simple sphere defined through radius and center. To monitor exit from the sphere.
+  THROW_IN_CONTAINER = 2, // simple sphere those radius and center is automatically defined as fitting above the container.
+  PICK_OBJECT =  3, // simple sphere those radius and center is automatically defined as around object to pick.
+  PERMANENT_STOP_MONITOR = 4  //
+} HRI_SPHERE_TYPE; // Monitor that hands are fixed at some points.
 
 /* Action Monitor Through in Spheres Entry or Exit */
 typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
@@ -271,7 +279,7 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
   int enterInSphereType; //True if it is a sphereType for which we trigger monitor if we enter the sphere FALSE otherwise.
   int monitorResult; // TRUE if monitor trigger and FALSE otherwise.
   int handIndexResult; // Whose agent hands trigger monitor.
-  int modifIndex: // each time there is something new on this sphere we increment this counter.
+  int modifIndex; // each time there is something new on this sphere we increment this counter.
 } HRI_ACTION_MONITORING_SPHERE;
 
 /** Action Monitor Through in Spheres Entry or Exit */
@@ -282,13 +290,5 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERES {
   int nbIterSinceLastMonitorTest; // number of iter
 } HRI_ACTION_MONITORING_SPHERES;
 
-/** status to describe current object position measurement*/
-typedef enum ENUM_HRI_SPHERE_TYPE {
-  SIMPLE_ENTRY = 0, // simple sphere defined through radius and center. To monitor entrance in the sphere;
-  SIMPLE_EXIT = 1,  // simple sphere defined through radius and center. To monitor exit from the sphere.
-  THROW_IN_CONTAINER = 2, // simple sphere those radius and center is automatically defined as fitting above the container.
-  PICK_OBJECT =  3, // simple sphere those radius and center is automatically defined as around object to pick.
-  PERMANENT_STOP_MONITOR = 4  //
-} HRI_SPHERE_TYPE; // Monitor that hands are fixed at some points.
 
 #endif
