@@ -1656,7 +1656,7 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
 
 /** Add / Delete sphere in spheres */
 
-int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres ,int nbSphereMax,int monitorIndex,int activateSphere, char* agentName, int agentIndex, char* objectName,int entityIndex, double sphereCenterX, double sphereCenterY, double sphereCenterZ, double sphereRadius, double filteringTimeThreshold, HRI_SPHERE_TYPE sphereType)
+int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres ,int nbSphereMax,int monitorIndex,int activateSphere, char* agentName, int agentIndex, char* objectName,int entityIndex, double sphereCenterX, double sphereCenterY, double sphereCenterZ, double sphereRadius, double sphereRadiusMultiply, double sphereCenterTranslationMultiply,double filteringTimeThreshold, HRI_SPHERE_TYPE sphereType)
 {
   
   if( monitorIndex >= nbSphereMax)
@@ -1696,13 +1696,14 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
     }   
 
   }
+  spheres->spheres[monitorIndex]->modifIndex++;
   
   return TRUE;
 }
 
 
 /* compute radius and sphere center from sphere object and type  */
-int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHERE * sphere)
+int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHERE * sphere,double sphereRadiusMultiply,double sphereCenterTranslationMultiply)
 {
   p3d_vector3 sphereCenter;
   double radius;
@@ -1733,16 +1734,16 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
     if(sphere->sphereType == PICK_OBJECT){
       sphere->sphereCenterX = sphereCenter[0]; 
       sphere->sphereCenterY = sphereCenter[1];
-      sphere->sphereCenterZ = sphereCenter[2] - radius;
-      sphere->sphereRadius = 2*radius;
+      sphere->sphereCenterZ = sphereCenter[2] - radius*sphereCenterTranslationMultiply;
+      sphere->sphereRadius = 2*radius*sphereRadiusMultiply;
     }
 
     // For THROW_IN_CONTAINER we choose a sphere centered on a 2*radius z translation of object center with a sphere radius of 2*radius.
     else if(sphere->sphereType == THROW_IN_CONTAINER){
       sphere->sphereCenterX = sphereCenter[0]; 
       sphere->sphereCenterY = sphereCenter[1];
-      sphere->sphereCenterZ = sphereCenter[2] + 2*radius;
-      sphere->sphereRadius = 2*radius;
+      sphere->sphereCenterZ = sphereCenter[2] + 2*radius*sphereCenterTranslationMultiply;
+      sphere->sphereRadius = 2*radius*sphereRadiusMultiply;
     }
 
   }
@@ -1756,9 +1757,10 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
 }
 
 /**  get sphere center and radius from sphere type and object */
-int hriGetSpherePositionAndSize(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERE * sphere){
+int hriGetSpherePositionAndSize(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERE * sphere,double sphereRadiusMultiply,double sphereCenterTranslationMultiply){
   // If 
-  if((sphere->sphereType == THROW_IN_CONTAINER) || (sphere->sphereType == PICK_OBJECT)){    
+  if((sphere->sphereType == THROW_IN_CONTAINER) || (sphere->sphereType == PICK_OBJECT)){
+    hriComputeSphereRadiusAndCenter(ents->entities[sphere->entityIndex],sphere,sphereRadiusMultiply,sphereCenterTranslationMultiply);
   }
   else if(sphere->sphereType == PERMANENT_STOP_MONITOR){
   }  
@@ -1780,7 +1782,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
   }
   
   nbActiveSpheres = spheres->nbActiveSpheres;
-  spheres->newMonitorTrigger = FALSE;
+  spheres->modifIndex = 0;
     
   for(i=0; i<nbMaxSpheres; i++) {
     if(nbActiveSpheres == 0)
@@ -1833,8 +1835,9 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	else
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
 	if (spheres->spheres[i]->monitorResult){
-	  spheres->newMonitorTrigger = TRUE;
+	  spheres->modifIndex++;
 	  spheres->handIndexResult = h_i;
+	  spheres->spheres[i]->modifIndex++;
 	  breaks;
 	}      
       }

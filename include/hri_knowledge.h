@@ -271,13 +271,14 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
   int enterInSphereType; //True if it is a sphereType for which we trigger monitor if we enter the sphere FALSE otherwise.
   int monitorResult; // TRUE if monitor trigger and FALSE otherwise.
   int handIndexResult; // Whose agent hands trigger monitor.
+  int modifIndex: // each time there is something new on this sphere we increment this counter.
 } HRI_ACTION_MONITORING_SPHERE;
 
 /** Action Monitor Through in Spheres Entry or Exit */
 typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERES {
   STRUCT_HRI_ACTION_MONITORING_SPHERE spheres; // Array of spheres used for monitoring purpose.
   int nbActiveSpheres; // number of spheres that are active.
-  int newMonitorTrigger; // TRUE/FALSE , does some monitor were triggered during last monitor test.
+  int modifIndex; // each time there is something new in spheres we increment this counter.
   int nbIterSinceLastMonitorTest; // number of iter
 } HRI_ACTION_MONITORING_SPHERES;
 
