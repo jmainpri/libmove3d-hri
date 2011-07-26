@@ -4179,7 +4179,7 @@ int hri_update_agent_perspective_params(HRI_AGENT * agent)
       persp->pointjoint = agent->robotPt->joints[1]; //TODO: put the correct value
 //       persp->point_tolerance = 20;
       break;
-  case HR_OLDDUDE:
+  case HRI_OLDDUDE:
       persp->camjoint = agent->robotPt->joints[42];
 //       persp->fov = 160;
 //       persp->foa = 70; // TODO: By default This should be 30. Change for a particular manip while waiting a fix on vis placements
