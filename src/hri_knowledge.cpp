@@ -1629,7 +1629,9 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
   int i;
   spheres = MY_ALLOC(HRI_ACTION_MONITORING_SPHERES, 1);
   spheres->spheres = NULL;
-  spheres->nbSpheres = 0;
+  spheres->nbActiveSpheres = 0;
+  spheres->modifIndex = 0;
+  spheres->nbIterSinceLastMonitorTest = 0; 
 
   for(i=0; i<nbSpheresMax; i++) {
     spheres->spheres = MY_REALLOC(spheres->spheres , HRI_ACTION_MONITORING_SPHERE*,i,i+1);
