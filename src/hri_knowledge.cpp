@@ -1717,18 +1717,18 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
     return FALSE;
   }
 
-  if(sourceObj->type == HRI_OBJECT){
-    sphereCenter[0] = (sourceObj->robotPt->BB.xmax + sourceObj->robotPt->BB.xmin)/2;
-    sphereCenter[1] = (sourceObj->robotPt->BB.ymax + sourceObj->robotPt->BB.ymin)/2;
-    sphereCenter[2] = (sourceObj->robotPt->BB.zmax + sourceObj->robotPt->BB.zmin)/2;
-    radius = sourceObj->robotPt->BB.xmax - sphereCenter[0];
+  if(obj->type == HRI_OBJECT){
+    sphereCenter[0] = (obj->robotPt->BB.xmax + obj->robotPt->BB.xmin)/2;
+    sphereCenter[1] = (obj->robotPt->BB.ymax + obj->robotPt->BB.ymin)/2;
+    sphereCenter[2] = (obj->robotPt->BB.zmax + obj->robotPt->BB.zmin)/2;
+    radius = obj->robotPt->BB.xmax - sphereCenter[0];
   
-    radius2 = sourceObj->robotPt->BB.ymax - sphereCenter[1];
+    radius2 = obj->robotPt->BB.ymax - sphereCenter[1];
     if( radius < radius2 ){
       radius = radius2
     }
 
-    radius2 = sourceObj->robotPt->BB.zmax - sphereCenter[2];
+    radius2 = obj->robotPt->BB.zmax - sphereCenter[2];
     if( radius < radius2 ){
       radius = radius2
     }
@@ -1752,7 +1752,7 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
   }
 
   else{
-    printf("%s:%d hriComputeSpherRadiusAndCenter object sphere %s should have type HRI_OBJECT",sourceObj->name,__FILE__,__LINE__);
+    printf("%s:%d hriComputeSpherRadiusAndCenter object sphere %s should have type HRI_OBJECT",obj->name,__FILE__,__LINE__);
     return FALSE;
   }
 
