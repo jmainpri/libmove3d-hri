@@ -1651,9 +1651,9 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
     spheres->spheres[i]->monitorResult = FALSE;
     spheres->spheres[i]->handIndexResult = 0;
   }
-  spheres->nbSpheres = 0;
-  spheres->nbIterSinceLastTest = 0;
-  spheres->newMonitorTrigger = FALSE;
+  spheres->nbActiveSpheres = 0;
+  spheres->modifIndex = 0;
+  spheres->nbIterSinceLastMonitorTest = FALSE;
   return spheres;
 }
 
