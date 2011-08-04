@@ -284,7 +284,7 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
 
 /** Action Monitor Through in Spheres Entry or Exit */
 typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERES {
-  HRI_ACTION_MONITORING_SPHERE * spheres; // Array of spheres used for monitoring purpose.
+  HRI_ACTION_MONITORING_SPHERE ** spheres; // Array of spheres pointers used for monitoring purpose.
   int nbActiveSpheres; // number of spheres that are active.
   int modifIndex; // each time there is something new in spheres we increment this counter.
   int nbIterSinceLastMonitorTest; // number of iter
