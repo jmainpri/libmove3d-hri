@@ -1725,12 +1725,12 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
   
     radius2 = obj->robotPt->BB.ymax - sphereCenter[1];
     if( radius < radius2 ){
-      radius = radius2
+      radius = radius2;
     }
 
     radius2 = obj->robotPt->BB.zmax - sphereCenter[2];
     if( radius < radius2 ){
-      radius = radius2
+      radius = radius2;
     }
 
     // For PICK_OBJECT we choose a sphere centered on a translation of -radius according z axis of the object center. We choose sphere radius as three time object radius.
@@ -1776,6 +1776,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
   HRI_ENTITY * ent, ** present_ents;
   int nbActiveSpheres;
   int agentId;
+  int handIndexInput;
   HRI_AGENT * agent;
   double distance;
   
@@ -1800,6 +1801,9 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
       //Get concerned agent
       agentId = spheres->spheres[i]->agentIndex;
       
+      //Get concerned hand
+      handIndexInput = spheres->spheres[i]->handIndexInput;
+      
       // We don't yet use threshold. We may have to. 
       //Get Agents
       agent = agents->all_agents[agentId];
@@ -1822,7 +1826,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	    //We should update timeDelayWithMonitorTrue here	    
 	  }
 	}
-	else
+	else if( spheres->spheres[i]->enterInSphereType && (distance>=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;
 	
 	
@@ -1835,7 +1839,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	    //We should update timeDelayWithMonitorTrue here
 	  }
 	}	
-	else
+	else if( !spheres->spheres[i]->enterInSphereType && (distance<=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
 	if (spheres->spheres[i]->monitorResult){
 	  spheres->modifIndex++;
