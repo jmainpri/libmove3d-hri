@@ -1642,9 +1642,9 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
     strcpy(spheres->spheres[i]->agenttName,"");
     spheres->spheres[i]->agentIndex = 0;
     spheres->spheres[i]->handIndexInput = -1;
-    spheres->spheres[i]->sphereX = 0.0;
-    spheres->spheres[i]->sphereY = 0.0;
-    spheres->spheres[i]->sphereZ = 0.0;
+    spheres->spheres[i]->sphereCenterX = 0.0;
+    spheres->spheres[i]->sphereCenterY = 0.0;
+    spheres->spheres[i]->sphereCenterZ = 0.0;
     spheres->spheres[i]->sphereRadius = 0;
     spheres->spheres[i]->filteringTimeThreshold = 0;
     spheres->spheres[i]->sphereType = SIMPLE_ENTRY;
