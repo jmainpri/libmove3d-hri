@@ -1694,7 +1694,7 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
     //Some other spheres must be computed from the parameter
     else {
       strcpy(spheres->spheres[monitorIndex]->objectName, objectName);
-      spheres->spheres[monitorIndex]->objectIndex = objectIndex;
+      spheres->spheres[monitorIndex]->entityIndex = entityIndex;
       hriGetSpherePositionAndSize(agents,ents,spheres->spheres[monitorIndex]);
     }   
 
