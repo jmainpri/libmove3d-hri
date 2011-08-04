@@ -187,7 +187,17 @@ int hriSetEntitiesPresenceFromAgentPresence(HRI_ENTITIES * entities,HRI_AGENT * 
     return TRUE;
 
   // Change presence for entity agent
-  entities->entities[agent->entity_idx]->is_present = TRUE; 
+  // Test uninitialized entity_idx value. Why?
+  if(agent->entity_idx >= 0)
+    entities->entities[agent->entity_idx]->is_present = TRUE; 
+  else {
+    if(agent->entity_idx == -1){
+      // We print the error message only once
+      agent->entity_idx = -2;
+      printf("entity_idx of agent %s has unvalid value %d \n",agent->robotPt->name,agent->entity_idx);
+    }
+  }
+    
 
   // Change presence for entities that are heads of agent.
   for(i=0; i<agent->head_nb; i++) {
