@@ -1843,9 +1843,9 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
 	if (spheres->spheres[i]->monitorResult){
 	  spheres->modifIndex++;
-	  spheres->handIndexResult = h_i;
+	  spheres->spheres[i]->handIndexResult = h_i;
 	  spheres->spheres[i]->modifIndex++;
-	  breaks;
+	  break;
 	}      
       }
     }
