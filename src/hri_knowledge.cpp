@@ -188,26 +188,47 @@ int hriSetEntitiesPresenceFromAgentPresence(HRI_ENTITIES * entities,HRI_AGENT * 
 
   // Change presence for entity agent
   // Test uninitialized entity_idx value. Why?
-  if(agent->entity_idx >= 0)
+  if(agent->entity_idx >= 0 && agent->entity_idx<entities->entities_nb)
     entities->entities[agent->entity_idx]->is_present = TRUE; 
   else {
-    if(agent->entity_idx == -1){
+    if(agent->entity_idx >= -1){
       // We print the error message only once
+      printf("entity_idx of agent %s has unvalid value %d \n",agent->robotPt->name,agent->entity_idx); 
       agent->entity_idx = -2;
-      printf("entity_idx of agent %s has unvalid value %d \n",agent->robotPt->name,agent->entity_idx);
     }
   }
     
 
   // Change presence for entities that are heads of agent.
-  for(i=0; i<agent->head_nb; i++) {
-    agent->head[i]->is_present = presence;
+  // Add test to prevent spark crashing. Why?
+  if(agent->head_nb < 3){
+    for(i=0; i<agent->head_nb; i++) {
+      agent->head[i]->is_present = presence;
+    }
+  }
+  else{
+    if(agent->head_nb >= 3){
+      // We print the error message only once
+      printf("head_nb of agent %s has unvalid value %d\n",agent->robotPt->name,agent->head_nb);
+      agent->head_nb = 0;
+    }
   }
   
   // Change presence for entities that are hands of agent.
-  for(i=0; i<agent->hand_nb; i++) {
-    agent->hand[i]->is_present = presence;
+  // Add test to prevent spark crashing. Why?
+  if(agent->hand_nb < 3){
+    for(i=0; i<agent->hand_nb; i++) {
+      agent->hand[i]->is_present = presence;
+    }
   }
+  else{
+    if(agent->hand_nb >= 3){
+      // We print the error message only once
+      printf("hand_nb of agent %s has unvalid value %d\n",agent->robotPt->name,agent->hand_nb);
+      agent->hand_nb = 0;
+    }
+  }
+  
 
   agent->agentEntitiesPresence = presence;
 
