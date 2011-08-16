@@ -938,13 +938,13 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
   yInferred = firstEntity->infy;
   zInferred = firstEntity->infz; 
   distPerceptInferrence = DISTANCE3D(xInferred, yInferred, zInferred, xPerception, yPerception, zPerception );
-  if(distPerceptInferrence < deltaSum/2)
+  if(distPerceptInferrence < deltaSum/4)
     firstEntity->inferrenceValidity = HRI_HIGHLY_PROBABLE;
-  else if(distPerceptInferrence < deltaSum)
+  else if(distPerceptInferrence < deltaSum/3)
     firstEntity->inferrenceValidity = HRI_PROBABLE;
-  else if(distPerceptInferrence < deltaSum*2)
+  else if(distPerceptInferrence < deltaSum/2)
     firstEntity->inferrenceValidity = HRI_AVERAGE;
-  else if(distPerceptInferrence < deltaSum*3)
+  else if(distPerceptInferrence < deltaSum)
     firstEntity->inferrenceValidity = HRI_UNPROBABLE;
   else
     firstEntity->inferrenceValidity = HRI_HIGHLY_UNPROBABLE;
