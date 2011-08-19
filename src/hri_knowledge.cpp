@@ -1848,8 +1848,8 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;
 	
 	
-	// exit of sphere type
-	if( spheres->spheres[i]->monitorEnterInResult && (distance>spheres->spheres[i]->sphereRadius)){
+	// exit of sphere type. We check it only on previously recognized hand.
+	if( (h_i == spheres->spheres[i]->handIndexResult) && spheres->spheres[i]->monitorEnterInResult && (distance>spheres->spheres[i]->sphereRadius)){
 	  //Check on time threshold
 	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue){
 	    spheres->spheres[i]->monitorGetOutResult = TRUE;
@@ -1859,7 +1859,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	    //We should update timeDelayWithMonitorTrue here
 	  }
 	}	
-	if( spheres->spheres[i]->monitorEnterInResult && (distance<=spheres->spheres[i]->sphereRadius))
+	if( (h_i == spheres->spheres[i]->handIndexResult) && spheres->spheres[i]->monitorEnterInResult && (distance<=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
 	if (monitorTriggered){
 	  spheres->modifIndex++;
