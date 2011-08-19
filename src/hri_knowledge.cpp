@@ -1844,7 +1844,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	    //We should update timeDelayWithMonitorTrue here
 	  }
 	}	
-	if( !spheres->spheres[i]->monitorEnterInResult && (distance<=spheres->spheres[i]->sphereRadius))
+	if( spheres->spheres[i]->monitorEnterInResult && (distance<=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
 	if (monitorTriggered){
 	  spheres->modifIndex++;
