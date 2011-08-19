@@ -1700,7 +1700,8 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
 
   }
   spheres->spheres[monitorIndex]->modifIndex++;
-  
+  spheres->modifIndex++;  
+
   return TRUE;
 }
 
