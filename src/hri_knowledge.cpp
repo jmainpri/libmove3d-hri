@@ -1781,6 +1781,9 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
   HRI_AGENT * agent;
   double distance;
   int monitorTriggered = FALSE;
+  double entBBCenterX=0;
+  double entBBCenterY=0;
+  double entBBCenterZ=0;
   
   if(agents == NULL || ents == NULL) {
     printf("Not Initialized\n");
@@ -1816,7 +1819,19 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	if((handIndexInput>-1) && (handIndexInput != h_i))
 	  continue;
 	ent = agent->hand[h_i];
-	distance = DISTANCE3D(ent->robotPt->joints[1]->abs_pos[0][3],ent->robotPt->joints[1]->abs_pos[1][3],ent->robotPt->joints[1]->abs_pos[2][3],spheres->spheres[i]->sphereCenterX,spheres->spheres[i]->sphereCenterY,spheres->spheres[i]->sphereCenterZ);
+	if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) ) {
+	  entBBCenterX = (ent->partPt->BB.xmax + ent->partPt->BB.xmin)/2;
+	  entBBCenterY = (ent->partPt->BB.ymax + ent->partPt->BB.ymin)/2;
+	  entBBCenterZ = (ent->partPt->BB.zmax + ent->partPt->BB.zmin)/2;
+	}
+	else {
+	  entBBCenterX = (ent->robotPt->BB.xmax + ent->robotPt->BB.xmin)/2;
+	  entBBCenterY = (ent->robotPt->BB.ymax + ent->robotPt->BB.ymin)/2;
+	  entBBCenterZ = (ent->robotPt->BB.zmax + ent->robotPt->BB.zmin)/2;
+	}
+
+	//distance = DISTANCE3D(ent->robotPt->joints[1]->abs_pos[0][3],ent->robotPt->joints[1]->abs_pos[1][3],ent->robotPt->joints[1]->abs_pos[2][3],spheres->spheres[i]->sphereCenterX,spheres->spheres[i]->sphereCenterY,spheres->spheres[i]->sphereCenterZ);
+	distance = DISTANCE3D(entBBCenterX,entBBCenterY,entBBCenterZ,spheres->spheres[i]->sphereCenterX,spheres->spheres[i]->sphereCenterY,spheres->spheres[i]->sphereCenterZ);
 
 	// are we in sphere
 	if( !spheres->spheres[i]->monitorEnterInResult && (distance<spheres->spheres[i]->sphereRadius)){
