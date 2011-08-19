@@ -1651,9 +1651,6 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
     spheres->spheres[i]->monitorResult = FALSE;
     spheres->spheres[i]->handIndexResult = 0;
   }
-  spheres->nbActiveSpheres = 0;
-  spheres->modifIndex = 0;
-  spheres->nbIterSinceLastMonitorTest = FALSE;
   return spheres;
 }
 
@@ -1787,7 +1784,6 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
   }
   
   nbActiveSpheres = spheres->nbActiveSpheres;
-  spheres->modifIndex = 0;
     
   for(i=0; i<nbMaxSpheres; i++) {
     if(nbActiveSpheres == 0)
