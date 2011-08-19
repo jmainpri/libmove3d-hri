@@ -1796,7 +1796,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
     if(spheres->spheres[i]->isSphereActive){
       nbActiveSpheres--;
       //If monitor has already triggered, we don't need to test it again.
-      if(spheres->spheres[i]->monitorResult)
+      if(spheres->spheres[i]->monitorEnterInResult && spheres->spheres[i]->monitorGetOutResult)
 	continue;
       
       //Get concerned agent
