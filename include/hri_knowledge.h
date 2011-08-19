@@ -276,8 +276,8 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
   double filteringTimeThreshold; // time delay to wait for monitor success condition to triger monitor success
   double timeDelayWithMonitorTrue; // TRUE if monitor must be triggered on going out FALSE on going
   HRI_SPHERE_TYPE sphereType; // what is the type of this sphere as far as creating it is concerned
-  int enterInSphereType; //True if it is a sphereType for which we trigger monitor if we enter the sphere FALSE otherwise.
-  int monitorResult; // TRUE if monitor trigger and FALSE otherwise.
+  int monitorEnterInResult; // TRUE if monitor trigger for enter in spheres and FALSE otherwise.
+  int monitorGetOutResult; // TRUE if monitor trigger for get out of spheres (if it was in) and FALSE otherwise.
   int handIndexResult; // Whose agent hands trigger monitor.
   int modifIndex; // each time there is something new on this sphere we increment this counter.
 } HRI_ACTION_MONITORING_SPHERE;

@@ -1679,6 +1679,8 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
     spheres->spheres[monitorIndex]->agentIndex = agentIndex;
     spheres->spheres[monitorIndex]->sphereType = sphereType;
     spheres->spheres[monitorIndex]->filteringTimeThreshold = filteringTimeThreshold;
+    // Initialize timeDelayWithMonitorTrue that could be used for temporal filtering.
+    spheres->spheres[monitorIndex]->timeDelayWithMonitorTrue = 0;
     
     //Some spheres are completely define through the parameters
     if((sphereType == SIMPLE_ENTRY) || (sphereType == SIMPLE_EXIT)){
@@ -1777,6 +1779,7 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
   int handIndexInput;
   HRI_AGENT * agent;
   double distance;
+  int monitorTriggered = FALSE;
   
   if(agents == NULL || ents == NULL) {
     printf("Not Initialized\n");
@@ -1814,31 +1817,35 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 	ent = agent->hand[h_i];
 	distance = DISTANCE3D(ent->robotPt->joints[1]->abs_pos[0][3],ent->robotPt->joints[1]->abs_pos[1][3],ent->robotPt->joints[1]->abs_pos[2][3],spheres->spheres[i]->sphereCenterX,spheres->spheres[i]->sphereCenterY,spheres->spheres[i]->sphereCenterZ);
 
-	// enter in sphere type
-	if( spheres->spheres[i]->enterInSphereType && (distance<spheres->spheres[i]->sphereRadius)){
+	// are we in sphere
+	if( !spheres->spheres[i]->monitorEnterInResult && (distance<spheres->spheres[i]->sphereRadius)){
 	  //Check on time threshold
-	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue)
-	    spheres->spheres[i]->monitorResult = TRUE;
+	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue){
+	    spheres->spheres[i]->monitorEnterInResult = TRUE;
+	    monitorTriggered  = TRUE;
+	      }
 	  else{	    
 	    //We should update timeDelayWithMonitorTrue here	    
 	  }
 	}
-	else if( spheres->spheres[i]->enterInSphereType && (distance>=spheres->spheres[i]->sphereRadius))
+	if( !spheres->spheres[i]->monitorEnterInResult && (distance>=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;
 	
 	
 	// exit of sphere type
-	else if( !spheres->spheres[i]->enterInSphereType && (distance>spheres->spheres[i]->sphereRadius)){
+	if( spheres->spheres[i]->monitorEnterInResult && (distance>spheres->spheres[i]->sphereRadius)){
 	  //Check on time threshold
-	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue)
-	    spheres->spheres[i]->monitorResult = TRUE;
+	  if( spheres->spheres[i]->filteringTimeThreshold <= spheres->spheres[i]->timeDelayWithMonitorTrue){
+	    spheres->spheres[i]->monitorGetOutResult = TRUE;
+	    monitorTriggered  = TRUE;
+	  }
 	  else{	    
 	    //We should update timeDelayWithMonitorTrue here
 	  }
 	}	
-	else if( !spheres->spheres[i]->enterInSphereType && (distance<=spheres->spheres[i]->sphereRadius))
+	if( !spheres->spheres[i]->monitorEnterInResult && (distance<=spheres->spheres[i]->sphereRadius))
 	  spheres->spheres[i]->timeDelayWithMonitorTrue = 0;	
-	if (spheres->spheres[i]->monitorResult){
+	if (monitorTriggered){
 	  spheres->modifIndex++;
 	  spheres->spheres[i]->handIndexResult = h_i;
 	  spheres->spheres[i]->modifIndex++;
