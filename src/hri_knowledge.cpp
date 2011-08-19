@@ -1648,7 +1648,8 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
     spheres->spheres[i]->sphereRadius = 0;
     spheres->spheres[i]->filteringTimeThreshold = 0;
     spheres->spheres[i]->sphereType = SIMPLE_ENTRY;
-    spheres->spheres[i]->monitorResult = FALSE;
+    spheres->spheres[i]->monitorEnterInResult = FALSE;
+    spheres->spheres[i]->monitorGetOutResult = FALSE;
     spheres->spheres[i]->handIndexResult = 0;
   }
   return spheres;
