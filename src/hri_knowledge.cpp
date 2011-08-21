@@ -1701,7 +1701,13 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
       hriGetSpherePositionAndSize(agents,ents,spheres->spheres[monitorIndex],sphereRadiusMultiply,sphereCenterTranslationMultiply);
     }   
 
-  }
+  }    
+  
+  //Reinitialize Monitor Results.
+  spheres->spheres[monitorIndex]->monitorEnterInResult = FALSE;
+  spheres->spheres[monitorIndex]->monitorGetOutResult = FALSE;
+  spheres->spheres[monitorIndex]->handIndexResult = 0;
+
   spheres->spheres[monitorIndex]->modifIndex++;
   spheres->modifIndex++;  
 
