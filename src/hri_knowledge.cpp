@@ -1663,9 +1663,11 @@ int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION
   if( monitorIndex >= nbSphereMax)
     return FALSE;
   
-  if(!activateSphere && spheres->spheres[monitorIndex]->isSphereActive){
-    spheres->spheres[monitorIndex]->isSphereActive = FALSE;
-    spheres->nbActiveSpheres--;
+  if(!activateSphere){
+    if(spheres->spheres[monitorIndex]->isSphereActive){
+      spheres->spheres[monitorIndex]->isSphereActive = FALSE;
+      spheres->nbActiveSpheres--;
+    }
   }
   else {
     
