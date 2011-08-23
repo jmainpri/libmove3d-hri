@@ -1810,7 +1810,10 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
       //If monitor has already triggered, we don't need to test it again.
       if(spheres->spheres[i]->monitorEnterInResult && spheres->spheres[i]->monitorGetOutResult)
 	continue;
-      
+
+      //Reinit monitorTriggered variable
+      monitorTriggered = FALSE;
+
       //Get concerned agent
       agentId = spheres->spheres[i]->agentIndex;
       
