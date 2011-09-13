@@ -754,7 +754,7 @@ HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent
   return HRI_NO_RELATION;
 }
 
-HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * agent, HRI_SPATIAL_RELATION * front_behind, HRI_SPATIAL_RELATION * left_right , HRI_SPATIAL_RELATION * far_near)
+HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * agent, HRI_SPATIAL_RELATION * front_behind, HRI_SPATIAL_RELATION * left_right , HRI_SPATIAL_RELATION * far_near , HRI_SPATIAL_RELATION  front_behind_old, HRI_SPATIAL_RELATION  left_right_old , HRI_SPATIAL_RELATION  far_near_old)
 {
   p3d_vector4 targetRealCoord;
   p3d_vector4 targetRelativeCoord;
@@ -763,6 +763,12 @@ HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * a
   double rho, phi, theta;
   int isFar;
   double farLimit = 5.0; //TODO: Make this changeable
+  double frontAngleLimit = 3*M_PI/8;
+  double behindAngleLimit = 5*M_PI/8;
+  double leftRightMinAngleLimit = M_PI/8;
+  double leftRightMaxAngleLimit = 7*M_PI/8;
+  double hysteresisIncrease = 11/10;
+  double hysteresisDecrease = 9/10;
 
   if( (agent == NULL) || (object == NULL) ) {
     return HRI_NO_RELATION;
@@ -786,6 +792,12 @@ HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * a
                           &rho, &theta, &phi);
 
 
+  // Add hysteresis to avoid switch if HRI_FAR diminish farLimit else increase it.
+  if(far_near_old == HRI_FAR)
+    farLimit = farLimit*hysteresisDecrease;
+  else if(far_near_old == HRI_NEAR)
+    farLimit = farLimit*hysteresisIncrease;
+
   isFar = (farLimit < DISTANCE2D(targetRelativeCoord[0],targetRelativeCoord[1],0,0));
   if(isFar)
     *far_near = HRI_FAR;
@@ -796,19 +808,28 @@ HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * a
   //  printf("Phi is %f, isFar is %d\n",phi,isFar);
 
   /* Phi is the horizontal one */
-
+  if(front_behind_old == HRI_FRONT)
+    frontAngleLimit =  frontAngleLimit*hysteresisIncrease;
+  else if(front_behind_old == HRI_BEHIND)
+    behindAngleLimit = behindAngleLimit*hysteresisDecrease; 
+ 
   /* FRONT / BEHIND */
-  if(ABS(phi) < 3*M_PI/8) { /* In front */
+  if(ABS(phi) < frontAngleLimit) { /* In front */ // frontAngleLimit initial value 3*M_PI/8
     *front_behind = HRI_FRONT;
   }
-  else if(ABS(phi) > 5*M_PI/8) {
+  else if(ABS(phi) > behindAngleLimit) {  // behindAngleLimit initial value 5*M_PI/8
     *front_behind = HRI_BEHIND;
   }
   else
     *front_behind = HRI_NO_RELATION;
 
+  if( (left_right_old == HRI_LEFT) || (left_right_old == HRI_RIGHT)){
+    leftRightMinAngleLimit = leftRightMinAngleLimit*hysteresisDecrease;
+    leftRightMaxAngleLimit = leftRightMaxAngleLimit*hysteresisIncrease;
+  }
+
   /* LEFT / RIGHT */
-  if((ABS(phi) > M_PI/8) && (ABS(phi) < 7*M_PI/8)) { /* In front */
+  if((ABS(phi) > leftRightMinAngleLimit) && (ABS(phi) < leftRightMaxAngleLimit)) { /* In front */  // leftRightMinAngleLimit M_PI/8 ; leftRightMaxAngleLimit 7*M_PI/8
     if(phi > 0)
       *left_right = HRI_LEFT;
     else
@@ -1533,7 +1554,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    far_near_result = HRI_UK_RELATION; 
 	  }
 	  else
-	    spatial_relation_result = hri_spatial_relation_new(ent, agent,&front_behind_result , &left_right_result , &far_near_result );
+	    spatial_relation_result = hri_spatial_relation_new(ent, agent,&front_behind_result , &left_right_result , &far_near_result, kn_on_ent->is_front_behind_from_agent , kn_on_ent->is_left_right_from_agent , kn_on_ent->is_far_near_from_agent);
 	  if (  ( kn_on_ent->is_front_behind_from_agent == front_behind_result) &&
 		( kn_on_ent->is_left_right_from_agent == left_right_result) && 
 		( kn_on_ent->is_far_near_from_agent == far_near_result)){

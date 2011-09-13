@@ -10,7 +10,7 @@ extern int hri_is_in(p3d_vector3 insideObjC, p3d_BB *outsideObjBB);
 extern int hri_is_nexto(p3d_vector3 sourceC, p3d_BB *sourceBB, p3d_vector3 targetC, p3d_BB *targetBB);
 extern HRI_SPATIAL_RELATION hri_spatial_relation(p3d_rob * object, p3d_rob * robot);
 extern HRI_SPATIAL_RELATION hri_spatial_relation(HRI_ENTITY * object, HRI_AGENT * agent);
-extern HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * agent, HRI_SPATIAL_RELATION * front_behind, HRI_SPATIAL_RELATION * left_right , HRI_SPATIAL_RELATION * far_near);
+extern HRI_SPATIAL_RELATION hri_spatial_relation_new(HRI_ENTITY * object, HRI_AGENT * agent, HRI_SPATIAL_RELATION * front_behind, HRI_SPATIAL_RELATION * left_right , HRI_SPATIAL_RELATION * far_near, HRI_SPATIAL_RELATION  front_behind_old, HRI_SPATIAL_RELATION  left_right_old , HRI_SPATIAL_RELATION  far_near_old);
 extern int hri_set_XYZ_of_entity_at_center_of_other_entity(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity);
 extern int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTITY *otherEntity,double xPerception,double yPerception,double zPerception);
 extern void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES * ents,int robotMyselfIndex , int hasDisappearFilterLength);
