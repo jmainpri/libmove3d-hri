@@ -215,8 +215,14 @@ HRI_AGENT * hri_create_agent(p3d_rob * robot)
                                 hri_agent->is_human = TRUE;
                               }
                               else {
-                                PrintWarning(("Robot is unknown! Cannot initialize agents.\n"));
-                                return NULL;
+                                  if(strcasestr(robot->name,"XAVIER")) {
+                                    hri_agent->type = HRI_XAVIER;
+                                    hri_agent->is_human = TRUE;
+                                  }
+                                  else {
+                                    PrintWarning(("Robot is unknown! Cannot initialize agents.\n"));
+                                    return NULL;
+                                }
                             }
                           }
                         }
@@ -263,6 +269,7 @@ HRI_AGENT * hri_create_agent(p3d_rob * robot)
 }
 
 int hri_destroy_agent(HRI_AGENT *agent)
+
 {
   int res = 1;
 
@@ -324,6 +331,7 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
       persp->pointjoint = agent->robotPt->joints[p3d_get_robot_jnt_index_by_name(agent->robotPt, (char*) "ObjectGrasp")]; //agent->robotPt->joints[33];
       persp->point_tolerance = 20;
       break;
+    case HRI_XAVIER:
     case HRI_PR2:
       persp->camjoint = agent->robotPt->joints[26];
       persp->fov = 120; //TODO: put the correct value
