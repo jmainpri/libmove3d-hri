@@ -698,7 +698,8 @@ int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_wi
 int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue , double *vis_results, int save, char *path)
 {
   int succeeded = TRUE;  
-  int numWrongPixels =0;
+  int numTooHighValuePixels =0;
+  int numTooLowValuePixels =0;
   unsigned char *image;
   int i, width, height,pixel_value_to_array_index;
   GLint viewport[4];
@@ -774,10 +775,13 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
     if(image[3*i]>0) {
       //add test to avoid unending segmentation fault due to wrong image being used so that the resulting array index is bigger than the table size
       pixel_value_to_array_index = (int)((image[3*i])/10)-1; 
-      if(pixel_value_to_array_index<objects_nb)
+      if((pixel_value_to_array_index<objects_nb) && (pixel_value_to_array_index>=0))
 	visiblepixels[pixel_value_to_array_index]++;
-      else {
-	numWrongPixels ++;
+      else if (pixel_value_to_array_index>=objects_nb){
+	numTooHighValuePixels ++;
+      }
+      else if (pixel_value_to_array_index<0){
+	numTooLowValuePixels ++;  
       }
     }
   }
@@ -802,8 +806,12 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
     p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
   }
 
-  if(numWrongPixels > 0){
-    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of wrong pixels is %d \n", crntcnt , numWrongPixels );	
+  if(numTooHighValuePixels > 0){
+    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
+    succeeded = FALSE;
+  }
+  if(numTooLowValuePixels > 0){
+    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of wrong pixels with too low valueis %d (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
     succeeded = FALSE;
   }
 
