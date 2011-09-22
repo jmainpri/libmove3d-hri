@@ -331,7 +331,6 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
       persp->pointjoint = agent->robotPt->joints[p3d_get_robot_jnt_index_by_name(agent->robotPt, (char*) "ObjectGrasp")]; //agent->robotPt->joints[33];
       persp->point_tolerance = 20;
       break;
-    case HRI_XAVIER:
     case HRI_PR2:
       persp->camjoint = agent->robotPt->joints[26];
       persp->fov = 120; //TODO: put the correct value
@@ -359,6 +358,7 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
       persp->pointjoint = agent->robotPt->joints[36];
       persp->point_tolerance = 30; //20;
     break;
+    case HRI_XAVIER:
     case HRI_HERAKLES:
       persp->camjoint = agent->robotPt->joints[46];
       persp->fov = 160;
@@ -1073,6 +1073,7 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
 
       return TRUE;
 
+    case HRI_XAVIER:
     case HRI_HERAKLES:
       manip->type = TWO_ARMED;
       *tasklist_no = 9;
@@ -1465,7 +1466,7 @@ int hri_agent_set_human_standing_posture(HRI_AGENT * agent,configPt q)
 {  
   // Only supports HRI_HERAKLES and HRI_ACHILE human model. Everything else returns FALSE.
   
-  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE) ) 
+  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE || agent->type == HRI_XAVIER) ) 
   {
     //std::cout << "Set human in seated posture" << std::endl;
     
@@ -1510,7 +1511,7 @@ int hri_agent_set_human_seated_posture(HRI_AGENT * agent,configPt q)
   
   // Only supports HRI_HERAKLES and HRI_ACHILE human model. Everything else returns FALSE.
   
-  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE) ) 
+  if(agent != NULL && ( agent->type == HRI_HERAKLES || agent->type == HRI_ACHILE || agent->type == HRI_XAVIER) ) 
   {
     //std::cout << "Set human in seated posture" << std::endl;
     
@@ -1662,7 +1663,7 @@ int hri_agent_compute_state_posture(HRI_AGENT * agent, int state, configPt q)
 
   // Only supports ACHILE human model. Everything else returns FALSE.
 
-  if(agent->type == HRI_ACHILE || agent->type == HRI_HERAKLES ) {
+  if(agent->type == HRI_ACHILE || agent->type == HRI_HERAKLES || agent->type == HRI_XAVIER) {
     
     p3d_jnt* jntHead = p3d_get_robot_jnt_by_name( agent->robotPt , (char*)"HeadZ" ); // 5
     
