@@ -71,7 +71,8 @@ HRI_ENTITIES * hri_create_entities()
 	entities->entities[ent_i]->agentPartNum = 0;
 	entities->entities[ent_i]->inferrenceValidity = HRI_NO_PROBABILITY;
 	entities->entities[ent_i]->last_ismoving_iter = 0;
-	entities->entities[ent_i]->filtered_motion = HRI_UK_MOTION;
+	entities->entities[ent_i]->filtered_motion = HRI_STATIC;
+	entities->entities[ent_i]->minStaticDist = 0;
 	entities->entities[ent_i]->is_pl_state_transition_new = FALSE;
 	entities->entities[ent_i]->pl_state_transition = HRI_UK_PL_STATE_TRANSITION;
 

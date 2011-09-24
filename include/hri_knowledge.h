@@ -92,6 +92,7 @@ typedef struct STRUCT_HRI_ENTITY {
 
   int last_ismoving_iter; /* how many*/
   HRI_MOTION filtered_motion; /* */
+  double minStaticDist; /* minimum distance between some former and new position of entity since last motion detected*/
 
   int is_pl_state_transition_new;
   HRI_PLACEMENT_STATE_TRANSITION pl_state_transition;
