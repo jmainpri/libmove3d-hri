@@ -1,7 +1,7 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
-includedir=${prefix}/include
+includedir=${prefix}/include/libmove3d
 Flags=@LIBMOVE3D_HRI_COMPILATION_FLAGS@
 
 Name: libmove3d-hri
