@@ -180,9 +180,14 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mwarnier/");
 
   // restore viewport
-  if(!save){
-    glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-  }
+  // if succeded false we print the image
+  // if(!save && succeeded){
+  //   glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+  // }  
+
+  // restore viewport
+  glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+
   g3d_load_state(win, &st);
 
   g3d_restore_win_camera(win->vs);
@@ -764,11 +769,6 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 
   g3d_draw_win_back_buffer(win); //only the objects should be drawn in red, everthing else is blue
 
-  if(save) {
-    sprintf(name, "/%svisibilityview%i.ppm", path, crntcnt++);
-    g3d_export_OpenGL_display(name);
-  }
-
   glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
 
   for(i=0; i<width*height; i++){
@@ -807,12 +807,21 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   }
 
   if(numTooHighValuePixels > 0){
-    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
-    succeeded = FALSE;
+    if(numTooHighValuePixels*100>width*height){
+      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1% of pixels with too high values. Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
+      succeeded = FALSE;
+    }
   }
   if(numTooLowValuePixels > 0){
-    printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). Number of wrong pixels with too low valueis %d (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
-    succeeded = FALSE;
+    if(numTooLowValuePixels*100>width*height){
+      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1% of pixels with too low  values. Number of wrong pixels with too low value is %d.  (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
+      succeeded = FALSE;
+    }
+  }
+
+  if(save || !succeeded) {
+    sprintf(name, "/%svisibilityview%i.ppm", path, crntcnt++);
+    g3d_export_OpenGL_display(name);
   }
 
   return succeeded;
