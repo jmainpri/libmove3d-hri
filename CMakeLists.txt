@@ -1,19 +1,19 @@
-# The name of the project is "LIBHRI". CMakeLists files in this project can
-# refer to the root source directory of the project as ${LIBHRI_SOURCE_DIR} and
-# to the root binary directory of the project as ${LIBHRI_BINARY_DIR}.
+# The name of the project is "LIBMOVE3D_HRI". CMakeLists files in this project can
+# refer to the root source directory of the project as ${LIBMOVE3D_HRI_SOURCE_DIR} and
+# to the root binary directory of the project as ${LIBMOVE3D_HRI_BINARY_DIR}.
 cmake_minimum_required (VERSION 2.6)
 
-PROJECT(LIBHRI C CXX)
+PROJECT(LIBMOVE3D_HRI C CXX)
 
-set( PACKAGE_NAME libhri )
+set( PACKAGE_NAME libmove3d-hri )
 set( PACKAGE_VERSION 1.0 )
 
 #Uncomment next line to get verbose makefiles.
 #SET(CMAKE_VERBOSE_MAKEFILE true)
 
 # Pick up our scripts - they are all in the conf subdirectory
-SET(LIBHRI_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-SET(CMAKE_MODULE_PATH ${LIBHRI_MODULE_PATH})
+SET(LIBMOVE3D_HRI_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+SET(CMAKE_MODULE_PATH ${LIBMOVE3D_HRI_MODULE_PATH})
 
 #--------------- Platform -------------
 #--------------------------------------
@@ -86,20 +86,20 @@ INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
 ##       PKGCONFIG file                ###
 ##########################################
 IF(USE_MIGHTABILITY_MAPS)
-SET(LIBHRI_COMPILATION_FLAGS "-DUSE_MIGHTABILITY_MAPS")
+SET(LIBMOVE3D_HRI_COMPILATION_FLAGS "-DUSE_MIGHTABILITY_MAPS")
 ENDIF()
 
-IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
-    MESSAGE(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/libhri.pc")
-    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in 
-      ${CMAKE_CURRENT_BINARY_DIR}/libhri.pc
+IF   (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libmove3d-hri.pc.in")
+    MESSAGE(STATUS "configured ${CMAKE_CURRENT_SOURCE_DIR}/libmove3d-hri.pc.in --> ${CMAKE_CURRENT_BINARY_DIR}/libmove3d-hri.pc")
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/libmove3d-hri.pc.in 
+      ${CMAKE_CURRENT_BINARY_DIR}/libmove3d-hri.pc
       @ONLY )
 
 	INSTALL(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/libhri.pc
+		${CMAKE_CURRENT_BINARY_DIR}/libmove3d-hri.pc
 		DESTINATION lib/pkgconfig
 	)
-ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libhri.pc.in")
+ENDIF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libmove3d-hri.pc.in")
 
 ##########################################
 ##           Options                   ###
@@ -113,7 +113,7 @@ OPTION (USE_QT_LIBMOVE3D_VIEWER "Enable Linking with libmove3d-veiwer" OFF)
 ##########################################
 
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  SET(CMAKE_INSTALL_PREFIX "${LIBHRI_BINARY_DIR}/install" CACHE PATH "LibHri install prefix" FORCE)
+  SET(CMAKE_INSTALL_PREFIX "${LIBMOVE3D_HRI_BINARY_DIR}/install" CACHE PATH "LibHri install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ADD_DEFINITIONS(-DHRI_VERSION="${PACKAGE_VERSION}")

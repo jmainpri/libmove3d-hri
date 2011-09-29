@@ -1,4 +1,4 @@
-libhri groups several tools for human-robot interaction:
+libmove3d-hri groups several tools for human-robot interaction:
 
 - A generalized inverse kinematics library,
 - Visiblity functions used to computed visible places and objects from 
