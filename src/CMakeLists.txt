@@ -41,11 +41,11 @@ ENDIF(USE_HRP2_GIK)
 ##       HRI library                  ##
 ########################################
 
-ADD_LIBRARY (hri ${HRI_SRC})
+ADD_LIBRARY (move3d-hri ${HRI_SRC})
 
-TARGET_LINK_LIBRARIES(hri ${LIBS})
+TARGET_LINK_LIBRARIES(move3d-hri ${LIBS})
 
-INSTALL (TARGETS hri
+INSTALL (TARGETS move3d-hri
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 )
