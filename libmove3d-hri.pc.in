@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+Flags=@LIBMOVE3D_HRI_COMPILATION_FLAGS@
+
+Name: libmove3d-hri
+Description: the Move3D LAAS Human-Robot Interaction libraries 
+Version: @PACKAGE_VERSION@
+Libs: -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -Wl,-rpath,${libdir} -L${libdir} -lmove3d-hri
+Cflags: -I${includedir} ${Flags}
