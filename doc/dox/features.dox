@@ -1,0 +1,95 @@
+/*!
+\page FEATURES Features
+
+In order to acquire a correct symbolic knowledge of the world, the robot should extract useful knowledge from the environment. In this work we are interested in extracting meaningful relations between entities which are involved in common and simple scenarios where a human interacts with a robot. More precisely, we focus on fundamental capabilities of agents, and spatial relations between objects and agents.
+
+
+\image html fig1.png 
+
+\section Capabilities
+There are a number of common properties for a robot and a human related to their capabilities in a given situation: they can both reach, grasp, look, point, etc. In our context, we group robots and humans into a single category. Thus, we define agents as entities that can act in the environment and manipulate it. In this work we focus on the following capabilities from each agents’ perspective1.
+1) Sees: An important ability to know about an agent is to predict “what it can see”, i.e. what is within its field of view (FOV). A robot being able to compute this information can then act accordingly. A typical example would be a clarification scenario where the human is searching for an object and the robot is able to infer that she is looking for the one that is not visible (otherwise the user would not be searching for it).
+The sees relation is computed through a model-based approach within the 3D world representation. We place a virtual camera on the “eyes” of the agent parametrized with the agent’s FOV2. To determine if an agent A sees an object O, the object alone is projected into the image obtained from the	virtual	camera,	Pf ov (O).	A	second	projection	is	then obtained by projecting the object within the environment (with occluding objects, if any), Pfov(E). The ratio of visible to invisible pixels between the intersection of these two projections and the object projection alone determines if A sees O. Formally:
+
+ Looks At: The looksAt relation corresponds to what the agent is focused on, i.e., where its focus of attention is directed to. To compute it, we use the same model as the one used for the sees relation, but based on a narrower field of view: the field of attention (FOA). For a robot, its FOA is modeled as the overlapping region in the images captured from both cameras. In the case of the human, it corresponds to 30 degrees. The relation looksAt is formulated with the following equation:
+seesA(O,δ) =
+􏰀true f alse
+if pixels(Pfov(E)∩Pfov(O)) >δ pixels(Pfov(O))
+otherwise
+
+\image html fig2.png 
+
+In this example only the grey box satisfies the looksAt relation. 3) Points At: The relation pointsAt verifies if an object
+is pointed at by an agent. This relation is particularly useful during interaction when one of the agents is referring to an object saying “this” or “that” while pointing at it.
+We define the Pointing Field (PF) as the region where the finger is most likely to point at modeled as a cone. Thus, the computing method for this relation is similar to the previous ones except that the virtual camera is placed on the agent’s pointing finger. The angular opening for the camera is arbitrarily set to 30 degrees. The relation pointsAt is formulated with the following equation:
+(1) where the function pixels computes the number of pixels within an image and δ corresponds to an arbitrary threshold. In figure 1 the field of view of a person is illustrated with a grey cone (broader one). While he is able to see the two small boxes on the table in front of the him, the big box on his right is out of this FOV, and therefore, he is not able to
+see it.
+
+\image html fig3.png 
+
+Note that each of the capabilities described are computed from each agent point of view, and therefore, also stored in different models for further use at the decisional level.
+2In the case of a human agent, the FOV corresponds to 180 degrees horizontal and 135 degrees vertical (although the FOV of the human eye is narrower, we model it as 180 degrees to compensate eye movements). For the robot, the FOV corresponds to the specifications of its sensors.
+pointsAtA(O, δ) =
+
+
+if pixels(Ppf (E)∩Ppf (O)) > δ pixels(Ppf (O))
+otherwise
+looksAtA(O,δ) =
+if pixels(Pfoa(E)∩Pfoa(O)) > δ pixels(Pfoa(O))
+otherwise
+
+(3) Figure 2 illustrates two agents, a human and a robot, pointing at the same object. If a big object occludes a smaller one, and an agent is pointing at them, the out- come of the evaluation will result only in one relation, i.e., Agent pointsAt BigObject since the small one is not visible to the agent. On the contrary, if the small object is in front of the big one, then both objects will be pointed at by the human, generating an ambiguity which should be solved through higher level reasoning (e.g. context analysis).
+Fig. 2: Both agents, the human and the robot, point at the same object.
+
+\image html fig4.png 
+
+\section Reachable: Reachability is an important property to compute since it allows the robot to estimate the agents capability to reach an object, which is fundamental for task planning. E.g., if the user asks the robot to give her an object, the robot must compute a transfer point where the user is able to get the object.
+
+Instead of relying on a simplistic agent-object distance function, or computing costly full grasp paths, we propose an intermediate method to compute reachability. We em- ploy Generalized Inverse Kinematics with pseudo inverse method [13], [14] to find a collision free posture for the agent where its end-effector is at the center of the object within a given tolerance The evaluation function returns success if at least one end-effector (in the case of humans, we usually have two hands) reaches the object with a collision free posture. If the algorithm finds a posture with collision, the functions returns a “false+”, meaning that the object is reachable, but producing a collision. Since the approach corresponds to an estimation based on a direct path to the object, it could be the case that in fact, the agent may reach the object avoiding collisions while adapting its posture (specially human agents, who have a very flexible body). Finally, if the object is too far to reach, then a “false-” is returned. Thus, the reachability relation between an agent A and an object O with tolerance τ, is modeled as:
+reachable(O, A, τ ) =
+
+\image html fig5.png 
+
+precise position. In fact, in many cases, this information is the most precise one that we can give since we do not store the numeric coordinates of objects. The following relations are computed with respect to the position of the agents and the objects.
+
+1) Location according to an agent: The relation isLocatedAt represents spatial locations between agents and objects. For example we say “it is on my right, on your left,...” We can compute these spatial locations by dividing the space around the referent (an agent) into n regions based on arbitrary angle values relative to the referent orientation. For example, for n = 4 we would have the space divided into front, left, right and back. Additionally, two proximity values, near and far, may also be considered. The number of regions and proximity values can be chosen depending on the context where the interaction takes place.
+
+2) Location according to an object: We can also refer to object locations with respect to other objects in the environment, such as, above, next to, in, etc. These types of relations are widely studied in language grounding (e.g. [15] presented different models to define the above relation). In this work we use similar models based on the bounding boxes and center of mass of the objects to define three main relations (Figure 4):
+
+(4) where pos , pos correspond to the agent’s end-effector and object position, Cfree to a set of collision free postures and IK() to the inverse kinematics solver.
+
+Figure 3 shows different reachability postures for each object on the table. In the example, the bottle and the box are both reachable by the human, but the teddy bear is too far. Instead, from the robot’s perspective, the teddy bear is reachable, while the bottle is not.
+B. Locations
+
+As humans, one way of referring to the object’s positions is based on their symbolic descriptors instead of using their
+if alse	otherwise corresponds to the x coordinate of the
+(5) center of mass of Oi, and BBx	the occupancy of Oi’s
+where mxOi
+Oi bounding box in the x axis (the same for the rest of
+axis). isIn: evaluates if an object O1 is inside another object O2 based on their bounding boxes BBO1	and BBO2 :
+isIn(O1,O2) =
+rue f alse
+if BB	⊂ BB O1
+otherwise
+O2	(6)
+isNextTo: indicates whether an object O1 is next to another object O2. We cannot use a simple distance threshold to determine if two objects are next to each other since the relation is highly dependent on the dimensions of the objects. For instance, the maximum distance between large objects (e.g. two houses) to consider them as being next to each other is much larger than the maximum distance we would consider for two small objects (e.g. two bottles).
+An object O1 is evaluated as next to object O2 if part of the bounding box of O2, BBO2 , is closer than half of the largest dimension of the bounding box of O1, BBO1 . The relationship is formulated as follows:
+isNextTo(O1, O2) =
+
+is used to build the complete human model by using Generalized Inverse Kinematics. 
+
+Object information: objects in the environment are localized and identified with 2D visual tags base on the ARToolkit [17]. The situation assessment module constantly updates the objects’ positions’ according to the vision data.
+
+Robot information: the actuators provide the configura- tion of the robot.
+
+The situation assessment module, having a synchronized environment model with the help of the perception data, computes on-line the spatial and perspective relationships. The computation is triggered by a motion of the objects, the human or the robot. All relations except the reachability are computed in 200ms. The reachability relation is computed on demand due to its computationally expensive inverse kinematics operation.
+The resulting relations are sent to the symbolic knowledge of our architecture, the OpenRobots Ontology3 [18], for storage, maintenance and further inferences. For example, based on the isIn relation the system can infer its inverse relation contains. Moreover, we can also define rules such as: if an agent looks at an object and also points at it, then the agent is focused on the object. Thus, the focusesOn relation can be automatically inferred at a symbolic level in the ontology.
+
+The ontology server maintains the knowledge produced by the situation assessment module and makes it available to the whole system. Furthermore the relations for each agent are stored separately in order to build a separate cognitive model for each agent. The supervision system as well as the task planner (which are both out of the scope of this paper) use the information generated by the situation assessment reasoner through the ontology.
+
+*/
+
+/***************************************************************************
+ * Other documents
+ */
+

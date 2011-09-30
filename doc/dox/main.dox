@@ -1,0 +1,43 @@
+/****************************************************************************/
+/*!
+ *  \file main.dox
+ *
+ *       \brief Documentation of the main page
+ *
+ *       This file orgonize the main page of the Move3D documentation.
+ *
+ *  \todo Finish the main menu
+ */
+/****************************************************************************/
+
+
+/*! \mainpage
+
+In daily human interactions spacial reasoning ocupies an important place. With this ability we can build relations between objects and people, and we can predict the capabilities and the knowledge of the people around us. An interactive robot is also expected to have these abilities in order to establish an efficient and natural interaction. 
+
+The library relies on libmove3d, and is integrated in components such as SPARK and MHP, it presents a situation assessment reasoner, based on spatial reasoning and perspective taking, which generates on-line relations between objects and agents in the environment. An overview of all capabicities integrated in the library is on this page \ref FEATURES
+
+Being fully integrated to a complete architecture, this reasoner sends the generated symbolic knowledge to a fact data base which is built on the basis on an ontology and which is accessible to the entire system. This work is also part of a broader effort to develop a complete decisional framework for human-robot interactive task achievement.
+
+We identify 8 modules that are key functionalities enabling spacial reasoning and building representations that enable to account for the human explicitly.
+
+\section  The Modules 
+	- \ref AGENTS
+	- \ref GIK
+	- \ref VISIBILITY
+	- \ref KNOWLEDGE
+	- \ref BITMAPS
+	- \ref HRICS
+        - \ref KINECT
+        - \ref MIGHTABILITIES
+
+\image html spark.jpg "SPARK" width=50%
+
+*/
+
+
+
+/***************************************************************************
+ * Other documents
+ */
+
