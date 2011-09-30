@@ -221,13 +221,16 @@
 #define DISTANCE3D(x1,y1,z1,x2,y2,z2) (sqrt(((x2)-(x1))*((x2)-(x1))+((y2)-(y1))*((y2)-(y1))+((z2)-(z1))*((z2)-(z1))))
 #endif
 
+//! @defgroup GIK
+
+//! @ingroup GIK
 typedef struct GIK_joint_info_struct {
   p3d_jnt * joint;
   int no_dof;
   int index;
 } hri_gik_joint_info;
 
-
+//! @ingroup GIK
 typedef struct GIK_tasks_struct{
   int m;    /* target dof's for ex. for position of eef there are 3 dof's-> x.y.z  */
   int n;    /* dof's we control  */
@@ -246,8 +249,7 @@ typedef struct GIK_tasks_struct{
 
 } hri_gik_task;
 
-
-
+//! @ingroup GIK
 typedef struct GIK_struct{
 
   hri_gik_task ** task;

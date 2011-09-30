@@ -16,10 +16,10 @@
 #include "hri_agent_proto.h"
 #include "hri_gik_proto.h"
 
-
+//! @ingroup AGENTS
 HRI_AGENTS * GLOBAL_AGENTS = NULL;
 
-
+//! @ingroup AGENTS
 int hri_assign_global_agents(HRI_AGENTS *agents)
 {
   if(GLOBAL_AGENTS != NULL){
@@ -30,6 +30,7 @@ int hri_assign_global_agents(HRI_AGENTS *agents)
   return TRUE;
 }
 
+//! @ingroup AGENTS
 HRI_AGENT* hri_assign_source_agent(char *agent_name, HRI_AGENTS *agents)
 {
   int i;
@@ -50,7 +51,7 @@ HRI_AGENT* hri_assign_source_agent(char *agent_name, HRI_AGENTS *agents)
   return NULL;
 }
 
-
+//! @ingroup AGENTS
 HRI_AGENTS * hri_create_agents()
 {
   std::cout << "hri_create_agents" << std::endl;
@@ -116,6 +117,7 @@ HRI_AGENTS * hri_create_agents()
   return agents;
 }
 
+//! @ingroup AGENTS
 int hri_destroy_agents(HRI_AGENTS *agents)
 {
   int i;
@@ -138,6 +140,7 @@ int hri_destroy_agents(HRI_AGENTS *agents)
   }
 }
 
+//! @ingroup AGENTS
 HRI_AGENT * hri_create_agent(p3d_rob * robot)
 {
   HRI_AGENT * hri_agent;
@@ -268,6 +271,7 @@ HRI_AGENT * hri_create_agent(p3d_rob * robot)
   return hri_agent;
 }
 
+//! @ingroup AGENTS
 int hri_destroy_agent(HRI_AGENT *agent)
 
 {
@@ -283,7 +287,7 @@ int hri_destroy_agent(HRI_AGENT *agent)
   return res;
 }
 
-
+//! @ingroup AGENTS
 HRI_MANIP * hri_create_empty_agent_manip()
 {
   HRI_MANIP * manip = NULL;
@@ -296,6 +300,7 @@ HRI_MANIP * hri_create_empty_agent_manip()
   return manip;
 }
 
+//! @ingroup AGENTS
 HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
 {
   int i;
@@ -397,6 +402,7 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
   return persp;
 }
 
+//! @ingroup AGENTS
 int hri_destroy_agent_perspective(HRI_PERSP *persp)
 {
   MY_FREE(persp->currently_sees.vis, HRI_VISIBILITY, persp->currently_sees.vis_nb);
@@ -405,6 +411,7 @@ int hri_destroy_agent_perspective(HRI_PERSP *persp)
   return TRUE;
 }
 
+//! @ingroup AGENTS
 int hri_create_assign_default_manipulation(HRI_AGENTS * agents)
 {
   int i;
@@ -431,6 +438,7 @@ HRI_NAVIG * hri_create_agent_navig(HRI_AGENT * agent)
   return navig;
 }
 
+//! @ingroup AGENTS
 int hri_destroy_agent_navig(HRI_NAVIG *navig)
 {
   if(hri_bt_destroy_bitmapset(navig->btset)) {
@@ -442,7 +450,7 @@ int hri_destroy_agent_navig(HRI_NAVIG *navig)
   }
 }
 
-
+//! @ingroup AGENTS
 HRI_MANIP * hri_create_agent_manip(HRI_AGENT * agent)
 {
   HRI_MANIP * manip = NULL;
@@ -466,6 +474,7 @@ HRI_MANIP * hri_create_agent_manip(HRI_AGENT * agent)
   return manip;
 }
 
+//! @ingroup AGENTS
 int hri_destroy_agent_manip(HRI_MANIP *manip)
 {
   if(hri_gik_destroy_gik(manip->gik)) {
@@ -477,6 +486,7 @@ int hri_destroy_agent_manip(HRI_MANIP *manip)
   }
 }
 
+//! @ingroup AGENTS
 int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tasklist, int * tasklist_no, HRI_AGENT_TYPE type, HRI_AGENT * agent)
 {
 
@@ -1250,8 +1260,10 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
 
   return FALSE;
 }
-/* This function computes the tolerance distance of GIK computation depending on the BB of the object */
-/* It then calls for hri_agent_single_task_manip_move */
+
+//! @ingroup AGENTS
+//! This function computes the tolerance distance of GIK computation depending on the BB of the object 
+//! It then calls for hri_agent_single_task_manip_move 
 int hri_agent_single_task_manip_move(HRI_AGENT * agent, HRI_GIK_TASK_TYPE type, p3d_rob * object, configPt *q)
 {
   double smallest_edge_dim;
@@ -1273,6 +1285,8 @@ int hri_agent_single_task_manip_move(HRI_AGENT * agent, HRI_GIK_TASK_TYPE type, 
 
   return res;
 }
+
+//! @ingroup AGENTS
 int hri_agent_single_task_manip_move(HRI_AGENT * agent, HRI_GIK_TASK_TYPE type, p3d_vector3 * goalCoord, double approach_distance, configPt *q)
 {
   int i;
@@ -1353,7 +1367,7 @@ hri_shared_zone zone[500];
 int shared_zone_l = 0;
 int SWITCH_TO_GREEN = FALSE;
 
-
+//! @ingroup AGENTS
 int g3d_hri_display_shared_zone()
 {
   int i;
@@ -1376,7 +1390,7 @@ int g3d_hri_display_shared_zone()
   return TRUE;
 }
 
-
+//! @ingroup AGENTS
 static int hri_compute_leg_angles(double hipknee, double kneeankle, double ankleground, double hipground, double ankledist, double *hip, double *knee, double *ankle)
 {
   // legs form 2 triangles: (hipknee,kneeankle,hipankle) and (hipgound,ankledist,hipankle)
@@ -1416,11 +1430,10 @@ static int hri_compute_leg_angles(double hipknee, double kneeankle, double ankle
   return TRUE;
 }
 
-/**
- * Sets the human agents color
- * searches for the classic color of Achile T-shirt and 
- * changes it with the integer passed as parameter
- */
+//! @ingroup AGENTS
+//! Sets the human agents color
+//! searches for the classic color of Achile T-shirt and 
+//! changes it with the integer passed as parameter
 int hri_agent_set_human_t_shirt_color(HRI_AGENT * agent,int color)
 {
     // Get Move3D robot
@@ -1459,9 +1472,8 @@ int hri_agent_set_human_t_shirt_color(HRI_AGENT * agent,int color)
     }
 }
 
-/**
- * sets the agent standing
- */
+//! @ingroup AGENTS
+//! sets the agent standing
 int hri_agent_set_human_standing_posture(HRI_AGENT * agent,configPt q)
 {  
   // Only supports HRI_HERAKLES and HRI_ACHILE human model. Everything else returns FALSE.
@@ -1498,9 +1510,8 @@ int hri_agent_set_human_standing_posture(HRI_AGENT * agent,configPt q)
   }
 }
 
-/**
- * sets the agent seated
- */
+//! @ingroup AGENTS
+//! sets the agent seated
 int hri_agent_set_human_seated_posture(HRI_AGENT * agent,configPt q)
 {
   double neck_height;
@@ -1569,9 +1580,8 @@ int hri_agent_set_human_seated_posture(HRI_AGENT * agent,configPt q)
   }
 }
 
-/**
- * sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
- */
+//! @ingroup AGENTS
+//! sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
 int hri_agent_compute_posture(HRI_AGENT * agent, double neck_height, int state, configPt q)
 {
   double hiptoknee_dist, kneetoankle_dist, necktobase_dist, hiptoground_dist;
@@ -1648,9 +1658,8 @@ int hri_agent_compute_posture(HRI_AGENT * agent, double neck_height, int state, 
 
 }
 
-/**
- * sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
- */
+//! @ingroup AGENTS
+//! sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
 int hri_agent_compute_state_posture(HRI_AGENT * agent, int state, configPt q)
 {
   double hiptoknee_dist, kneetoankle_dist, necktobase_dist, hiptoground_dist;
@@ -1744,7 +1753,7 @@ int hri_agent_compute_state_posture(HRI_AGENT * agent, int state, configPt q)
 
 }
 
-
+//! @ingroup AGENTS
 int hri_agent_load_default_arm_posture(HRI_AGENT * agent, configPt q)
 {
   int first_rshoulder_dof,first_lshoulder_dof;
@@ -1778,6 +1787,7 @@ int hri_agent_load_default_arm_posture(HRI_AGENT * agent, configPt q)
   }
 }
 
+//! @ingroup AGENTS
 //! Set the input agent as grasping an object from the center of its BB
 //! the attach transform between the arm and the object is set at the default value 
 //! which is shifted with the input matrix t, this function forces to update the object
@@ -1842,6 +1852,7 @@ int hri_agent_is_grasping_obj_at_center(HRI_AGENT* agent, const char* OBJECT , i
   return true;
 }
 
+//! @ingroup AGENTS
 int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* OBJECT , int armId )
 {
   if (agent->is_human) 
@@ -1895,6 +1906,7 @@ int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* O
   return is_grasping;
 }
 
+//! @ingroup AGENTS
 int hri_is_robot_an_agent(p3d_rob * robot, HRI_AGENTS * agents, int * is_human, int * agent_idx)
 {
   int i;
@@ -1909,6 +1921,7 @@ int hri_is_robot_an_agent(p3d_rob * robot, HRI_AGENTS * agents, int * is_human, 
   return FALSE;
 }
 
+//! @ingroup AGENTS
 HRI_AGENT* hri_get_one_agent_of_type(HRI_AGENTS * agents, HRI_AGENT_TYPE agentType)
 {
   for(int i=0; i<agents->all_agents_no; i++) 

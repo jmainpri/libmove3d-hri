@@ -1,6 +1,9 @@
 #ifndef _BITMAP_H
 #define _BITMAP_H
 
+/**
+ @defgroup BITMAPS Bitmaps
+ */
 
 //AKP
 #ifdef USE_MIGHTABILITY_MAPS
@@ -103,6 +106,7 @@ extern int GIK_VIS;    /* changed by form, no of iterations between visual updat
 
 typedef struct bitmap_set hri_bitmapset;
 
+//! @ingroup BITMAPS
 typedef struct bitmap_cell{
   int x;
   int y;
@@ -125,7 +129,8 @@ typedef struct bitmap_cell{
 
 } hri_bitmap_cell;
 
-/* states of humans e.g. sitting standing*/
+//! @ingroup BITMAPS
+//! states of humans e.g. sitting standing
 typedef struct state{
   char name[20];
 
@@ -147,6 +152,7 @@ typedef struct state{
 
 } hri_human_state;
 
+//! @ingroup BITMAPS
 typedef struct human{
   p3d_rob * HumanPt;
   int id; // obsolete?
@@ -162,6 +168,7 @@ typedef struct human{
   int coord_changed;
 } hri_human;
 
+//! @ingroup BITMAPS
 typedef struct bt_path{
   double* xcoord;
   double* ycoord;
@@ -170,7 +177,8 @@ typedef struct bt_path{
   int length;
 } hri_bt_path;
 
-/* eg visibility, distance, hiddens, final */
+//! @ingroup BITMAPS
+//! eg visibility, distance, hiddens, final
 typedef struct bitmap{
   int type;     /* bitmap type                 */
   int id;       /* bitmap id (not used for the moment) */
@@ -200,9 +208,8 @@ typedef struct bitmap{
 
 
 
-/**
- * structure containing the parameters to use
- */
+//! @ingroup BITMAPS
+//! structure containing the parameters to use
 typedef struct astar_parameters{
 
   /*
@@ -248,8 +255,8 @@ typedef struct astar_parameters{
 } hri_astar_parameters;
 
 
-
-/* a container for differents kinds of bitmaps */
+//! @ingroup BITMAPS
+//! a container for differents kinds of bitmaps
 struct bitmap_set{
   double realx;     /* real coordinates of cell 0,0,0 */
   double realy;

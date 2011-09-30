@@ -13,6 +13,7 @@
 
 using namespace std;
 
+//! @ingroup KINECT 
 //! human kinect information
 bool        m_debug_kinect = false;
 kinectState m_state = KINECT_DISCONNECTED;
@@ -21,18 +22,21 @@ kinectData  m_humKin;
 p3d_rob*    m_human;
 p3d_matrix4 m_absPos;
 
+//! @ingroup KINECT 
 //! set the flag for debug
 void hri_set_debug_kinect(bool is_debug)
 {
   m_debug_kinect = is_debug;
 }
 
+//! @ingroup KINECT 
 //! Sores the kinect state
 void hri_set_kinect_state(const kinectState& state)
 {
   m_state = state;
 }
 
+//! @ingroup KINECT 
 //! set the human position form the kinect information
 //! right arm 1,2,3
 //! left arm 4,5,6
@@ -59,6 +63,7 @@ void hri_set_human_config_from_kinect( HRI_AGENTS * agents , configPt q , kinect
   //return FALSE;
 }
 
+//! @ingroup KINECT 
 //! Computes a condfiguration
 //! from a set of points 
 configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& data )
@@ -172,7 +177,6 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
       // JP
       // selon x
       double alpha1r = atan2( -pos[2] , -pos[1] );
-  
  
       p3d_mat4TransRot( Trot2 , 0 , 0 , 0 , Xaxis , alpha1r );
       p3d_matMultXform( Trot , Trot2 , Trot3 );
@@ -289,14 +293,14 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
   return q;
 }
 
+//! @ingroup KINECT 
 void hri_store_kinect_model( kinectData& data )
 {
   m_data_exists = true;
   m_humKin = data;
 }
 
-//!
-//! 
+//! @ingroup KINECT 
 void hri_draw_kinect_points()
 {
   if (!m_data_exists) 

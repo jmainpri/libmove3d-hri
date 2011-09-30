@@ -17,6 +17,7 @@ int GIK_VIS = 100;
 /****************** GIK FUCTIONS ***********************************/
 /*******************************************************************/
 #ifndef HRI_PLANNER_GUI
+//! @ingroup GIK
 double p3d_psp_pointtolinedist(p3d_vector3 p, p3d_vector3 l1, p3d_vector3 l2)
 {
 	p3d_vector3 l1mp;
@@ -37,7 +38,7 @@ void hri_gik_set_visstep(int step)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Creates a Generelized Inverse Kinematics Structure
  *
  * !
@@ -61,7 +62,7 @@ hri_gik * hri_gik_create_gik()
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Creates a GIK Task
  *
  * !
@@ -94,7 +95,7 @@ hri_gik_task * hri_gik_create_task()
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Destroys the data in a GIK structure
  *
  * \param gik   gik structure
@@ -125,7 +126,7 @@ int hri_gik_destroy_gik_data(hri_gik * gik)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Initialize a GIK structure
  *
  * \param gik             gik structure
@@ -154,7 +155,7 @@ int hri_gik_initialize_gik(hri_gik * gik, p3d_rob * robot, int total_joint_no)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Removes the inside of a GIK structure
  *
  * \param gik             gik structure
@@ -182,7 +183,7 @@ int hri_gik_uninitialize_gik(hri_gik * gik)
 
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Adds a task to GIK structure
  *
  * \param gik        gik structure
@@ -246,7 +247,7 @@ int hri_gik_add_task(hri_gik * gik, int m, int n, int priority, int * jindexes, 
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Initialize a task
  * \param gik        gik structure
  * \param task       task structure
@@ -307,7 +308,7 @@ int hri_gik_initialize_task(hri_gik * gik, hri_gik_task * task , int m, int n, i
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Destroys a task structure
  *
  * \param task   task structure
@@ -333,7 +334,7 @@ int hri_gik_destroy_task(hri_gik_task * task)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Destroys a GIK structure
  *
  * \param gik   gik structure
@@ -354,7 +355,7 @@ int hri_gik_destroy_gik(hri_gik * gik)
 
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Compute the Jacobian matrix of the task and writes to gik->Jacobian
  *
  * \param gik      gik structure
@@ -453,7 +454,7 @@ int hri_gik_computeJacobian(hri_gik * gik, int task_no, int rotation)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Computes PseudeInvere of Jacobian matrix and writes to gik->PsInvJacobianWoS
  *        wich avoids singularities and gik->PsInvJacobianWS which contains singularities
  *
@@ -557,7 +558,7 @@ int hri_gik_computePsInvJacobian(hri_gik * gik, int task_no)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Prints the matrix
  *
  * \param M     matrix
@@ -577,7 +578,7 @@ void hri_gik_ShowTheMatrix(gsl_matrix * M)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Prints the vector
  *
  * \param V   vector
@@ -598,7 +599,7 @@ p3d_vector4 center;
 //p3d_rob * goal = NULL;
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Takes the goal coordinate
  *
  * \param gik      gik structure
@@ -653,7 +654,7 @@ int hri_gik_take_goal(hri_gik * gik, int task_no)
 
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Updates robot config according to posture variation vector
  *
  * \param gik    gik structure
@@ -692,7 +693,7 @@ int hri_gik_updaterobot(hri_gik * gik, gsl_vector * DT)
 
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Computes the remaining distance vector
  *
  * \param gik      gik structure
@@ -759,7 +760,7 @@ int hri_gik_compute_DX(hri_gik * gik, int task_no)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Computes the inside of convergence loop
  *
  * \param gik      gik structure
@@ -899,7 +900,7 @@ int hri_gik_compute_core(hri_gik * gik, gsl_vector * DT_final)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Freedom for joints!
  *
  * \param gik  gik structure
@@ -923,7 +924,7 @@ int hri_gik_free_joints(hri_gik * gik)
 
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Starts the GIK method for robot
  *
  * \param robot    robot
@@ -1023,7 +1024,7 @@ int hri_gik_compute(p3d_rob * robot, hri_gik * gik, int step, double reach,
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Remaining distance to task's goal
  *
  * \param gik      gik structure
@@ -1050,7 +1051,7 @@ double hri_gik_remainingdistance(hri_gik * gik, int task_no)
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup GIK
  * \brief Remaining distance to task's goal
  *
  * \param gik      gik structure

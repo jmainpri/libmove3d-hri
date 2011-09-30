@@ -12,6 +12,10 @@
 
 #include "hri_agent.h"
 
+//! @defgroup KINECT Kinect
+//! A module for kinect 
+
+//! @ingroup KINECT 
 typedef enum kinectState {
         KINECT_DISCONNECTED,
 	KINECT_NO_TRACKING,
@@ -20,15 +24,17 @@ typedef enum kinectState {
 	KINECT_TRACKING
 };
 
-// Kinect joint
+//! @ingroup KINECT 
+//! Kinect joint
 struct kinectJoint {
   p3d_vector3   pos;
   double        confidence;
 };
 
-// Only HEAD, NECK, TORSO, 
-// SHOULDERS, ELBOW, 
-// HAND, HIP, KNEE and FOOT 
+//! @ingroup KINECT 
+//! Only HEAD, NECK, TORSO, 
+//! SHOULDERS, ELBOW, 
+//! HAND, HIP, KNEE and FOOT 
 struct kinectData 
 {
   kinectJoint HEAD, NECK, TORSO;
@@ -46,6 +52,7 @@ struct kinectData
   kinectJoint FOOT_LEFT;
 };
 
+//! @ingroup KINECT 
 struct kinectAgent 
 {
   int kinectId;
@@ -55,6 +62,7 @@ struct kinectAgent
 
 #define KINECT_MAX_NUM_HUMANS 16
 
+//! @ingroup KINECT 
 struct kinectAgents 
 {
   int num;

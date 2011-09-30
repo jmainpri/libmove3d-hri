@@ -3,26 +3,28 @@
 #include "hri.h"
 #include "GL/glx.h"
 
+//! @defgroup VISIBILITY Visibility
 
-// Function pointer to link with a draw function 
-// Working on the OpenGL backbuffer
-// this function is set by the different OpenGL
-// display manager
+//! @ingroup VISIBILITY 
+//! Function pointer to link with a draw function working on the OpenGL backbuffer
+//! this function is set by the different OpenGL display manager
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 
-// This function is a wrapper to older version
-// of the functions which enables retro compatibility
-// It is still used in spark, this should be changed carfully
+//! @ingroup VISIBILITY 
+//! This function is a wrapper to older version of the functions which enables retro compatibility
+//! It is still used in spark, this should be changed carfully
 void g3d_draw_win_back_buffer(g3d_win *)
 {
   ext_g3d_draw_allwin_active_backbuffer();
 }
 
+//! @ingroup VISIBILITY 
 void hri_initialize_visibility()
 {
   ext_g3d_draw_allwin_active_backbuffer = (void (*)())(g3d_draw_allwin_active_back_buffer);
 }
 
+//! @ingroup VISIBILITY 
 int hri_is_object_visible(HRI_AGENT * agent, p3d_rob *object, int threshold, int save, int draw_at_end)
 {
   g3d_win *win = g3d_get_win_by_name((char*)"Move3D");
@@ -60,7 +62,7 @@ int hri_is_object_visible(HRI_AGENT * agent, p3d_rob *object, int threshold, int
     return FALSE;
 }
 
-
+//! @ingroup VISIBILITY 
 //! This function return how much % of the object is visible from a given viewpoint.
 //! \param camera_frame the frame of the viewpoint (the looking direction is X, Y points downward and Z to the left)
 //! \param camera_fov the field of view angle of the robot's camera (in degrees)
@@ -128,6 +130,7 @@ int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera
   return TRUE;
 }
 
+//! @ingroup VISIBILITY 
 // g3d_compute_visibility_for_given_entities
 // g3d_compute_visibility_in_fov_for_given_entities
 //! This function return how much % of the object is visible from a given viewpoint.
@@ -196,6 +199,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   return succeeded;
 }
 
+//! @ingroup VISIBILITY 
 int g3d_is_object_visible_from_current_viewpoint(g3d_win* win, p3d_rob *object, double *result, int save, char *path)
 {
   int idealpixels;
@@ -315,7 +319,7 @@ int g3d_is_object_visible_from_current_viewpoint(g3d_win* win, p3d_rob *object, 
   return TRUE;
 }
 
-
+//! @ingroup VISIBILITY 
 int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * agent, HRI_VISIBILITY * res, int ent_nb)
 {
   int succeeded = TRUE;
@@ -430,8 +434,9 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
   return TRUE;
 }
 
-/** Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) that can hide some objects Added Matthieu Warnier 22/02/2011*/
-
+//! @ingroup VISIBILITY 
+//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) 
+//! that can hide some objects Added Matthieu Warnier 22/02/2011
 int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENTITY * agent_entity ,HRI_AGENT * agent, HRI_VISIBILITY * res, int ent_nb)
 {
   HRI_ENTITY ** entities_to_test;
@@ -506,8 +511,9 @@ int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENT
   return TRUE;
 }
 
-/** Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) that can hide some objects Added Matthieu Warnier 22/02/2011*/
-
+//! @ingroup VISIBILITY 
+//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) 
+//! that can hide some objects Added Matthieu Warnier 22/02/2011*/
 int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * ents, int suspect_undetected_entity_index,HRI_AGENT * agent,HRI_AGENTS * agents)
 {
   HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
@@ -590,8 +596,8 @@ int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * e
   return TRUE;
 }
 
-
-/* Computes visibility in one image acquisition for given objects */
+//! @ingroup VISIBILITY 
+//! Computes visibility in one image acquisition for given objects 
 int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_win* win, p3d_rob **objects, int objects_nb, double *res, int save, char *path)
 {
   int idealpixels[objects_nb];
@@ -698,8 +704,9 @@ int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_wi
   return TRUE;
 }
 
-/* Computes visibility in one image acquisition for given objects */
-/* Return FALSE if visbility computation has failed */
+//! @ingroup VISIBILITY 
+//! Computes visibility in one image acquisition for given objects 
+//! Return FALSE if visbility computation has failed 
 int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue , double *vis_results, int save, char *path)
 {
   int succeeded = TRUE;  
@@ -830,7 +837,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 
 
 /****************************************************************/
-/*!
+/*! @ingroup VISIBILITY 
  * \brief Converts a cartesian coordinate to a spherical one
  *
  * \param x,y,z point
@@ -847,7 +854,7 @@ void p3d_cartesian2spherical(double x, double y, double z, double *rho, double *
 }
 
 /****************************************************************/
-/*!
+/*! @ingroup VISIBILITY 
  * \brief Converts a cartesian coordinate to a spherical one with a given origin
  *
  * \param x,y,z point
@@ -872,6 +879,7 @@ const int HRICS_HUMANj_NECK_TILT= 6;
 const double HRICS_HRI_EYE_TOLERANCE_TILT=0.3;
 const double HRICS_HRI_EYE_TOLERANCE_PAN=0.3;
 
+//! @ingroup VISIBILITY 
 double hri_simple_is_point_visible_by_robot(p3d_vector3 point,p3d_rob* robotPt)
 {
   {
@@ -940,6 +948,7 @@ double hri_simple_is_point_visible_by_robot(p3d_vector3 point,p3d_rob* robotPt)
   } 
 }
 
+//! @ingroup VISIBILITY 
 int hri_entity_visibility_placement(HRI_AGENT *agent, HRI_ENTITY *ent, int *result, double *elevation, double *azimuth)
 {
 
@@ -968,6 +977,7 @@ int hri_entity_visibility_placement(HRI_AGENT *agent, HRI_ENTITY *ent, int *resu
   return TRUE;
 }
 
+//! @ingroup VISIBILITY 
 int hri_object_visibility_placement(HRI_AGENT *agent, p3d_rob *object, int *result, double *elevation, double *azimuth)
 {
 
@@ -990,6 +1000,7 @@ int hri_object_visibility_placement(HRI_AGENT *agent, p3d_rob *object, int *resu
   return TRUE;
 }
 
+//! @ingroup VISIBILITY 
 int hri_entity_pointing_placement(HRI_AGENT *agent,  HRI_ENTITY *ent, int *result, double *elevation, double *azimuth)
 {
   p3d_vector4 entCenter;
@@ -1017,7 +1028,7 @@ int hri_entity_pointing_placement(HRI_AGENT *agent,  HRI_ENTITY *ent, int *resul
   return TRUE;
 }
 
-
+//! @ingroup VISIBILITY 
 int hri_object_pointing_placement(HRI_AGENT *agent, p3d_rob *object, int *result, double *elevation, double *azimuth)
 {
   p3d_vector4 objectCenter;
@@ -1039,7 +1050,7 @@ int hri_object_pointing_placement(HRI_AGENT *agent, p3d_rob *object, int *result
   return TRUE;
 }
 
-
+//! @ingroup VISIBILITY 
 int g3d_object_visibility_placement(p3d_matrix4 camera_frame, p3d_vector4 objectCenter, double Hfov, double Vfov, double Hfoa, double Vfoa, int *result, double *phi_result, double *theta_result)
 {
   p3d_vector4 objectCenterCamFr;
@@ -1073,6 +1084,7 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame, p3d_vector4 object
   return TRUE;
 }
 
+//! @ingroup VISIBILITY 
 void g3d_draw_all_agents_fovs(HRI_AGENTS *agents)
 {
   int i;
@@ -1087,7 +1099,7 @@ void g3d_draw_all_agents_fovs(HRI_AGENTS *agents)
   }
 }
 
-
+//! @ingroup VISIBILITY 
 int g3d_draw_agent_pointing(HRI_AGENT *agent)
 {
   GLdouble BlueColor[4] =    { 0.0, 0.0, 0.5, 0.7 };
@@ -1106,6 +1118,7 @@ int g3d_draw_agent_pointing(HRI_AGENT *agent)
 
 }
 
+//! @ingroup VISIBILITY 
 int g3d_draw_agent_fov(HRI_AGENT *agent)
 {
   GLdouble GreenColor[4] =   { 0.0, 0.5, 0.0, 0.7 };
@@ -1133,6 +1146,7 @@ int g3d_draw_agent_fov(HRI_AGENT *agent)
 
 }
 
+//! @ingroup VISIBILITY 
 int g3d_draw_visibility_by_frame(p3d_matrix4 camera_frame, double Hfov, double Vfov, double max_dist, GLdouble source_color[], GLdouble  dest_color[])
 {
   double x_source, y_source, z_source;
@@ -1224,7 +1238,7 @@ int g3d_draw_visibility_by_frame(p3d_matrix4 camera_frame, double Hfov, double V
   return TRUE;
 }
 
-
+//! @ingroup VISIBILITY 
 int hri_is_object_pointed(HRI_AGENT * agent, p3d_rob *object, int threshold, int save)
 {
   GLint viewport[4];
@@ -1282,8 +1296,9 @@ int hri_is_object_pointed(HRI_AGENT * agent, p3d_rob *object, int threshold, int
     return FALSE;
 }
 
-/* Occlusion test using GPU ARB extensions */
-/* It's not functional but it's left here to keep valuable code */
+//! @ingroup VISIBILITY 
+//! Occlusion test using GPU ARB extensions 
+//! It's not functional but it's left here to keep valuable code 
 int g3d_is_object_visible_from_current_viewpoint2(g3d_win* win, p3d_rob *object, double *result, int save, char *path)
 {
 /*  int i;
@@ -1361,6 +1376,7 @@ int g3d_is_object_visible_from_current_viewpoint2(g3d_win* win, p3d_rob *object,
   return TRUE;
 }
 
+//! @ingroup VISIBILITY 
 int hri_compute_agent_sees(HRI_AGENT * agent, int threshold, int save, int draw_at_end)
 {
   GLint viewport[4];
@@ -1485,7 +1501,8 @@ int hri_compute_agent_sees(HRI_AGENT * agent, int threshold, int save, int draw_
   return TRUE;
 }
 
-/* This function turns the head of the agent towards a given direction (direction is in spherical coord and is relative to the body) */
+//! @ingroup VISIBILITY 
+//! This function turns the head of the agent towards a given direction (direction is in spherical coord and is relative to the body) 
 int hri_turn_agent_head_direction(HRI_AGENT *agent, double elevation, double azimuth)
 {
   p3d_rob * robot = NULL;

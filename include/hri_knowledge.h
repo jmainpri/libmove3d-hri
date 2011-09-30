@@ -1,6 +1,9 @@
 #ifndef _HRI_KNOWLEDGE_H
 #define _HRI_KNOWLEDGE_H
 
+//! @defgroup KNOWLEDGE Knowledge
+
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_ENTITY_TYPE {
   HRI_OBJECT = 0,
   HRI_ISAGENT = 1, /* There is already a type called HRI_AGENT */
@@ -9,8 +12,8 @@ typedef enum ENUM_HRI_ENTITY_TYPE {
   HRI_VIRTUAL_OBJECT = 4
 } HRI_ENTITY_TYPE;
 
-// We had some more sementic to adapt the level of processing and reasoning to the
-// 
+//! @ingroup KNOWLEDGE
+//! We had some more sementic to adapt the level of processing and reasoning to the
 typedef enum ENUM_HRI_ENTITY_SUBTYPE {
   HRI_MOVABLE_OBJECT = 0, // Tape, Bottles
   HRI_OBJECT_SUPPORT = 1,  // Tables, Shelf , ...
@@ -22,6 +25,7 @@ typedef enum ENUM_HRI_ENTITY_SUBTYPE {
   HRI_UK_ENTITY_SUBTYPE = 7
 } HRI_ENTITY_SUBTYPE;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_MOTION {
   HRI_STATIC = 1,
   HRI_MOVING = 2,
@@ -30,6 +34,7 @@ typedef enum ENUM_HRI_MOTION {
 
 extern int HRI_MAX_OBJECT_UNDETECTION;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_DETECTION { 
   HRI_NEVER_DETECTED = 0,
   HRI_DETECTED = 1,
@@ -38,6 +43,7 @@ typedef enum ENUM_HRI_DETECTION {
   HRI_UNEXPLAINED_UNDETECTION_MAX = 7
 } HRI_DETECTION;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_PLACEMENT_STATE_TRANSITION { 
   HRI_DISAPPEAR = 0,
   HRI_APPEAR = 1,
@@ -46,7 +52,8 @@ typedef enum ENUM_HRI_PLACEMENT_STATE_TRANSITION {
   HRI_UK_PL_STATE_TRANSITION = 4
 } HRI_PLACEMENT_STATE_TRANSITION;
 
-/** different type of inferences managed*/
+//! @ingroup KNOWLEDGE
+//! different type of inferences managed
 typedef enum ENUM_HRI_INFERRENCE_TYPE {
   HRI_NO_INFERRENCE =  0,
   HRI_PRECISE_ROBOT_HAND = 1,
@@ -56,7 +63,8 @@ typedef enum ENUM_HRI_INFERRENCE_TYPE {
 
 } HRI_INFERRENCE_TYPE;
 
-/** different type of inferences managed*/
+//! @ingroup KNOWLEDGE
+//! different type of inferences managed
 typedef enum ENUM_HRI_INFERRENCE_VALIDITY {
   HRI_NO_PROBABILITY =  0,
   HRI_HIGHLY_PROBABLE = 1,
@@ -66,6 +74,7 @@ typedef enum ENUM_HRI_INFERRENCE_VALIDITY {
   HRI_HIGHLY_UNPROBABLE =  5
 } HRI_INFERRENCE_VALIDITY;
 
+//! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_ENTITY {
   char name[64];
   
@@ -104,6 +113,7 @@ typedef struct STRUCT_HRI_ENTITY {
 
 } HRI_ENTITY;
 
+//! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_ENTITIES {
   HRI_ENTITY ** entities;
   int entities_nb;
@@ -117,19 +127,22 @@ typedef struct STRUCT_HRI_ENTITIES {
   int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
 } HRI_ENTITIES;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_VISIBILITY {
   HRI_VISIBLE = 0,
   HRI_INVISIBLE = 1,
   HRI_UK_VIS = 2 /* Unknown visibility. meaning we don't know */
 } HRI_VISIBILITY;
 
-/* For the boolean facts we always have possible values : true, false and unknown */
+//! @ingroup KNOWLEDGE
+//! For the boolean facts we always have possible values : true, false and unknown
 typedef enum ENUM_HRI_TRUE_FALSE_UK_V {
   HRI_FALSE_V = 0,
   HRI_TRUE_V = 1,
   HRI_UK_V = 2 
 } HRI_TRUE_FALSE_UK_V;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_VISIBILITY_PLACEMENT {
   HRI_FOA = 1,
   HRI_FOV = 2,
@@ -137,12 +150,14 @@ typedef enum ENUM_HRI_VISIBILITY_PLACEMENT {
   HRI_UK_VIS_PLACE = 4 /* Unknown visibility placement. meaning we don't know */
 } HRI_VISIBILITY_PLACEMENT;
 
+//! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_VISIBILITY_LIST {
   HRI_VISIBILITY *vis; /* The index is the same as env->nb */
   HRI_VISIBILITY_PLACEMENT *vispl; /* The index is the same as env->nb */
   int vis_nb; /* Normally this number should be = to the number of robots in the env */
 } HRI_VISIBILITY_LIST;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_REACHABILITY {
   HRI_UNREACHABLE = 0,
   HRI_REACHABLE = 1,
@@ -150,6 +165,7 @@ typedef enum ENUM_HRI_REACHABILITY {
   HRI_UK_REACHABILITY = 3 /* Unknown reachability. meaning we don't know */
 } HRI_REACHABILITY;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_PLACEMENT_RELATION {
   HRI_ISIN     = 0,
   HRI_ISON     = 1,
@@ -158,6 +174,7 @@ typedef enum ENUM_HRI_PLACEMENT_RELATION {
   HRI_UK_PLR   = 4 /* Unknown placement. meaning we don't know */
 } HRI_PLACEMENT_RELATION;
 
+//! @ingroup KNOWLEDGE
 typedef enum ENUM_HRI_SPATIAL_RELATION {
   HRI_NO_RELATION = 0,
   HRI_NEAR_FRONT = 1,
@@ -185,6 +202,7 @@ typedef enum ENUM_HRI_SPATIAL_RELATION {
   HRI_NEAR = 23
 } HRI_SPATIAL_RELATION;
 
+//! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
   HRI_ENTITY * entPt;
 
@@ -238,8 +256,8 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
 
 } HRI_KNOWLEDGE_ON_ENTITY;
 
-
-/* Each agent has a knowledge structure. It presents the agent's knowledge on the geometry of the world */
+//! @ingroup KNOWLEDGE
+//! Each agent has a knowledge structure. It presents the agent's knowledge on the geometry of the world 
 typedef struct STRUCT_HRI_KNOWLEDGE {
   /* The spatial knowledge on the state of things from the perspective of the agent */
   /* Normally all indexes should be synchronized with entities structure */
@@ -253,7 +271,8 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
   int entities_nb;
 } HRI_KNOWLEDGE;
 
-/** sphere type used for initial sphere geometric dimension processing and monitoring trigger assessment*/
+//! @ingroup KNOWLEDGE
+//! sphere type used for initial sphere geometric dimension processing and monitoring trigger assessment
 typedef enum ENUM_HRI_SPHERE_TYPE {
   SIMPLE_ENTRY = 0, // simple sphere defined through radius and center. To monitor entrance in the sphere;
   SIMPLE_EXIT = 1,  // simple sphere defined through radius and center. To monitor exit from the sphere.
@@ -262,7 +281,8 @@ typedef enum ENUM_HRI_SPHERE_TYPE {
   PERMANENT_STOP_MONITOR = 4  //
 } HRI_SPHERE_TYPE; // Monitor that hands are fixed at some points.
 
-/* Action Monitor Through in Spheres Entry or Exit */
+//! @ingroup KNOWLEDGE
+//! Action Monitor Through in Spheres Entry or Exit 
 typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERE {
   int isSphereActive; // TRUE if monitor is active, FALSE otherwise.
   char agentName[64]; // agent name whose action is monitored.

@@ -9,6 +9,10 @@
 #define GIK_MAX_TASK_NO 5
 #define GIK_CONSTRAINTS 3
 
+//! @defgroup AGENTS Agents
+//! A module for agents 
+
+//! @ingroup AGENTS
 typedef enum HRI_AGENT_TYPE_ENUM {
   HRI_JIDO1,
   HRI_JIDOKUKA,
@@ -28,6 +32,7 @@ typedef enum HRI_AGENT_TYPE_ENUM {
   HRI_XAVIER
 }	HRI_AGENT_TYPE;
 
+//! @ingroup AGENTS
 typedef enum HRI_GIK_TASK_TYPE_ENUM {
   GIK_LOOK,
   GIK_RAREACH,
@@ -43,6 +48,7 @@ typedef enum HRI_GIK_TASK_TYPE_ENUM {
   GIK_NOTASK
 } HRI_GIK_TASK_TYPE;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_GIK_TASK {
   HRI_GIK_TASK_TYPE type;
   int default_joints[GIK_MAX_JOINT_NO];
@@ -53,11 +59,13 @@ typedef struct STRUCT_GIK_TASK {
   double target[GIK_CONSTRAINTS];
 } GIK_TASK;
 
+//! @ingroup AGENTS
 typedef enum HRI_MANIP_TYPE_ENUM {
   ONE_ARMED,
   TWO_ARMED
 } HRI_MANIP_TYPE;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_HRI_MANIP {
   hri_gik * gik;
   HRI_MANIP_TYPE type;
@@ -72,11 +80,13 @@ typedef struct STRUCT_HRI_MANIP {
   int activetasks_no;
 } HRI_MANIP;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_HRI_NAVIG {
   hri_bitmapset * btset;
   int btset_initialized;
 } HRI_NAVIG;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_HRI_PERSP {
   /* Visual Perspective */
   p3d_jnt * camjoint;
@@ -97,11 +107,13 @@ typedef struct STRUCT_HRI_PERSP {
 } HRI_PERSP;
 
 /* --------------- */
+//! @ingroup AGENTS
 typedef enum ENUM_HRI_AGENT_POSTURE {
   HRI_STANDING = 0,
   HRI_SITTING = 1
 } HRI_AGENT_POSTURE;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_HRI_AGENT {
   HRI_AGENT_TYPE type;
   int is_human; /* TODO: put something more generic, at least an enum. I don't like these stupid flags. */
@@ -132,6 +144,7 @@ typedef struct STRUCT_HRI_AGENT {
 
 } HRI_AGENT;
 
+//! @ingroup AGENTS
 typedef struct STRUCT_HRI_AGENTS {
   HRI_AGENT ** all_agents; /* The list of agents robots+humans */
   int all_agents_no;
