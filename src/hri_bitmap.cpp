@@ -1009,7 +1009,7 @@ double hri_bt_start_search(double qs[3], double qf[3], hri_bitmapset* bitmapset,
                       bitmapset->parameters->goal_cell_tolerance);
               if(new_search_goal == NULL) {
                   bitmapset->pathexist = FALSE;
-                  PrintError(("No free Goal Position is free around (%f, %f) in cell range %d\n", qf[0], qf[1], bitmapset->parameters->goal_cell_tolerance));
+                  PrintError(("No free Goal Position is free around (%f, %f) in cell range %f\n", qf[0], qf[1], bitmapset->parameters->goal_cell_tolerance));
                   return HRI_PATH_SEARCH_ERROR_NAV_GOAL_IN_OBSTACLE;
               }
           }
@@ -1959,10 +1959,10 @@ int hri_bt_write_TRAJ(hri_bitmapset * btset, p3d_jnt * joint)
   if(goalValid) {
     // goal config is valid
     length = numOfNodes+2; /* ADDING 2 FOR START AND GOAL CONFIGS */
-    printf("... omitting goal config... ");
   } else {
     // goal config is not valid, approaching close position instead
     length = numOfNodes+1;
+    printf(" omitting goal config... (%f,%f)", btset->robot->ROBOT_GOTO[ROBOTq_X],  btset->robot->ROBOT_GOTO[ROBOTq_Y] );
   }
 
   btset->path->xcoord = MY_ALLOC(double,length); /* ALLOC */

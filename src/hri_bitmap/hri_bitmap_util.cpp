@@ -508,7 +508,7 @@ int hri_bt_isRobotOnCellInCollision(hri_bitmapset * bitmapset, hri_bitmap* bitma
  * \param y      y coord
  * \param z      z coord
  * \param orientation      orientation of the robot for 3d collision checks
- * \param z      max_grid_tolerance how many grid steps away solution may be
+ * \param max_square_tolerance how many grid steps away solution may be
  *
  * \return NULL in case of a problem
  */

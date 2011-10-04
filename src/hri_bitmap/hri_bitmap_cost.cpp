@@ -754,7 +754,7 @@ int getClosestPoseOnProjection(hri_bitmapset * btset, hri_human* cur_human,
    double humanx = cur_human->HumanPt->joints[HUMANj_BODY]->dof_data[0].v;
    double humany = cur_human->HumanPt->joints[HUMANj_BODY]->dof_data[1].v;
 
-   // assume vlocity of 1 m/s for now TODO parametrize and such
+   // assume velocity of 1 m/s for now TODO parametrize and such
    double humanVelocity = 1; // m/s
 
    if (humanVelocity == 0) {
