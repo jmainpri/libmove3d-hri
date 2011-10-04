@@ -1109,7 +1109,9 @@ double hri_bt_A_CalculateCellG(hri_bitmapset * btset, hri_bitmap_cell* current_c
     double val = getDirectionalVal(btset, current_cell, fromcell, distance);
 
     current_cell->val = val;
-
+    // trapez are between cells, more robust against changes of grid sample size
+    val = ((fromcell->val + current_cell->val) / 2) * (getCellDistance(fromcell, current_cell)*btset->pace);
+    
     // add the costs of the path to the parent, the social costs in this cell, and the path length
       result = fromcell->g +
                                   val +
