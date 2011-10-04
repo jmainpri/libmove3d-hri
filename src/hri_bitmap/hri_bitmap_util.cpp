@@ -496,9 +496,10 @@ int hri_bt_isRobotOnCellInCollision(hri_bitmapset * bitmapset, hri_bitmap* bitma
 
 /****************************************************************/
 /*!
- * \brief get the cell closest to given real coordinates, if it is free,
- * else returns a manhattan-closest free surrounding cell of the closest
- * cell, if it exists, that is max_grid_tolerance manhattan steps away.
+ * \brief get the cell closest to given real coordinates, if it is
+ * free, else returns a manhattan-closest free surrounding cell of the
+ * closest cell, if it exists, that is max_square_tolerance away in
+ * manhattan distance.
  *
  * \param bitmap the bitmap
  * \param x      x coord
@@ -516,9 +517,10 @@ hri_bitmap_cell* hri_bt_get_closest_free_cell(hri_bitmapset* bitmapset,
     double y,
     double z,
     double orientation,
-    int max_grid_tolerance)
+    double max_square_tolerance)
 {
   int m, i, j, k;
+  int max_grid_tolerance = trunc( max_square_tolerance / bitmapset->pace);
   hri_bitmap_cell* loop_cell;
   int loop_man_distance;
   hri_bitmap_cell* candidate = hri_bt_get_closest_cell(bitmapset, bitmap, x, y, z);

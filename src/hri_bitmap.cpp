@@ -483,8 +483,8 @@ void hri_bt_init_btset_parameters(hri_bitmapset* bitmapset)
   bitmapset->parameters->path_length_weight = 40;
   bitmapset->parameters->soft_collision_distance_weight = 8;
   bitmapset->parameters->soft_collision_base_cost = 15;
-  bitmapset->parameters->start_cell_tolerance = 5;
-  bitmapset->parameters->goal_cell_tolerance = 8; // high tolerance for flawed grasp planning
+  bitmapset->parameters->start_cell_tolerance = 0.4;
+  bitmapset->parameters->goal_cell_tolerance = 0.5; // high tolerance for flawed grasp planning
 
   /** distances between which the social costs of MOVING humans are reduced, up to zero.
    * Beyond full we do not care about moving humans

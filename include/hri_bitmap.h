@@ -215,11 +215,11 @@ typedef struct astar_parameters{
   /*
    * Additional cost for moving within region of potential collision
    */
-  int soft_collision_base_cost;
-  int soft_collision_distance_weight;
+  double soft_collision_base_cost;
+  double soft_collision_distance_weight;
 
   /* By how much to multiply the grid distance as cost */
-  int path_length_weight;
+  double path_length_weight;
 
   /*
    * how many grid cells the robot actual position may deviate from
@@ -233,9 +233,9 @@ typedef struct astar_parameters{
    * This could in some cases help for later algorithms */
   int use_changepath_reluctance;
   /* how many grid steps away a free start cell may be found from the robot real position */
-  int start_cell_tolerance;
+  double start_cell_tolerance;
   /* how many grid steps away a free goal cell may be found from the x,y,z of the search command */
-  int goal_cell_tolerance;
+  double goal_cell_tolerance;
 
   double moving_human_deprecation_start;
   double moving_human_deprecation_full;
