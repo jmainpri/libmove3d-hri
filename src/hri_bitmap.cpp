@@ -524,13 +524,7 @@ void hri_bt_init_btset_parameters(hri_bitmapset* bitmapset)
   /** used if directional_cost == TRUE
    * the angle at which a human is considered "behind" the robot and thus not relevant for costs
    * default is M_PI_2 = 90 degrees**/
-  bitmapset->parameters->directional_freePassAngle = M_PI_2 + 0.2;
-  /** used if directional_cost == TRUE
-     * the inverse angle at which a moving human in front of the robot is considered "harmless",
-     * as he does not move towards the robot, but will go elsewhere
-     * 0 means the human goes in the opposite direction (conflict), Pi means he is going in same direction (nice)
-     * default is M_PI_4 = 45 degrees **/
-  bitmapset->parameters->directional_noConflictHeading =  M_PI_4 + 0.2;
+  bitmapset->parameters->directional_freePassAngle = M_PI_2 - 0.2;
 }
 
 
