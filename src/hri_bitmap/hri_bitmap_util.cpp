@@ -461,7 +461,9 @@ int hri_bt_isRobotOnCellInCollision(hri_bitmapset * bitmapset, hri_bitmap* bitma
 
   if (result == FALSE && checkHumanCollision == TRUE) {
     for (i=0; i < bitmapset->human_no; i++) {
-      if (bitmapset->human[i]->exists) {
+      if (bitmapset->human[i]->exists
+          && bitmapset->human[i]->actual_state != BT_STANDING_TRANSPARENT
+          && bitmapset->human[i]->actual_state != BT_MOVING) {
         qc = p3d_get_robot_config(bitmapset->robot); /** ALLOC */
         qc[6]  = cell->x * bitmapset->pace + bitmapset->realx;
         qc[7]  = cell->y * bitmapset->pace + bitmapset->realy;
