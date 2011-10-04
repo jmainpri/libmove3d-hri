@@ -1262,7 +1262,7 @@ void hri_bt_reset_bitmap_data(hri_bitmap* bitmap)
       for(z=0; z<bitmap->nz; z++){
         bitmap->data[x][y][z].val = 0;
         bitmap->data[x][y][z].h = -1;
-        bitmap->data[x][y][z].g = 0;
+        bitmap->data[x][y][z].g = -1;
         bitmap->data[x][y][z].parent = NULL;
         bitmap->data[x][y][z].closed = FALSE;
         bitmap->data[x][y][z].open   = FALSE;
@@ -1486,6 +1486,7 @@ double hri_bt_astar_bh(hri_bitmapset * btset, hri_bitmap* bitmap)
   }
 
   current_cell = bitmap->search_start;
+  current_cell->g = 0; // was -1 by reset
 
   hri_bt_init_BinaryHeap(bitmap); /** ALLOC **/
 
@@ -1595,7 +1596,7 @@ int hri_bt_A_neigh_costs(hri_bitmapset* btset, hri_bitmap* bitmap, hri_bitmap_ce
         if (current_cell->open) {
           new_cell_g = hri_bt_A_CalculateCellG(btset, current_cell, center_cell, distance);
 
-          if(current_cell->g > new_cell_g){
+          if(current_cell->g < 0 || current_cell->g > new_cell_g){
             current_cell->g =  new_cell_g;
             current_cell->parent = center_cell;
             hri_bt_A_update_cell_OL(current_cell);
@@ -1713,7 +1714,7 @@ int hri_bt_A_neigh_costs(hri_bitmapset* btset, hri_bitmap* bitmap, hri_bitmap_ce
         if (current_cell->open) {
           new_cell_g = overstep_val + hri_bt_A_CalculateCellG(btset, current_cell, center_cell, M_SQRT5);
 
-          if(current_cell->g > new_cell_g){
+          if(current_cell->g < 0 || current_cell->g > new_cell_g){
             current_cell->g =  new_cell_g;
             current_cell->parent = center_cell;
             hri_bt_A_update_cell_OL(current_cell);
