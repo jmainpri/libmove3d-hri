@@ -839,7 +839,7 @@ int getClosestPoseOnProjection(hri_bitmapset * btset, hri_human* cur_human,
  *
  * experimental code
  */
-double getDirectionalVal(hri_bitmapset * btset, hri_bitmap_cell* current_cell, hri_bitmap_cell* fromcell, double distance) {
+double getDirectionalVal(hri_bitmapset * btset, hri_bitmap_cell* current_cell, hri_bitmap_cell* fromcell) {
   int i;
   double val = 0, result = 0;
   double dist, vis, hz;
@@ -1062,16 +1062,16 @@ double hri_bt_A_CalculateCellG(hri_bitmapset * btset, hri_bitmap_cell* current_c
   /** if 2d search and parameter is set (not manip) */
   if ( btset->bitmap[BT_OBSTACLES]->nz == 1 && btset->parameters->directional_cost == TRUE) {
     // recalculate val from scratch, depending on human and robot pose in this search context
-    double val = getDirectionalVal(btset, current_cell, fromcell, distance);
+    double val = getDirectionalVal(btset, current_cell, fromcell);
 
     current_cell->val = val;
     // trapez are between cells, more robust against changes of grid sample size
-    val = ((fromcell->val + current_cell->val) / 2) * (getCellDistance(fromcell, current_cell)*btset->pace);
+    val = ((fromcell->val + current_cell->val) / 2) * (distance * btset->pace);
 
     // add the costs of the path to the parent, the social costs in this cell, and the path length
-      result = fromcell->g +
-                                  val +
-                                  (distance * btset->parameters->path_length_weight);
+    result = fromcell->g +
+             val +
+             (distance * btset->parameters->path_length_weight);
 
   } else {
     // add the costs of the path to the parent, the social costs in this cell, and the path length
