@@ -347,6 +347,7 @@ extern agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 
 p3d_matrix4 WRIST_FRAME;
 p3d_matrix4 HEAD_FRAME;
+int opengl_context =0;
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -14580,7 +14581,7 @@ p3d_col_activate_robot(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY]);
       for ( o_ctr=0;o_ctr<no;o_ctr++ )
 	{
 
-	  o = envPt_MM->o[r_ctr];
+	  o = envPt_MM->o[o_ctr];
 	  //// printf(" o->name = %s, \n",o->name);
 	  double BBx;
 	  for ( BBx=o->BB.xmin;BBx<o->BB.xmax;BBx+=increment )
@@ -21617,7 +21618,7 @@ ctr++;
 gpSet_robot_hand_grasp_configuration(hand, object, *iter);
 
 win->vs.transparency_mode= G3D_TRANSPARENT_AND_OPAQUE;
-g3d_draw_robot(hand->num, win);
+ g3d_draw_robot(hand->num, win, opengl_context);
 
 //return 0;
 }
@@ -21688,7 +21689,7 @@ ctr++;
 gpSet_robot_hand_grasp_configuration(hand, object, *iter);
 
 win->vs.transparency_mode= G3D_TRANSPARENT_AND_OPAQUE;
-g3d_draw_robot(hand->num, win);
+ g3d_draw_robot(hand->num, win, opengl_context);
 
 //return 0;
 }
@@ -21732,7 +21733,7 @@ ctr++;
 gpSet_robot_hand_grasp_configuration(hand, object, *iter);
 
 win->vs.transparency_mode= G3D_TRANSPARENT_AND_OPAQUE;
-g3d_draw_robot(hand->num, win);
+ g3d_draw_robot(hand->num, win, opengl_context);
 
 //return 0;
 }
