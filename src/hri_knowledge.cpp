@@ -55,6 +55,7 @@ HRI_ENTITIES * hri_create_entities()
         entities->entities[ent_i] = MY_ALLOC(HRI_ENTITY,1);
 	strcpy(entities->entities[ent_i]->name, env->robot[i]->name);
 
+	entities->entities[ent_i]->is_fixed = FALSE;
         entities->entities[ent_i]->is_present = FALSE;
         entities->entities[ent_i]->is_detected = FALSE;
 	entities->entities[ent_i]->detection_time = 0;

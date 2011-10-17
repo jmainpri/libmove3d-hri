@@ -110,6 +110,7 @@ typedef struct STRUCT_HRI_ENTITY {
   p3d_rob * robotPt;
   p3d_obj * partPt;
   int agent_idx; /* if it's a part of an agent, then its index */
+  int is_fixed;
 
 } HRI_ENTITY;
 
