@@ -1507,7 +1507,7 @@ double hri_bt_astar_bh(hri_bitmapset * btset, hri_bitmap* bitmap)
   bitmap->searched = TRUE;
 
   finalcosts = hri_bt_A_CalculateCellG(btset, bitmap->search_goal, bitmap->search_goal->parent, getCellDistance(bitmap->search_goal, bitmap->search_goal->parent));
-  printf("\ncost: %f \n", finalcosts);
+  printf("cost: %f \n", finalcosts);
 
   hri_bt_destroy_BinaryHeap();
 
@@ -1918,7 +1918,7 @@ int hri_bt_write_TRAJ(hri_bitmapset * btset, p3d_jnt * joint)
   }
   bitmap = btset->bitmap[BT_PATH];
 
-  printf("*****Creating the path structure... ");
+//  printf("*****Creating the path structure... ");
 
   btset->path = MY_ALLOC(hri_bt_path,1);    /* ALLOC */
 
@@ -2019,7 +2019,7 @@ int hri_bt_write_TRAJ(hri_bitmapset * btset, p3d_jnt * joint)
     //printf("Calculating theta for (%f,%f) to (%f,%f) to (%f,%f) = %f\n", btset->path->xcoord[i-1],btset->path->ycoord[i-1],btset->path->xcoord[i],btset->path->ycoord[i],btset->path->xcoord[i+1],btset->path->ycoord[i+1], btset->path->theta[i]);
   }
 
-  printf("Path structure created*****\n");
+  //printf("Path structure created*****\n");
   return TRUE;
 }
 
