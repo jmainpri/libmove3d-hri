@@ -903,20 +903,30 @@ double getDirectionalVal(hri_bitmapset * btset, hri_bitmap_cell* current_cell, h
 
        if (btset->human[i]->actual_state != BT_MOVING) {
          // human relative to robot heading
-         double humanInDirection =  fow_deviation(realx, realy, humanx, humany, robotDirection);
+         double humanInDirection = fow_deviation(realx, realy, humanx, humany, robotDirection);
+         double passingDistance = DISTANCE2D(realx, realy, humanx, humany);
+         double COMFORT_DISTANCE = 1.6;
+         double closenessSignificance; // stress induced by robot moving close
+
+         if (passingDistance > COMFORT_DISTANCE) {
+           closenessSignificance = 0;
+         } else {
+           closenessSignificance = (1 - (passingDistance / COMFORT_DISTANCE));
+         }
+
+         double approachSignificance; // stress induce by robot approaching (what if welcome?)
          if (fabs(humanInDirection) > btset->parameters->directional_freePassAngle) {
            // robot moving perpendicular to human
-           directionalSignificance = 0;
-           // PrintDebug(("Human behind bot, signific = 0, (%d, %d)", current_cell->x, current_cell->y));
+           approachSignificance = 0;
          } else {
            // fabs(humanInDirection) == 0 is worst case, significance should be 1 then
-           directionalSignificance = directionalSignificance *  (1 - (fabs(humanInDirection) / btset->parameters->directional_freePassAngle));
+           approachSignificance = (1 - (fabs(humanInDirection) / btset->parameters->directional_freePassAngle));
          }
+         directionalSignificance = MAX (closenessSignificance, approachSignificance);
        }
        // human is moving, but is human travelling in the same direction?
-       if ((directionalSignificance > 0) &&
-           (btset->parameters->motion_congruence == TRUE) &&
-           (btset->human[i]->actual_state == BT_MOVING)) {
+       else if ((directionalSignificance > 0) &&
+           (btset->parameters->motion_congruence == TRUE)) {
 
          // this is how far into the future we project human path
          double projectionTime = 5; // seconds, TODO: put into parametes once necessary
