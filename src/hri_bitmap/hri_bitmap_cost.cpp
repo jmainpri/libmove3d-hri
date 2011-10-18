@@ -866,24 +866,6 @@ double getDirectionalVal(hri_bitmapset * btset, hri_bitmap_cell* current_cell, h
      if(!btset->human[i]->exists)
        continue;
 
-     // OLD
-//     hz =  btset->bitmap[BT_HIDZONES]->calculate_cell_value(btset,x,y,z);
-//     vis  =  btset->bitmap[BT_VISIBILITY]->calculate_cell_value(btset,x,y,z);
-//     dist =  btset->bitmap[BT_DISTANCE]->calculate_cell_value(btset,x,y,z);
-
-
-
-     // TODO: Now modify these costs depending on the heading
-     // angle of the robot when going from from_cell to current_cell
-     // the more the human is outside the heading, the less the cost matter
-     // for moving humans, the cost may become zero, if the human is far
-     // away, or moving in the same direction as the robot.
-
-     // 3 values are required:
-     // the difference between robot heading and angle to human:  humanInDirection
-     // and the difference between robot heading and human heading: headingDiff
-     // the path length to this point, which means for moving humans they will not be where they are now: pathLength
-
      // where the robot points to on current-cell
      double robotDirection = atan2(y - fromcell->y, x - fromcell->x);
      // robot coordinates
