@@ -72,7 +72,30 @@ SET(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 ##          Documentation             ##
 ########################################
 
-INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
+#INCLUDE("${CMAKE_MODULE_PATH}/TargetDoc.cmake" OPTIONAL)
+
+FIND_PACKAGE(Doxygen)
+
+SET(DOXYFILE_FOUND false)
+
+IF(EXISTS ${PROJECT_SOURCE_DIR}/${DOXYGEN_CONFIG_FILE})
+    SET(DOXYFILE_FOUND true)
+ENDIF(EXISTS ${PROJECT_SOURCE_DIR}/${DOXYGEN_CONFIG_FILE})
+
+IF( DOXYGEN_FOUND )
+          MESSAGE("Doxygen found")
+          IF( DOXYFILE_FOUND )
+	      MESSAGE("Project source dir : ${PROJECT_SOURCE_DIR}" )
+	      MESSAGE("Doxyfile found")
+	      MESSAGE("Doxygen config file : ${DOXYGEN_CONFIG_FILE}")
+	      # Add target
+	      ADD_CUSTOM_TARGET( doc ALL ${DOXYGEN_EXECUTABLE} "${PROJECT_SOURCE_DIR}/Doxyfile.in" )
+    	 ELSE( DOXYFILE_FOUND )
+    	  		 MESSAGE( STATUS "Doxygen configuration file not found - Documentation will not be generated" )
+    	  ENDIF( DOXYFILE_FOUND )
+    ELSE(DOXYGEN_FOUND)
+          MESSAGE(STATUS "Doxygen not found - Documentation will not be generated")
+ENDIF(DOXYGEN_FOUND)
 
 ##########################################
 ##       PKGCONFIG file                ###
