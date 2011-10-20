@@ -29,6 +29,13 @@ ELSE(UNIX)
  MESSAGE (FATAL_ERROR "Not supported Platform")
 ENDIF(UNIX)
 
+#Default mode is Debug
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Debug CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 ########################################
