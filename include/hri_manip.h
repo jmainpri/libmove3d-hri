@@ -148,7 +148,7 @@
 
 
 #else
-#error "no robot has been defined in include/Hri-planner-pkg"
+#error "no robot has been defined in include/hri.h"
 #endif
 
 
