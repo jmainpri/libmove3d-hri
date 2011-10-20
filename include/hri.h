@@ -1,3 +1,6 @@
+#ifndef _HRI_H
+#define _HRI_H
+
 /*
  *  This file includes the prototypes of the functions defined in the
  *  directory localpath and the files defining the structure appearing in
@@ -116,4 +119,6 @@ extern struct SOLUTION_CONFIGS_FOR_HRP2 cur_gik_sol_configs;//It will store the 
 #ifdef __cplusplus
 //}
 #endif
+#endif
+
 #endif
