@@ -22,7 +22,7 @@ typedef enum kinectState {
 	KINECT_POSE_SEARCH,
 	KINECT_CALIBRATE,
 	KINECT_TRACKING
-};
+} hri_kinectState_enum;
 
 //! @ingroup KINECT 
 //! Kinect joint
