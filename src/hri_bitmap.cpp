@@ -243,10 +243,12 @@ int hri_bt_create_obstacles( hri_bitmapset* btset )
 
   // creates wide blue perimeter around walls
   for(i=0; i<env->no ; i++) {
-    // base collides
-    hri_bt_insert_obs(btset,btset->bitmap[BT_OBSTACLES], env->o[i], env, minimum_expand_rate, BT_OBST_SURE_COLLISION, 0);
-    // potential 3d collision
-    hri_bt_insert_obs(btset,btset->bitmap[BT_OBSTACLES], env->o[i], env, safe_expand_rate, BT_OBST_POTENTIAL_OBJECT_COLLISION, 0);
+    if(!strcasestr(env->o[i]->name,"FLOOR") && !strcasestr(env->o[i]->name,"Walls")) {
+      // base collides
+      hri_bt_insert_obs(btset,btset->bitmap[BT_OBSTACLES], env->o[i], env, minimum_expand_rate, BT_OBST_SURE_COLLISION, 0);
+      // potential 3d collision
+      hri_bt_insert_obs(btset,btset->bitmap[BT_OBSTACLES], env->o[i], env, safe_expand_rate, BT_OBST_POTENTIAL_OBJECT_COLLISION, 0);
+    }
   }
 
   if (btset->parameters->use_corridors == TRUE) {
