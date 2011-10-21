@@ -96,7 +96,7 @@ IF( DOXYGEN_FOUND )
 	      MESSAGE("Doxyfile found")
 	      MESSAGE("Doxygen config file : ${DOXYGEN_CONFIG_FILE}")
 	      # Add target
-	      ADD_CUSTOM_TARGET( doc ALL ${DOXYGEN_EXECUTABLE} "${PROJECT_SOURCE_DIR}/Doxyfile.in" )
+	      ADD_CUSTOM_TARGET( doc ${DOXYGEN_EXECUTABLE} "${PROJECT_SOURCE_DIR}/Doxyfile.in" )
     	 ELSE( DOXYFILE_FOUND )
     	  		 MESSAGE( STATUS "Doxygen configuration file not found - Documentation will not be generated" )
     	  ENDIF( DOXYFILE_FOUND )
