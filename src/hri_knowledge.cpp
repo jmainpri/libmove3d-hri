@@ -71,6 +71,10 @@ HRI_ENTITIES * hri_create_entities()
 	strcpy(entities->entities[ent_i]->inferrenceObjectOrAgentPartName,"");
 	entities->entities[ent_i]->agentPartNum = 0;
 	entities->entities[ent_i]->inferrenceValidity = HRI_NO_PROBABILITY;
+	entities->entities[ent_i]->perceptionInferrenceConflictThresholdMultiply = 0.0.; 
+	entities->entities[ent_i]->perceptionInferrenceConflictThreshold = 0.0; 
+	entities->entities[ent_i]->perceptionInferrenceConflictValue = 0.0;
+
 	entities->entities[ent_i]->last_ismoving_iter = 0;
 	entities->entities[ent_i]->filtered_motion = HRI_STATIC;
 	entities->entities[ent_i]->minStaticDist = 0;
@@ -950,7 +954,8 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
   if(deltaMaxOther < deltaZ)
     deltaMaxOther = deltaZ;
 
-  deltaSum =  deltaMaxFirst + deltaMaxOther;
+  deltaSum =  (deltaMaxFirst + deltaMaxOther)*firstEntity->perceptionInferrenceConflictThresholdMultiply;
+  firstEntity->perceptionInferrenceConflictThreshold = deltaSum;
 
   //To be sure that x,y,z is the inferred value and not the last perceived value
   hri_set_XYZ_of_entity_at_center_of_other_entity(firstEntity,otherEntity);
@@ -961,6 +966,7 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
   yInferred = firstEntity->infy;
   zInferred = firstEntity->infz; 
   distPerceptInferrence = DISTANCE3D(xInferred, yInferred, zInferred, xPerception, yPerception, zPerception );
+  firstEntity->perceptionInferrenceConflictValue = distPerceptInferrence;
   if(distPerceptInferrence < deltaSum/4)
     firstEntity->inferrenceValidity = HRI_HIGHLY_PROBABLE;
   else if(distPerceptInferrence < deltaSum/3)

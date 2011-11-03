@@ -96,8 +96,11 @@ typedef struct STRUCT_HRI_ENTITY {
   HRI_INFERRENCE_TYPE inferrenceType; //what is the type of this infference
   char inferrenceObjectOrAgentPartName[64] ; //Agent, object name used to define this inference (in agent hand, inside object )
   int agentPartNum;  // An agent can have several hands, or parts, this is the index of the part.
-  HRI_INFERRENCE_VALIDITY inferrenceValidity; //inferrence validity value in case of perception inference conflicts 
   double infx,infy,infz; // x,y,z coordinate to save the inferred position candidate.
+  double perceptionInferrenceConflictThresholdMultiply; // Multiplicative term to modify automatically computed threshold
+  double perceptionInferrenceConflictThreshold; // resulting  Value for the threshold to classify perception inferrence conflict validity
+  double perceptionInferrenceConflictValue; // Distance between perceived and ijnfered position
+  HRI_INFERRENCE_VALIDITY inferrenceValidity; // inferrence validity value in case of perception inference conflicts 
 
   int last_ismoving_iter; /* how many*/
   HRI_MOTION filtered_motion; /* */
