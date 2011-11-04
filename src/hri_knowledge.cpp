@@ -71,7 +71,7 @@ HRI_ENTITIES * hri_create_entities()
 	strcpy(entities->entities[ent_i]->inferrenceObjectOrAgentPartName,"");
 	entities->entities[ent_i]->agentPartNum = 0;
 	entities->entities[ent_i]->inferrenceValidity = HRI_NO_PROBABILITY;
-	entities->entities[ent_i]->perceptionInferrenceConflictThresholdMultiply = 0.0.; 
+	entities->entities[ent_i]->perceptionInferrenceConflictThresholdMultiply = 0.0; 
 	entities->entities[ent_i]->perceptionInferrenceConflictThreshold = 0.0; 
 	entities->entities[ent_i]->perceptionInferrenceConflictValue = 0.0;
 
@@ -1791,7 +1791,7 @@ int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHE
   }
 
   else{
-    printf("%s:%d hriComputeSpherRadiusAndCenter object sphere %s should have type HRI_OBJECT",obj->name,__FILE__,__LINE__);
+    printf("%s:%d hriComputeSpherRadiusAndCenter object sphere %s should have type HRI_OBJECT",__FILE__,__LINE__, obj->name);
     return FALSE;
   }
 
