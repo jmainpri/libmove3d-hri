@@ -74,6 +74,7 @@ void hri_set_kinect_state(const kinectState& state);
 configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& data );
 void hri_store_kinect_model( kinectData& data );
 void hri_draw_kinect_points();
+void hri_draw_kinect_human_arms(HRI_AGENTS* agents);
 void hri_draw_kinect_state(g3d_states &vs, float offsetX, float offsetY, float widthRatio);
 
 #endif

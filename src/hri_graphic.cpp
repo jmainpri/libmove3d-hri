@@ -68,6 +68,7 @@ if(MA_ASA_WITHOUT_SPARK==1)
 	  
 	  hri_draw_mindist();
 	  hri_draw_kinect_points();
+    hri_draw_kinect_human_arms( GLOBAL_AGENTS );
 
     // Display things (Debug information) that is not
     // part of the scene
