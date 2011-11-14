@@ -180,7 +180,7 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_set_projection_matrix(win->vs.projection_mode);
 
   // everything is ready now.
-  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/home/mwarnier/");
+  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/u/mwarnier/");
 
   // restore viewport
   // if succeded false we print the image
