@@ -146,6 +146,12 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_states st;
   g3d_win *win = g3d_get_win_by_name((char*) "Move3D");
 
+
+  GLint viewportDiv[4];
+  char name[256];
+  static int crntcnt2 = 0;
+  int createIntermediateImages = FALSE;
+
   if(objects==NULL) {
     printf("%s: %d: input objects are NULL.\n", __FILE__, __LINE__);
     return FALSE;
@@ -155,10 +161,26 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
     return succeeded;
   }
 
+  if(createIntermediateImages){
+    glReadBuffer(GL_BACK); 
+    g3d_draw_win_back_buffer(win); 
+    sprintf(name, "/%svisibilityview%i_A.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
+    g3d_export_OpenGL_display(name);
+  }
+
   // Change the size of the viewport if you want speed
   if(!save){
     glGetIntegerv(GL_VIEWPORT, viewport);
     glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
+  }
+
+  if(createIntermediateImages){
+    g3d_draw_win_back_buffer(win); 
+    sprintf(name, "/%svisibilityview%i_B.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
+    g3d_export_OpenGL_display(name);
+    printf("Viewport dimensions %d , %d\n", viewport[2],viewport[3]);
+    glGetIntegerv(GL_VIEWPORT, viewportDiv);
+    printf("Viewport dimensions after divide %d , %d\n", viewportDiv[2],viewportDiv[3]);
   }
 
   g3d_save_win_camera(win->vs);
@@ -179,8 +201,15 @@ int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame
   g3d_set_camera_parameters_from_frame(camera_frame, win->vs);
   g3d_set_projection_matrix(win->vs.projection_mode);
 
+  if(createIntermediateImages){
+    g3d_draw_win_back_buffer(win); 
+    sprintf(name, "/%svisibilityview%i_C.ppm", (char*)"/tmp/visibility_images/", crntcnt2++);
+    g3d_export_OpenGL_display(name);
+  }
+
+
   // everything is ready now.
-  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/u/mwarnier/");
+  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/tmp/visibility_images/");
 
   // restore viewport
   // if succeded false we print the image
@@ -717,6 +746,8 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   GLint viewport[4];
   static int crntcnt = 0;
   char name[256];
+  char nameBlack[256];
+  char nameBlue[256];
   double color[4]= {0,0,0,1};
   int *visiblepixels;
   p3d_rob_display_mode _p3d_rob_display_mode;
@@ -749,9 +780,8 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 
   if(createIntermediateImages){
     g3d_draw_win_back_buffer(win); 
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-    sprintf(name, "/%svisibilityview%i_black.ppm", path, crntcnt++);
-    g3d_export_OpenGL_display(name);
+    sprintf(nameBlack, "/%svisibilityview%i_black.ppm", path, crntcnt);
+    g3d_export_OpenGL_display(nameBlack);
   }
 
   //Choose how to display others objects and robs.
@@ -776,9 +806,8 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 
   if(createIntermediateImages){
     g3d_draw_win_back_buffer(win); 
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-    sprintf(name, "/%svisibilityview%i_blue.ppm", path, crntcnt++);
-    g3d_export_OpenGL_display(name);
+    sprintf(nameBlue, "/%svisibilityview%i_blue.ppm", path, crntcnt);
+    g3d_export_OpenGL_display(nameBlue);
   }
 
 
