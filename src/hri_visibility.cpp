@@ -721,6 +721,7 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   int *visiblepixels;
   p3d_rob_display_mode _p3d_rob_display_mode;
   p3d_obj_display_mode _p3d_obj_display_mode;
+  int createIntermediateImages = FALSE;
 
   if(objects_nb == 0) {
     return succeeded;
@@ -746,6 +747,13 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   //do not forget to set the backgroung to black:
   g3d_set_win_bgcolor(win->vs, 0, 0, 0);
 
+  if(createIntermediateImages){
+    g3d_draw_win_back_buffer(win); 
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+    sprintf(name, "/%svisibilityview%i_black.ppm", path, crntcnt++);
+    g3d_export_OpenGL_display(name);
+  }
+
   //Choose how to display others objects and robs.
   if(display_others_in_blue){
     // Others rob and objects are displayed in blue. It will hide one entity even if the hiding rob or obj is not in the entities itself  
@@ -764,6 +772,15 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
   for(i=0; i<XYZ_ENV->nr; i++) {
     p3d_set_robot_display_mode(XYZ_ENV->robot[i], _p3d_rob_display_mode); 
   }
+
+
+  if(createIntermediateImages){
+    g3d_draw_win_back_buffer(win); 
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+    sprintf(name, "/%svisibilityview%i_blue.ppm", path, crntcnt++);
+    g3d_export_OpenGL_display(name);
+  }
+
 
   // display all the objects in a single image in the different colors of red
   for(i=0; i<objects_nb; i++) {
@@ -815,13 +832,13 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 
   if(numTooHighValuePixels > 0){
     if(numTooHighValuePixels*100>width*height){
-      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1% of pixels with too high values. Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
+      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too high values. Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
       succeeded = FALSE;
     }
   }
   if(numTooLowValuePixels > 0){
     if(numTooLowValuePixels*100>width*height){
-      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1% of pixels with too low  values. Number of wrong pixels with too low value is %d.  (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
+      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too low  values. Number of wrong pixels with too low value is %d.  (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
       succeeded = FALSE;
     }
   }
