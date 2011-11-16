@@ -592,11 +592,12 @@ int execute_Mightability_Map_functions()
       ////g3d_drawDisc(point_to_look[0], point_to_look[1], point_to_look[2], 0.1, 4, NULL);
 ////#if defined(WITH_XFORMS)
       if(MM_RECORD_MOVIE_FRAMES==1)
-	{
+	{printf(" MM_RECORD_MOVIE_FRAMES=1\n");
 	  AKP_record_movie_frames();
 	}
       if(AKP_RECORD_WINDOW_MOVEMENT==1)
 	{
+	  ////printf(" AKP_RECORD_WINDOW_MOVEMENT=1\n");
 	  AKP_record_movie_frames();
 	}
 ////#endif
@@ -894,17 +895,17 @@ int get_current_FOV_vertices(HRI_AGENT *agent, int camera_joint_index)
 ////#if defined(WITH_XFORMS)
 static int movie_count = 0;
 /* static int movie_count_real = 0; */
-static int image_rate = 1;
+static int image_rate = 2;
 static int image_compress = 100;
 
 
 int AKP_record_movie_frames()
-{
-  #if defined(WITH_XFORMS)
+{//printf(" Inside AKP_record_movie_frames\n");
+  //#if defined(WITH_XFORMS)
   char str[512];
   char file[64];
   int count;
-
+//printf(" Inside AKP_record_movie_frames 2 >>>\n");
   if((++movie_count)%image_rate == 0) {
     count = movie_count/image_rate;
     if(count < 10) sprintf(file,"0000%d.jpg",count);
@@ -917,7 +918,7 @@ int AKP_record_movie_frames()
   }
 
   return 1;
-  #endif
+  //#endif
 }
 ////#endif
 
@@ -7651,7 +7652,7 @@ int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_
    }
   }
   ////HRI_TASK_AGENT for_agent=JIDO_MA; //1 for human, 2 for HRP2, 3 for Jido
-    //////////printf("Inside update_3d_grid_reachability_for_JIDO_new()\n");
+   // printf("Inside update_3d_grid_reachability_for_agent_MM() for %d agent, for %d hand for state %d\n",for_agent, for_hand, for_state);
   point_co_ordi shoulder_pos;
   ////point_co_ordi sphere_pt;
       
@@ -7668,7 +7669,7 @@ int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_
     ////int for_hand=MA_RIGHT_HAND;//Although JIDO has only one arm, but just to comply with find_reachable_sphere_surface() function, we should always pass RIGHT_HAND
     no_sphere_surface_pts=0;
     int no_of_sph_surf_pts=find_reachable_sphere_surface(for_hand, for_agent);
-    
+   //// printf(" no_of_sph_surf_pts=%d\n",no_of_sph_surf_pts);
     double interval=grid_around_HRP2.GRID_SET->pace/1.5;
     for(int sp_ctr=0;sp_ctr<no_of_sph_surf_pts;sp_ctr++)
       {
@@ -7701,7 +7702,7 @@ int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_
 
 		    if(cell_z>=0&&cell_z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz)
 		      {
-			////printf(" Cell (%d, %d, %d) is reachabke by JIDO\n", cell_x,cell_y,cell_z);
+			////printf(" Cell (%d, %d, %d) is reachabke by agent: %d\n", cell_x,cell_y,cell_z, for_agent);
 			grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.reachable[for_agent][for_state][for_hand]=1;   
 		      }
 		  }
@@ -9779,20 +9780,26 @@ int virtually_update_non_primary_human_state(int state, int hum_index) //1 means
 
 int create_workspace_3D_grid(char *around_object)
 {
-  int HRP2_table_index;
-  HRP2_table_index=get_index_of_robot_by_name(around_object);
+  int around_object_index;
+  around_object_index=get_index_of_robot_by_name(around_object);
+  if(around_object_index<0)
+  {
+    printf(">>>>>> MA ERROR: The object %s around which the MM has to be created is not found \n",around_object);
+    return 0;
+  }
   ////////HRP2_table_index=get_index_of_robot_by_name("HRP2TABLE");
   ////HRP2_table_index=get_index_of_robot_by_name("IKEA_SHELF");
-  configPt HRP2_table_pos = MY_ALLOC(double,envPt_MM->robot[HRP2_table_index]->nb_dof); /* Allocation of temporary robot configuration */
+  configPt around_object_pos = MY_ALLOC(double,envPt_MM->robot[around_object_index]->nb_dof); /* Allocation of temporary robot configuration */
 
-  p3d_get_robot_config_into(envPt_MM->robot[HRP2_table_index],&HRP2_table_pos);
+  p3d_get_robot_config_into(envPt_MM->robot[around_object_index],&around_object_pos);
   point_co_ordi grid_center;
-  grid_center.x=HRP2_table_pos[6];
-  grid_center.y=HRP2_table_pos[7];
-  grid_center.z=HRP2_table_pos[8];
+  grid_center.x=around_object_pos[6];
+  grid_center.y=around_object_pos[7];
+  grid_center.z=around_object_pos[8];
 
   create_3d_grid_for_HRP2_GIK(grid_center);
-  MY_FREE(HRP2_table_pos,double,envPt_MM->robot[HRP2_table_index]->nb_dof);
+  MY_FREE(around_object_pos,double,envPt_MM->robot[around_object_index]->nb_dof);
+  return 1;
 }
 
 int find_human_current_visibility_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT agent_type)
@@ -10272,7 +10279,12 @@ int find_Mightability_Maps(char *around_object)
   int nr = envPt_MM->nr;
   ChronoOff();
   ChronoOn();
-  create_workspace_3D_grid(around_object);
+  int ws_res=create_workspace_3D_grid(around_object);
+  if(ws_res<=0)
+  {
+    return 0;
+  }
+    
   ChronoPrint("Time for creating and Initializing 3D grid");
   printf(" **** 3D grid dimension is (%d x %d x %d), no. of cells =%d \n",grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx*grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny*grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz);
 
