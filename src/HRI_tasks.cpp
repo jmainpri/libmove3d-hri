@@ -107,6 +107,8 @@ char SUPPORT_NAME_FOR_HUMAN_TO_PUT_OBJ[50];
 
 extern p3d_matrix4 WRIST_FRAME;
 extern p3d_matrix4 HEAD_FRAME;
+
+int AT_LEAST_1_GRASP_LIFT_FOUND=0;//Used to break the task planner for next effort level if the robot failed to find the path to pick the object at first effort level itself
 //TODO : Put in HRI_tasks_Proto.h
 
 int get_ranking_based_on_view_point(p3d_matrix4 view_frame,point_co_ordi point,p3d_rob *object, p3d_rob *human, std::list<gpPlacement> &placementList);
@@ -571,6 +573,13 @@ performing_agent_rank=0;//Slave
 
 find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
 
+if(curr_resultant_candidate_points->no_points<=0)
+{
+ printf(" HRI TASK Planner ERROR: No Candidate point to find the solution with current effort level \n");
+ AT_LEAST_1_GRASP_LIFT_FOUND=1; //To avoid prematured termination without testing for next effort level
+ 
+ return 0;
+}
 
 get_grasp_list_for_object(CURRENT_OBJECT_TO_MANIPULATE, grasps_for_object);
 
@@ -3354,7 +3363,7 @@ grasp_lift_info curr_grasp_lift_info;
 std::map<int, grasp_lift_info> grasp_id_info_map;
 
 int take_lift_traj_found_for_grasp[200];//0 : not tested, 1 : tested and found valid traj, -1: tested and failed to find a valid traj to grasp and lift
-int AT_LEAST_1_GRASP_LIFT_FOUND=0;//Used to break the task planner for next effort level if the robot failed to find the path to pick the object at first effort level itself
+
 
 int init_take_lift_traj_info()
 {
@@ -3521,7 +3530,7 @@ if(PLAN_IN_CARTESIAN == 1)
    int grasp_ctr=0;
    double orig_safety_dist=manipulation->getSafetyDistanceValue();
    
-   manipulation->setSafetyDistanceValue ( 0.0 );
+   manipulation->setSafetyDistanceValue ( 0.00 );
    printf(" >>>> Warning: For planning HRI task: Actual safety distance valus was %lf, which has been reset to %lf \n",orig_safety_dist, manipulation->getSafetyDistanceValue());
    
    p3d_rob* support_to_place=NULL;
@@ -3556,6 +3565,14 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
  for ( int i1=0;i1<curr_candidate_points->no_points;i1++ )
   {
                         printf ( ">>>> checking for place %d \n",i1);
+			
+			if(i1>=1&&AT_LEAST_1_GRASP_LIFT_FOUND==0)
+			{
+			  printf("AKP ERROR: In the first pass no grasp lift found so not testing for more points \n");
+			  
+			  break;
+			}
+			  
                         goal_pos.x=curr_candidate_points->point[i1].x;
                         goal_pos.y=curr_candidate_points->point[i1].y;
                         goal_pos.z=curr_candidate_points->point[i1].z+0.01;
@@ -3598,10 +3615,10 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                           }
                          }
                          
-                           
+                          
                          
             grasp_ctr=0;            
-	    
+   	    
    AT_LEAST_1_GRASP_LIFT_FOUND=0;
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
    {
@@ -3615,6 +3632,9 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 	continue; 
       }
       
+       //ADDED for precaution
+      manipulation->robot()->isCarryingObject =FALSE;
+      
       p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
       p3d_set_freeflyer_pose ( object, Tplacement0 );
       g3d_draw_allwin_active();
@@ -3627,6 +3647,10 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
       p3d_mat4Mult ( handFrame, manipulation->robot()->ccCntrts[armID]->Tatt2, tAtt );
 
       setMaxNumberOfTryForIK ( 3000 );
+      // it is reactivated in armPickGoTo, so we need to deactivate again:
+     
+      //ADDED for precaution
+      gpDeactivate_object_fingertips_collisions( manipulation->robot(), object->joints[1]->o, armHandProp, armID);
       
       ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
       gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
@@ -3729,14 +3753,16 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 		  }
 		
 		printf ( " ****** path found to grasp the object for grasp_ctr=%d,\n",grasp_ctr );
+		 g3d_draw_allwin_active();
+		 
 		p3d_set_freeflyer_pose ( object, Tplacement0 );
 		      
                 manipulation->getManipulationData().setAttachFrame(tAtt);
                 deactivateCcCntrts(manipulation->robot(), armID);
                 p3d_mat4Copy(Tplacement0, Tplacement);
-                Tplacement[2][3]+= 0.05;
+                Tplacement[2][3]+= 0.15;
                 p3d_set_freeflyer_pose ( object, Tplacement );
-                               
+                                g3d_draw_allwin_active();
 			       ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
                             gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
                            // it is reactivated in armPickGoTo, so we need to deactivate again:
@@ -3747,11 +3773,12 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 	 manipulation->checkConfigForCartesianMode(graspConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
 	 
-	   manipulation->robot()->isCarryingObject = TRUE;
-                                  (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
-				                                   g3d_draw_allwin_active();
+	   ////manipulation->robot()->isCarryingObject = TRUE;
+                                  ////(*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
+		
+				  g3d_draw_allwin_active();
 
-                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  false, false, armID, false );
 //                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
                                  g3d_draw_allwin_active();
                                if ( liftConf==NULL )
@@ -3765,6 +3792,9 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                                
                                AT_LEAST_1_GRASP_LIFT_FOUND=1;
                                printf(" LiftConf found\n");
+			       
+			        manipulation->robot()->isCarryingObject = TRUE;
+                                  (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
 			       
 			       //This test is to avoid the situations where robot should not make a big loop but it is doing so. Like between grasp and lift configs TODO: Do such tests between approach and open hand grasp configs also
                                  if (optimizeRedundentJointConfigDist(manipulation->robot(), (*manipulation->robot()->armManipulationData)[armID].getCcCntrt()->argu_i[0], liftConf, object->joints[1]->abs_pos, tAtt, graspConf, armID, manipulation->getManipulationConfigs().getOptimizeRedundentSteps()) == -1)
@@ -3800,6 +3830,7 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
       }       
       else
       {
+	AT_LEAST_1_GRASP_LIFT_FOUND=1;
       if(take_lift_traj_found_for_grasp[grasp_ctr]==1)//Already tested and found valid take traj and lift configs
        {
 	graspConf=grasp_id_info_map.find(igrasp->ID)->second.graspConf;
@@ -3926,6 +3957,9 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
    fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
+
+manipulation->robot()->isCarryingObject = FALSE;
+                                 
                             ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
                             gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
                            // it is reactivated in armPickGoTo, so we need to deactivate again:
@@ -3950,7 +3984,7 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                               p3d_set_freeflyer_pose ( object, Tplacement );
                               ////p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,Tfinal_placement);
-                              
+                               g3d_draw_allwin_active();
                               placeConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
@@ -3961,6 +3995,7 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                                continue;
                               }
 
+                              
                               ////g3d_draw_allwin_active();
                               if(placeConf!=NULL)
                               {
@@ -4052,8 +4087,8 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 	 manipulation->checkConfigForCartesianMode(graspConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
 	 
-	   manipulation->robot()->isCarryingObject = TRUE;
-                                  (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
+	  ///// manipulation->robot()->isCarryingObject = TRUE;
+            /////                      (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
                                 
                                  //// ManipulationUtils::copyConfigToFORM ( manipulation->robot(), liftConf );
                                   ////ManipulationUtils::copyConfigToFORM ( manipulation->robot(), placeConf );
@@ -4085,6 +4120,9 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                                    p3d_set_and_update_this_robot_conf ( object, obj_refConf );
 				    return 0;
 				  }
+				     manipulation->robot()->isCarryingObject = TRUE;
+                                  (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
+			    
                                   MANIPULATION_TASK_MESSAGE place_status = manipulation->armPickTakeToFree(armID, graspConf, placeConf, object, support, liftConf, *igrasp, place_trajs);
                                  
                                   if ( place_status==MANIPULATION_TASK_OK )
@@ -6543,25 +6581,40 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   
     find_solution_curr_res=find_current_HRI_manip_task_solution(curr_task, curr_task_to_validate.traj);
     
-    if(AT_LEAST_1_GRASP_LIFT_FOUND==0)
-    {
-     printf(" >>>> HRI Task Planner FAIL to pick the object \n");  
-     break;
-    }
+//     if(AT_LEAST_1_GRASP_LIFT_FOUND==0)
+//     {
+//      printf(" >>>> HRI Task Planner FAIL to pick the object \n");  
+//      break;
+//     }
   }
   
   if(find_solution_curr_res==0)
      {
    printf(" Fail to validate current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
    ////return 0;
-  cur_reach_effort++;
-  cur_vis_effort++;
+//   printf("Increasing the effort levels\n");
+//   cur_reach_effort++;
+//   cur_vis_effort++;
+   if(for_proactive_info!=1&&AT_LEAST_1_GRASP_LIFT_FOUND==0)//If no grasp lift found for current task then don't test with higher effort level 
+      {
+     printf(" >>>> HRI Task Planner FAIL to pick the object \n");  
+     break;
+      }
+     else
+      {
+        printf("Increasing the effort levels\n");
+        cur_reach_effort++;
+        cur_vis_effort++;
+      }
      }
      else
      {
        printf(" Found solution for current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
        break;
      }
+     
+     
+     
     }//End while
     
      if(find_solution_curr_res==0)
