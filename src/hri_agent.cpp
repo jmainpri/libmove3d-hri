@@ -9,6 +9,7 @@
 
 #include <../lightPlanner/proto/lightPlannerApi.h>
 #include <../lightPlanner/proto/ManipulationUtils.hpp>
+#include <../lightPlanner/proto/ManipulationArmData.hpp>
 
 // libhri public headers
 #include "hri.h"

@@ -898,7 +898,6 @@ static int movie_count = 0;
 static int image_rate = 2;
 static int image_compress = 100;
 
-
 int AKP_record_movie_frames()
 {//printf(" Inside AKP_record_movie_frames\n");
   //#if defined(WITH_XFORMS)
@@ -911,7 +910,9 @@ int AKP_record_movie_frames()
     if(count < 10) sprintf(file,"0000%d.jpg",count);
     else if(count < 100) sprintf(file,"000%d.jpg",count);
     else sprintf(file,"00%d.jpg",count);
-    sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    
+    // Next line is for xforms
+    //sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
     /*     sprintf(str,"/usr/local/imagetools/sparc-solaris/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file); */
     system(str);
     printf("**** AKP >>>> Recorded Frame %s \n",file);

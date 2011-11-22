@@ -30,7 +30,8 @@
 #include <../lightPlanner/proto/lightPlannerApi.h>
 #include <../lightPlanner/proto/ManipulationPlanner.hpp>
 #include <../lightPlanner/proto/ManipulationUtils.hpp>
-#include <../lightPlanner/proto/ManipulationStruct.h>
+#include <../lightPlanner/proto/ManipulationArmData.hpp>
+#include <../lightPlanner/proto/ManipulationStruct.hpp>
 #include <../lightPlanner/proto/robotPos.h>
 
 #include "hri.h"
@@ -818,12 +819,12 @@ printf("checking for place %d \n",i1);
         g3d_draw_allwin_active();
         for(int i=0; i<50; ++i)
         {
-          q = setRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
+          q = sampleRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
           if(q!=NULL) break;
         }
 	if(q==NULL) 
         {
-        printf("q==NULL after setRobotGraspPosWithoutBase()\n"); 
+        printf("q==NULL after sampleRobotGraspPosWithoutBase()\n"); 
         continue;
         }
         status= manipulation->armPlanTask(ARM_TAKE_TO_FREE,0,manipulation->robotStart(), q,  m_objStart, m_objGoto, (char*)obj_to_manipulate, (char*)"", confs, smTrajs);
@@ -994,7 +995,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         p3d_set_freeflyer_pose(object, T0);
         for(int i=0; i<1; ++i)
         {
-          //q = setRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
+          //q = sampleRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
          // message= manipulation->findArmGraspsConfigs(armID, object, grasp, configs);
           //if(q!=NULL) break;
         }
@@ -1006,7 +1007,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         }
 // 	if(q==NULL) 
 //         {
-//         printf("q==NULL after setRobotGraspPosWithoutBase()\n"); 
+//         printf("q==NULL after sampleRobotGraspPosWithoutBase()\n"); 
 //         continue;
 //         }
         m_objStart.resize(6);
@@ -1207,7 +1208,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         p3d_set_freeflyer_pose(object, T0);
         for(int i=0; i<1; ++i)
         {
-          //q = setRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
+          //q = sampleRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
          // message= manipulation->findArmGraspsConfigs(armID, object, grasp, configs);
           //if(q!=NULL) break;
         }
@@ -1219,7 +1220,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         }
 // 	if(q==NULL) 
 //         {
-//         printf("q==NULL after setRobotGraspPosWithoutBase()\n"); 
+//         printf("q==NULL after sampleRobotGraspPosWithoutBase()\n"); 
 //         continue;
 //         }
         m_objStart.resize(6);
@@ -1563,7 +1564,7 @@ if(PLAN_IN_CARTESIAN == 1)
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
          manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
          
 
@@ -1821,11 +1822,11 @@ printf(" Support name for placement =%s\n",envPt_MM->robot[curr_candidate_points
       for ( int i=0; i<5; ++i )
       {
 	
-	gpDeactivate_object_fingertips_collisions( manipulation->robot(), object->joints[1]->o, armHandProp, armID);
+          gpDeactivate_object_fingertips_collisions( manipulation->robot(), object->joints[1]->o, armHandProp, armID);
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
          manipulation->checkConfigForCartesianMode(refConf, object);
-	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+          gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
          
 
@@ -2137,7 +2138,7 @@ if(PLAN_IN_CARTESIAN == 1)
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
          manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
          
 
@@ -2440,7 +2441,7 @@ if(PLAN_IN_CARTESIAN == 1)
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
          manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
          
 
@@ -2702,7 +2703,7 @@ int support_index=-1;
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
 	 manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
 
 
@@ -2911,7 +2912,7 @@ int support_index=-1;
                               ////p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,Tfinal_placement);
                               
-                              placeConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                              placeConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
                               if(placeConf==NULL)
@@ -2990,8 +2991,8 @@ int support_index=-1;
 	   manipulation->robot()->isCarryingObject = TRUE;
                                   (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
 				  
-                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
-//                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
+                               liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+//                                liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
                                  g3d_draw_allwin_active();
                                if ( liftConf==NULL )
                                {
@@ -3660,7 +3661,7 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
         ////////// p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
 	 manipulation->checkConfigForCartesianMode(refConf, object);
 	 gpSet_grasp_configuration(manipulation->robot(), *igrasp, armID);
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
 
 
@@ -3778,8 +3779,8 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 		
 				  g3d_draw_allwin_active();
 
-                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  false, false, armID, false );
-//                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
+                               liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  false, false, armID, false );
+//                                liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
                                  g3d_draw_allwin_active();
                                if ( liftConf==NULL )
                                {
@@ -3985,7 +3986,7 @@ manipulation->robot()->isCarryingObject = FALSE;
                               ////p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,Tfinal_placement);
                                g3d_draw_allwin_active();
-                              placeConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                              placeConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
                               if(placeConf==NULL)
@@ -4054,8 +4055,8 @@ manipulation->robot()->isCarryingObject = FALSE;
 // 	   manipulation->robot()->isCarryingObject = TRUE;
 //                                   (*manipulation->robot()->armManipulationData)[armID].setCarriedObject(object);
 // 				  
-//                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
-// //                                liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
+//                                liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+// //                                liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, p3d_mat4IDENTITY,  0, 0, armID, false );
 //                                  g3d_draw_allwin_active();
 //                                if ( liftConf==NULL )
 //                                {
@@ -4391,7 +4392,7 @@ if(PLAN_IN_CARTESIAN == 1) {
       {
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
 
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
 
 
@@ -4526,7 +4527,7 @@ if(PLAN_IN_CARTESIAN == 1) {
                               p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,testFrame);
                               
-                              placeConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                              placeConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
                               if(placeConf==NULL)
@@ -4578,7 +4579,7 @@ if(PLAN_IN_CARTESIAN == 1) {
                                p3d_mat4Copy(Tplacement0, Tplacement);
                                Tplacement[2][3]+= 0.1;
                                p3d_set_freeflyer_pose ( object, Tplacement );
-                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                               liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                                
                                if ( liftConf==NULL )
                                {
@@ -4952,7 +4953,7 @@ if(PLAN_IN_CARTESIAN == 1) {
       {
          p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
 
-         graspConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
          //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
 
 
@@ -5089,7 +5090,7 @@ if(PLAN_IN_CARTESIAN == 1) {
                               p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,testFrame);
                               
-                              placeConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                              placeConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
                               if(placeConf==NULL)
@@ -5131,7 +5132,7 @@ if(PLAN_IN_CARTESIAN == 1) {
                                p3d_mat4Copy(Tplacement0, Tplacement);
                                Tplacement[2][3]+= 0.1;
                                p3d_set_freeflyer_pose ( object, Tplacement );
-                               liftConf= setRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+                               liftConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
                                
                                if ( liftConf ){
                                   ////p3d_set_and_update_this_robot_conf ( manipulation->robot(), liftConf );
@@ -5880,7 +5881,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         p3d_set_freeflyer_pose(object, T0);
         for(int i=0; i<1; ++i)
         {
-          //q = setRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
+          //q = sampleRobotGraspPosWithoutBase(manipulation->robot(), T, tAtt, FALSE, FALSE, armID, true);
          // message= manipulation->findArmGraspsConfigs(armID, object, grasp, configs);
           //if(q!=NULL) break;
         }
@@ -5892,7 +5893,7 @@ p3d_get_robot_config_into(envPt_MM->robot[obj_index],&obj_tmp_pos);
         }
 // 	if(q==NULL) 
 //         {
-//         printf("q==NULL after setRobotGraspPosWithoutBase()\n"); 
+//         printf("q==NULL after sampleRobotGraspPosWithoutBase()\n"); 
 //         continue;
 //         }
         m_objStart.resize(6);
@@ -6908,7 +6909,7 @@ int get_soft_motion_trajectories_for_plan_ID(int HRI_task_plan_id, std::vector <
 {
   p3d_traj* traj;
   SM_TRAJ smTraj;
-  smTraj.clear();
+  ////smTraj.clear();
   ////smTrajs.clear();
   
   for(int i=0;i<HRI_task_list.size();i++)
