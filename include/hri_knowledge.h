@@ -40,7 +40,7 @@ typedef enum ENUM_HRI_DETECTION {
   HRI_DETECTED = 1,
   HRI_EXPLAINED_UNDETECTION = 2,
   HRI_UNEXPLAINED_UNDETECTION_ITER = 3, 
-  HRI_UNEXPLAINED_UNDETECTION_MAX = 7
+  HRI_UNEXPLAINED_UNDETECTION_MAX = 4
 } HRI_DETECTION;
 
 //! @ingroup KNOWLEDGE
@@ -129,6 +129,9 @@ typedef struct STRUCT_HRI_ENTITIES {
   int needLooksatUpdate;
   int general_allow_disappear; /// flag to allow or forbid disappear management
   int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
+  int needToUpdateParameters; /// true if we need to update parameters used for situation assement
+  double hackedReachabilityDistance; /// hacked distance to compute reachability for human while GIK do not work for Herakles.
+  int maxUnexplainedUndetectionIter; /// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason.
 } HRI_ENTITIES;
 
 //! @ingroup KNOWLEDGE

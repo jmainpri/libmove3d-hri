@@ -4,8 +4,11 @@
 
 HRI_ENTITIES * GLOBAL_ENTITIES = NULL;
 
-int HRI_MAX_OBJECT_UNDETECTION = 7;
-
+// hacked value used to compute reachability for humans because we currently have problem to use exact GIK
+// for herakles. Work around could be to replace HERAKLES by ACHILE while doing the computation. :
+double HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE = 0.8;
+/// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason :
+int HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = 7;
 
 HRI_KNOWLEDGE * hri_create_empty_agent_knowledge(HRI_AGENT * hri_agent)
 {
@@ -46,6 +49,9 @@ HRI_ENTITIES * hri_create_entities()
   entities->needLooksatUpdate = FALSE;
   entities->general_allow_disappear = TRUE;
   entities->printVisibilityImages = FALSE;
+  entities->needToUpdateParameters = FALSE;
+  entities->hackedReachabilityDistance = 0.8;
+  entities->maxUnexplainedUndetectionIter = 7;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -419,7 +425,7 @@ HRI_REACHABILITY hri_is_reachable(HRI_ENTITY * object, HRI_AGENT *agent)
     // Very simple first draft. We only use distance. We should use Amit processing.
     //    
     if(agent->is_human){
-      if(distance < 0.8)
+      if(distance < HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE)
 	reachability =  HRI_REACHABLE;
       else
 	reachability =  HRI_UNREACHABLE;
@@ -1051,7 +1057,7 @@ void hri_display_agent_knowledge(HRI_AGENT * agent)
 
 // Function that decide and wethre an object should be 
 // 
-void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES * ents,int robotMyselfIndex , int hasDisappearFilterLength)
+void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES * ents,int robotMyselfIndex)
 { 
   int e_i;  
   HRI_AGENT * agent;
@@ -1109,10 +1115,10 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 		if( ents->entities[e_i]->visibility_percentage > visibility_percentage_threshold){
 	      
 		  // iter on unexplained detection
-		  if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter < hasDisappearFilterLength))
+		  if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter < HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE))
 		    ents->entities[e_i]->undetection_iter++;
 		  //  reach maximum number of unexplained detection
-		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter == hasDisappearFilterLength))
+		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_iter == HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE))
 		    ents->entities[e_i]->undetection_status = HRI_UNEXPLAINED_UNDETECTION_MAX;
 		  //  initialize iteration on maximum unexplained detection
 		  else if((ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_ITER) && (ents->entities[e_i]->undetection_status != HRI_UNEXPLAINED_UNDETECTION_MAX)){
@@ -1120,7 +1126,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 		    ents->entities[e_i]->undetection_iter = 0;
 		  }
 		  // Object has disappeared
-		  else if((ents->entities[e_i]->undetection_status == HRI_MAX_OBJECT_UNDETECTION )){
+		  else if((ents->entities[e_i]->undetection_status == HRI_UNEXPLAINED_UNDETECTION_MAX )){
 		    ents->entities[e_i]->disappeared = TRUE;
 		    ents->eventsInTheWorld = TRUE;
 		    ents->entities[e_i]->is_pl_state_transition_new = TRUE;
@@ -1352,6 +1358,13 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     return FALSE;
   }
 
+  // update parameters used for situation if needed. 
+  if(ents->needToUpdateParameters){
+    ents->needToUpdateParameters = FALSE;
+    HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE = ents->hackedReachabilityDistance;
+    HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = ents->maxUnexplainedUndetectionIter;        
+  }
+  
   // 
   //if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate){
 
