@@ -47,6 +47,7 @@
 #include "hri_agent.h"
 #include "hri_bitmap.h"
 #include "hri_kinect.h"
+#include "hri_monitoring.h"
 
 #include "hri_bitmap_proto.h"
 #include "hri_agent_proto.h"
@@ -54,6 +55,7 @@
 #include "hri_manip_proto.h"
 #include "hri_gik_proto.h"
 #include "hri_knowledge_proto.h"
+#include "hri_monitoring_proto.h"
 
 #include "hri_graphic_proto.h"
 

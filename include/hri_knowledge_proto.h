@@ -21,8 +21,4 @@ extern int hri_initialize_all_agents_knowledge(HRI_ENTITIES * entities, HRI_AGEN
 extern void hri_display_agent_knowledge(HRI_AGENT * agent);
 extern void hri_display_entities(HRI_ENTITIES * ents);
 
-extern HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax);
-extern int hriUpdateSphereInSpheres(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres ,int nbSphereMax,int monitorIndex,int activateSphere, char* agentName, int agentIndex, char* objectName,int entityIndex, double sphereCenterX, double sphereCenterY, double sphereCenterZ, double sphereRadius, double sphereRadiusMultiply, double sphereCenterTranslationMultiply,double filteringTimeThreshold, HRI_SPHERE_TYPE sphereType);
-extern int hriComputeSphereRadiusAndCenter(HRI_ENTITY *obj , HRI_ACTION_MONITORING_SPHERE * sphere,double sphereRadiusMultiply,double sphereCenterTranslationMultiply);
-extern int hriGetSpherePositionAndSize(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERE * sphere,double sphereRadiusMultiply,double sphereCenterTranslationMultiply);
-extern int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORING_SPHERES * spheres,int nbMaxSpheres, int nbIterBeforeMonitorTest);
+
