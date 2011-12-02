@@ -44,6 +44,8 @@ HRI_ENTITIES * hri_create_entities()
   entities->eventsInTheWorld = FALSE;
   entities->lastEventsInTheWorldStep = 4; //TODO use a constant
   entities->isWorldStatic = TRUE;
+  entities->maxWorldNotStaticBeforeRecompute = 50;
+  entities->numSuccessiveWorldNotStaticSinceLastRecompute = 0;
   entities->forbidWorldStatic = FALSE; /* allow to forbid go back to isWorldStatic = TRUE to inhibit situation assessment processing */
   entities->needSituationAssessmentUpdate = FALSE;
   entities->needLooksatUpdate = FALSE;
@@ -1352,6 +1354,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   HRI_SPATIAL_RELATION left_right_result; 
   HRI_SPATIAL_RELATION front_behind_result; 
   HRI_PLACEMENT_RELATION placement_relation_result;
+  int forceRecomputation = FALSE;
 
   if(agents == NULL || ents == NULL) {
     printf("Not Initialized\n");
@@ -1365,6 +1368,16 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = ents->maxUnexplainedUndetectionIter;        
   }
   
+  // force recomputation if world not static during a long time
+  if(!ents->isWorldStatic){
+    if(ents->numSuccessiveWorldNotStaticSinceLastRecompute > ents->maxWorldNotStaticBeforeRecompute){
+      ents->numSuccessiveWorldNotStaticSinceLastRecompute = 0;
+      forceRecomputation = TRUE;
+    }
+    else
+      ents->numSuccessiveWorldNotStaticSinceLastRecompute++;
+  }
+
   // 
   //if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate){
 
@@ -1397,7 +1410,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
       }
     }
 
-    if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
+    if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
 
       g3d_compute_visibility_for_given_entities(present_ents, agent, vis_result, present_ents_nb); 
 
@@ -1543,7 +1556,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	  kn_on_ent->is_pointed_at = HRI_FALSE_V;
       }
 	  
-      if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
+      if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
 	// REACHABILITY - REACHABLE, UNREACHABLE, HARDLY REACHABLE
 	// TODO: Fix this global variable use. It's ugly.     
 	// To simplify we do not compute reachability on agent or agent parts
@@ -1565,7 +1578,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	}
       }
 
-      if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
+      if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
 	// SPATIAL RELATION      
 	if( ent->type != HRI_AGENT_PART) {
 	  if(ent->disappeared){
@@ -1648,7 +1661,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   if(ents->eventsInTheWorld)
     ents->eventsInTheWorld = FALSE;
 
-  if(ents->needSituationAssessmentUpdate && ents->isWorldStatic)
+  if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation))
     ents->needSituationAssessmentUpdate = FALSE;
   if(ents->needLooksatUpdate)
     ents->needLooksatUpdate = FALSE;
