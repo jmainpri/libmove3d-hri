@@ -124,6 +124,9 @@ typedef struct STRUCT_HRI_ENTITIES {
   int eventsInTheWorld;
   int lastEventsInTheWorldStep;
   int isWorldStatic;
+  int maxWorldNotStaticBeforeRecompute; // number of maximum step with world not static before to force recoompute
+  int numSuccessiveWorldNotStaticSinceLastRecompute; // number of step with world not static since last recoomputation
+
   int forbidWorldStatic;
   int needSituationAssessmentUpdate;
   int needLooksatUpdate;
