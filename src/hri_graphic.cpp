@@ -28,10 +28,11 @@ void g3d_hri_main()
 	  //g3d_hri_draw_kinect_state();
 	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
 
-//AKP: Function to display reachability, visibility of the object
+
+#ifdef USE_MIGHTABILITY_MAPS
+ //AKP: Function to display reachability, visibility of the object
           show_object_facts();
 	  
-#ifdef USE_MIGHTABILITY_MAPS
 if(MA_ASA_WITHOUT_SPARK==1)
  {
 		  ////printf("Inside g3d_draw_env_custom() \n");
