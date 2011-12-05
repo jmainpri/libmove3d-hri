@@ -23600,7 +23600,7 @@ int init_object_facts_data()
 int show_object_facts()
 {
   p3d_env *envPt = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
-  printf(" Inside show_object_facts()\n");
+  ////printf(" Inside show_object_facts()\n");
   int i=0;
   double x,y,z;
   double radius=0.015;
@@ -24057,9 +24057,11 @@ glMultMatrixf(matGL);
 
     for(int j=0; j<envPt_MM->robot[indices_of_MA_agents[for_agent]]->o[i]->np; j++)
     {
-     
+     if(envPt_MM->robot[indices_of_MA_agents[for_agent]]->o[i]->pol[j]->TYPE != P3D_GHOST)
+     {
      
     g3d_draw_p3d_polyhedre(envPt_MM->robot[indices_of_MA_agents[for_agent]]->o[i]->pol[j]->poly);
+     }
     }
   }
   glPopMatrix();
