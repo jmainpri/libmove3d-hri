@@ -132,9 +132,12 @@ typedef struct STRUCT_HRI_ENTITIES {
   int needLooksatUpdate;
   int general_allow_disappear; /// flag to allow or forbid disappear management
   int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
+  int printSARecomputeStatus; /// flag to print info about SA recomputation Status.
   int needToUpdateParameters; /// true if we need to update parameters used for situation assement
+  int numParameterToUpdate; /// 0 for hackedReachabilityDistance / 1 for maxUnexplainedUndetectionIter / 2 isOnThreshold. 
   double hackedReachabilityDistance; /// hacked distance to compute reachability for human while GIK do not work for Herakles.
   int maxUnexplainedUndetectionIter; /// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason.
+  double isOnThreshold; /// max allowed threshold between min "isOn candidate" object height value and max furniture height value.
 } HRI_ENTITIES;
 
 //! @ingroup KNOWLEDGE

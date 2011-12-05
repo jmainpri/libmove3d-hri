@@ -4,11 +4,17 @@
 
 HRI_ENTITIES * GLOBAL_ENTITIES = NULL;
 
+
+
 // hacked value used to compute reachability for humans because we currently have problem to use exact GIK
 // for herakles. Work around could be to replace HERAKLES by ACHILE while doing the computation. :
 double HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE = 0.8;
 /// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason :
 int HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = 7;
+
+// to change threshold that will decide wether object is on furniture to account
+// for localization issues
+double HRI_KNOWLEDGE_IS_ON_MAX_DIST = 0.05;
 
 HRI_KNOWLEDGE * hri_create_empty_agent_knowledge(HRI_AGENT * hri_agent)
 {
@@ -51,9 +57,12 @@ HRI_ENTITIES * hri_create_entities()
   entities->needLooksatUpdate = FALSE;
   entities->general_allow_disappear = TRUE;
   entities->printVisibilityImages = FALSE;
+  entities->printSARecomputeStatus = FALSE;
   entities->needToUpdateParameters = FALSE;
+  entities->numParameterToUpdate = 0;
   entities->hackedReachabilityDistance = 0.8;
   entities->maxUnexplainedUndetectionIter = 7;
+  entities->isOnThreshold = 0.05;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -1328,10 +1337,6 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
      }
 }
 
- 
-    
-
-
 
 // Function computing geometric facts between agents and objects
 // Each agent has its own view of the environment.
@@ -1364,8 +1369,14 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   // update parameters used for situation if needed. 
   if(ents->needToUpdateParameters){
     ents->needToUpdateParameters = FALSE;
-    HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE = ents->hackedReachabilityDistance;
-    HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = ents->maxUnexplainedUndetectionIter;        
+    if(ents->numParameterToUpdate == 0)
+      HRI_KNOWLEDGE_HUMAN_REACHABILITY_DISTANCE = ents->hackedReachabilityDistance;
+    else if(ents->numParameterToUpdate == 1)
+    HRI_KNOWLEDGE_MAX_UNEXPLAINED_DETECTION_VALUE = ents->maxUnexplainedUndetectionIter;      
+    else if(ents->numParameterToUpdate == 2)
+      HRI_KNOWLEDGE_IS_ON_MAX_DIST = ents->isOnThreshold;
+    else
+      printf("Unmanaged value for numParameterToUpdate : %d\n",ents->numParameterToUpdate );
   }
   
   // force recomputation if world not static during a long time
@@ -1377,7 +1388,13 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     else
       ents->numSuccessiveWorldNotStaticSinceLastRecompute++;
   }
+  else
+    ents->numSuccessiveWorldNotStaticSinceLastRecompute = 0;
 
+  // Print to inform about recomputation status.
+  if(ents->printSARecomputeStatus)
+    printf("needSituationAssessmentUpdate : %d ; EventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ; ; ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
+  
   // 
   //if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate){
 
