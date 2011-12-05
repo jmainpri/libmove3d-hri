@@ -10,19 +10,24 @@
 
 
 #define MM_SHOW_DEBUG_MODE_BUTTONS
-///#define HUMAN2_EXISTS_FOR_MA
+
 #define HUMAN1_EXISTS_FOR_MA
+//#define HUMAN2_EXISTS_FOR_MA
 //#define JIDO_EXISTS_FOR_MA
 #define PR2_EXISTS_FOR_MA
 //#define USE_HH_LEARNING
 ////#define USE_SYM_GEO_PLAN
 
+#define MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV 100
 #define COMMENT_TMP
 
 //Set operators on Mightability Maps
 #define MM_SET_OPR_NONE 0
 #define MM_SET_OPR_OR 1
 #define MM_SET_OPR_AND 2
+#include <boost/concept_check.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/graph/graph_concepts.hpp>
 
 extern p3d_vector3 to_reach_target;
 extern struct grid_3D grid_around_HRP2;
@@ -38,8 +43,7 @@ extern int CANDIDATE_POINTS_FOR_TASK_FOUND;
 extern p3d_vector3 point_to_look;
 
 #define MAX_CANDIDATE_POINT_FOR_TASK 15000
-#define MAX_POS_STATE_OF_AGENT_MM 15
-
+#define MAX_POS_STATE_OF_AGENT_MM 20
 
 // AKP : structure to store x-y co ordinates of point
 typedef struct point_co_ordi
@@ -655,7 +659,7 @@ grid_3D()
 typedef struct candidate_poins_for_task{
 point_co_ordi point[MAX_CANDIDATE_POINT_FOR_TASK];
 double weight[MAX_CANDIDATE_POINT_FOR_TASK];
-int status[MAX_CANDIDATE_POINT_FOR_TASK]; //0 is not tested for validity, 1 is accepted, 2 is rejected, 3 is found a valid solution for that individual task, but rejected when next task fails, i.e. rejected for the case of backtracking 
+int status[MAX_CANDIDATE_POINT_FOR_TASK]; //0 is not tested for validity, 1 is accepted, 2 is rejected, 3 is found a valid solution for that individual task, but rejected when next task fails, i.e. rejected for the case of backtracking, 5 is tested and failed for the same task may be with lower effort level 
 int curr_solution_point_index;//It will store the index by which the current solution for the task can be accessed directly from the array point.
 int horizontal_surface_of[MAX_CANDIDATE_POINT_FOR_TASK];//To store the index of the object, horizontal surface of which belongs to the candidate point. 
 int no_points; 
@@ -995,10 +999,14 @@ typedef enum MA_transition_vis_effort_type
 {
  MA_NO_VIS_EFFORT=0,
  MA_HEAD_EFFORT,
- MA_HEAD_TORSO_EFFORT,
- MA_WHOLE_BODY_CURR_POS_EFFORT_VIS,
+ MA_HEAD_TORSO_EFFORT,// for PR2 it will correspond to turn around
+ MA_WHOLE_BODY_CURR_POS_EFFORT_VIS, // for PR2 it will correspond to switch the posture between high and low 
  MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS,
+ 
+  //NOTE:Define any other level here and don't forget to add them in the mapping list in init_effort_name_ID_map_for_human
+ 
  MA_NO_POSSIBLE_VIS_EFFORT,
+ 
  
  MA_MAXI_NUM_TRANS_VIS_EFFORTS
   
@@ -1008,10 +1016,14 @@ typedef enum MA_transition_reach_effort_type
 {
  MA_NO_REACH_EFFORT=0,
  MA_ARM_EFFORT,
- MA_ARM_TORSO_EFFORT,
- MA_WHOLE_BODY_CURR_POS_EFFORT_REACH,
+ MA_ARM_TORSO_EFFORT,// for PR2 it will correspond to turn around
+ MA_WHOLE_BODY_CURR_POS_EFFORT_REACH, // for PR2 it will correspond to switch the posture between high and low 
  MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH,
+ 
+ //NOTE:Define any other level here and don't forget to add them in the mapping list in init_effort_name_ID_map_for_human
+ 
  MA_NO_POSSIBLE_REACH_EFFORT,
+ 
  
  MA_MAXI_NUM_TRANS_REACH_EFFORT
   
@@ -1049,5 +1061,49 @@ typedef struct analysis_type_effort_level_group
  int analysis_types[50];
   
 }analysis_type_effort_level_group;
+
+typedef struct agent_ability_effort_tuple
+{
+  int agent;//Should be the element of HRI_TASK_AGENT
+  int ability_type;//should be the element of ability_type_for_effort_level
+  int effort_level;//should be the element of MA_transition_reach_effort_type or MA_transition_vis_effort_type 
+  int by_hand;//In the case the ability type is REACH_ABILITY. Should be the element of MA_agent_hand_name
+  
+}agent_ability_effort_tuple;
+
+typedef struct agent_ability_effort_set
+{
+  agent_ability_effort_tuple element[100];
+  int num_elements;
+  
+}agent_ability_effort_set;
+
+typedef struct show_taskability_params
+{
+ int show_all_taskability_graph;
+ int show_all_manipulability_graph;
+ 
+ int show_taskability_node;
+ int show_TN_edge;
+ int show_TN_candidates;
+ 
+ int show_TN_by_node_ID;
+ int TN_ID;
+ 
+ int show_TN_by_agent;
+ int TN_perf_ag;
+ int TN_targ_ag;
+ int TN_task;
+ 
+ int show_manipulability_node;
+ int show_MN_by_node_ID;
+ int MN_ID;
+ 
+ int show_MN_by_agent;
+ int MN_perf_ag;
+ int MN_targ_obj;
+ 
+}show_taskability_params;
+
 
 #endif

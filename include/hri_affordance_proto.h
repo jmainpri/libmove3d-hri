@@ -206,9 +206,38 @@ extern int JIDO_find_solution_to_take_new(char *obj_to_manipulate, HRI_TASK_TYPE
 extern int JIDO_find_solution_to_take_new2(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int JIDO_find_solution_to_take_new3(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
-extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, traj_for_HRI_task &res_trajs);
+extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, int filter_contact_polygon_inside_support, traj_for_HRI_task &res_trajs);
 extern int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list);
 extern int print_this_string_list(std::vector<std::string> &str_list);
 extern int get_clean_the_table_plan(char *Table_name);
+extern int update_effort_levels_for_HRI_Tasks(HRI_task_desc &curr_task, int effort_for, int desired_reach_effort, int desired_vis_effort);//effort_for=1 means for target agent, 2 means for performing agent
+extern int show_object_facts();
+extern int init_object_facts_data();
+extern int get_effort_based_object_facts(int for_agent, int for_effort_level, int for_ability_type);
+extern int show_agent_ability_effort_points();
+extern int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff);
+extern int find_taskability_link_between_two_agents_for_task(HRI_task_desc curr_task, taskability_node &res_node );
+extern int find_taskability_graph();
+extern int print_taskability_graph();
+extern void AKP_rgb_from_hue2(double x, double color[4]);
+extern int show_all_taskability_graph(int show_edge, int show_candidates);
+extern int show_this_taskability_node(int node_id, int show_edge, int show_candidates);
+extern void g3d_draw_arrow_with_width(p3d_vector3 p1, p3d_vector3 p2, double line_width, double Cone_height, double red, double green, double blue);
+extern void g3d_draw_text_at(char* string, double x_shift, double y_shift, double r, double g, double b);
+extern int init_currently_supported_tasks();
+extern int find_agent_object_affordance(HRI_task_desc curr_task, taskability_node &res_node );
+extern int get_maximum_possible_lean_angle_for_agent(HRI_TASK_AGENT for_agent, double &res_lean_forward_ang);
+extern int find_manipulability_graph();
+extern int init_grasp_exists_for_object();
+extern int update_analysis_type_effort_level_group(int agent, int agent_posture);
+extern int print_manipulability_graph();
+extern int show_all_manipulability_graph();
+extern int show_taskabilities(show_taskability_params &curr_params );
+extern int show_Ag_Ag_taskability_node(int performing_agent, int target_agent, int task, int show_edge, int show_candidates);
+extern int show_Ag_Obj_manipulability_node(int performing_agent, int target_object);
+extern int show_this_manipulability_node(int node_id);
+extern int print_this_taskability_params(show_taskability_params &curr_params );
+extern int show_agent_state_configs(int for_agent, int for_ability_type, int for_state) ;
+
 #endif /* __CEXTRACT__ */
 
