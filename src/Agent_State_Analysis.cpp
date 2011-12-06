@@ -855,7 +855,7 @@ extern int NEED_CURRENT_VISIBILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern int NEED_ALL_VISIBILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern int NEED_ALL_REACHABILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 extern int NEED_CURRENT_REACHABILITY_UPDATE_AGENT[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
-extern robots_status robots_status_for_Mightability_Maps[100];
+extern robots_status robots_status_for_Mightability_Maps[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV];
 
 int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 {
@@ -943,7 +943,10 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   ////double elapsedTime= ( curr_config.clock-prev_config.clock ) /CLOCKS_PER_SEC;
   ////double elapsedTime=difftime(curr_config.at_time,prev_config.at_time);
   long int mtime, seconds, useconds;
-
+//printf(" >>**>> prev_config.diff_prev_config.agent_whole_body_has_turned=%d\n",prev_config.diff_prev_config.agent_whole_body_has_turned);
+  //printf(" >>>> prev_config.diff_prev_config.agent_torso_has_turned=%d\n",prev_config.diff_prev_config.agent_torso_has_turned);
+ //// printf(" prev_config.diff_prev_config.agent_torso_has_turned=%d\n",prev_config.diff_prev_config.agent_torso_has_turned);
+  
   seconds  = curr_config.at_time.tv_sec  - prev_config.at_time.tv_sec;
   useconds = curr_config.at_time.tv_usec - prev_config.at_time.tv_usec;
   ////////printf(" curr_config.at_time.tv_sec = %ld, prev_config.at_time.tv_sec =%ld\n",curr_config.at_time.tv_sec,prev_config.at_time.tv_sec);
@@ -1076,7 +1079,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
    
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_whole_body_orient_tolerance];
    
-  curr_config.diff_prev_config.agent_whole_body_has_turned=0;
+  
   Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_DID_NOT_TURN;
   
   if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||
@@ -1084,7 +1087,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
      fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
     {
       curr_config.diff_prev_config.agent_whole_body_has_turned=1;
-      //////printf(">>>>>> Human whole body has turned \n");
+     //// printf(">>>>>> Human whole body has turned \n");
       Ag_Activity_Fact[for_agent].whole_body_turn=AGENT_WHOLE_BODY_HAS_TURNED;
     
       ////NEED_ALL_VISIBILITY_UPDATE_AGENT[for_agent]=1;
@@ -1092,6 +1095,10 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
       ////NEED_ALL_REACHABILITY_UPDATE_AGENT[for_agent]=1;
       NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;
       robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+    }
+    else
+    {
+      curr_config.diff_prev_config.agent_whole_body_has_turned=0;
     }
   
   curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_whole_body_is_turning];
@@ -1148,6 +1155,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
      
 	  ////}
 	  NEED_ALL_REACHABILITY_UPDATE_AGENT[for_agent]=1;
+	////  printf(" First time agent detected to be not turning \n");
 	  robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
 	}
     
@@ -1161,7 +1169,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   Q_index_yaw=agents_for_ASA[for_agent].Q_indx.torso_Q_yaw;
   Q_index_pitch=agents_for_ASA[for_agent].Q_indx.torso_Q_pitch;
   Q_index_roll=agents_for_ASA[for_agent].Q_indx.torso_Q_roll;
-    
+  
+   
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_torso_orient_tolerance];
     
   if(fabs(curr_config.config[Q_index_yaw]-prev_config.config[Q_index_yaw])>=curr_threshold||
@@ -1169,12 +1178,16 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
      fabs(curr_config.config[Q_index_roll]-prev_config.config[Q_index_roll])>=curr_threshold)
     {
       curr_config.diff_prev_config.agent_torso_has_turned=1;
-      ///////printf(">>>>>>>> Human torso has turned \n");
+    ////  printf(">>>>>>>> Human torso has turned \n");
 	Ag_Activity_Fact[for_agent].torso=AGENT_TORSO_HAS_TURNED;
     
 	NEED_CURRENT_VISIBILITY_UPDATE_AGENT[for_agent]=1;
 	NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;
 	robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
+    }
+    else
+    {
+       curr_config.diff_prev_config.agent_torso_has_turned=0;
     }
   
   
@@ -1196,7 +1209,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
       if(prev_config.diff_prev_config.agent_torso_has_turned==1)
 	{
 	  curr_config.conti_diff_info.agent_torso_has_turned_conti_for_period=
-	    prev_config.conti_diff_info.agent_torso_has_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+	  prev_config.conti_diff_info.agent_torso_has_turned_conti_for_period + curr_config.time_diff_from_prev_config;
 	}
       else
 	{
@@ -1218,8 +1231,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
       curr_min_time_period=agents_for_ASA[for_agent].ASA_threshold[ASA_min_period_for_agent_torso_is_not_turning];
       if(prev_config.diff_prev_config.agent_torso_has_turned==0)
 	{
-	  curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period=
-	    prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period+curr_config.time_diff_from_prev_config;
+	  curr_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period= prev_config.conti_diff_info.agent_torso_has_not_turned_conti_for_period + curr_config.time_diff_from_prev_config;
 	}
       else
 	{
@@ -1232,7 +1244,8 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
 	  ////    NEED_ALL_REACHABILITY_UPDATE_AGENT[i];
      
 	  ////}
-	  NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;//As only the torso has turned
+	////  printf(" First time the agent's torso is NOT turning\n");
+	  NEED_CURRENT_REACHABILITY_UPDATE_AGENT[for_agent]=1;//As only the torso has NOT turned
 	  robots_status_for_Mightability_Maps[indices_of_MA_agents[for_agent]].has_moved=1;
 	}
     
@@ -1250,6 +1263,7 @@ int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent )
   Q_index_pitch=agents_for_ASA[for_agent].Q_indx.head_Q_pitch;
   Q_index_roll=agents_for_ASA[for_agent].Q_indx.head_Q_roll;
     
+  
   curr_threshold=agents_for_ASA[for_agent].ASA_threshold[ASA_agents_head_orient_tolerance];
    
   

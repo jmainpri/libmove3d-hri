@@ -24,9 +24,10 @@ MAKE_OBJECT_ACCESSIBLE=0,
 SHOW_OBJECT,
 GIVE_OBJECT,
 HIDE_OBJECT,
+TAKE_OBJECT,
 PUT_AWAY_OBJECT,
 HIDE_AWAY_OBJECT,
-MAKE_SPACE_FREE_OF_OBJECT_OBJ,
+MAKE_SPACE_FREE_OF_OBJECT,
 PUT_INTO_OBJECT,
 REACH_TO_POINT,
 //NOTE: Don't forget to add any new task in init_HRI_task_name_ID_map() also
@@ -134,5 +135,22 @@ typedef struct grasp_lift_info
   configPt liftConf;
   
 }grasp_lift_info;
+
+typedef struct taskability_node
+{
+  int performing_agent;
+  int target_agent;
+  int target_object;//index of target obj in envPt
+  int task;
+  int performing_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  int target_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  candidate_poins_for_task *candidate_points;
+  
+  int node_id;// It should be unique
+  char desc[200];
+}taskability_node;
+
+
+
 
 #endif

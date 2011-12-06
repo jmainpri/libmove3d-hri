@@ -95,7 +95,7 @@ extern HRI_ENTITIES * GLOBAL_ENTITIES;
 extern int SHOW_MM_BASED_OBJECT_REACHABLE;
 extern int SHOW_MM_BASED_OBJECT_VISIBLE;
 extern hri_bitmapset * ACBTSET;
-extern robots_status robots_status_for_Mightability_Maps[100];
+extern robots_status robots_status_for_Mightability_Maps[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV];
 extern HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;
 extern char CURRENT_OBJECT_TO_MANIPULATE[50];
 #endif

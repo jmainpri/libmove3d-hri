@@ -42,6 +42,14 @@
 #include "hri_bitmap/hri_bitmap_bin_heap.h"
 #include "HRI_tasks.h"
 #include "Mightability_Analysis.h"
+#include <boost/graph/graph_concepts.hpp>
+#include <boost/graph/graph_concepts.hpp>
+#include <hri_affordance_include_proto.h>
+#include <boost/graph/graph_concepts.hpp>
+#include <boost/graph/graph_concepts.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/graph/graph_concepts.hpp>
+#include <QtCore/qshareddata.h>
 
 using namespace std;
 HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;
@@ -93,6 +101,8 @@ int CURRENT_HRI_TASK_PLAN_ID_TO_SHOW;
 int INDEX_CURRENT_HRI_TASK_SUB_PLAN_TO_SHOW;
 int SHOW_HRI_TASK_TRAJ_TYPE;
 int SHOW_HRI_PLAN_TYPE;
+////int CURRENT_TASKABILITY_NODE_ID_TO_SHOW;
+////int CURRENT_MANIPULABILITY_NODE_ID_TO_SHOW;
 
 int JIDO_HAND_TYPE=1;//1 for gripper, 2 for SAHAND
 
@@ -110,7 +120,31 @@ extern p3d_matrix4 WRIST_FRAME;
 extern p3d_matrix4 HEAD_FRAME;
 
 int AT_LEAST_1_GRASP_LIFT_FOUND=0;//Used to break the task planner for next effort level if the robot failed to find the path to pick the object at first effort level itself
-//TODO : Put in HRI_tasks_Proto.h
+extern int SHOW_HOW_TO_PLACE_AT;
+extern point_co_ordi TO_SHOW_PLACEMENT_POINT;
+int cells_tested_for_current_task[100][100][100];//TODO Allocate memory dynamically based upon the actual dimension of the 3D grid
+
+int TASK_CURRENTLY_SUPPORTED[MAXI_NUM_OF_HRI_TASKS]; //To keep track of tasks which have been fully implemented
+
+extern analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][50];//3rd index will be synchronized with the enum of the corresponding effort levels
+
+// Will be used at various places to check the manipulability of an object by the agent
+// NOTE: Don't forget to add any new object for which the grasp has been calculated or the grasp file exists and increse the NUM_VALID_GRASPABLE_OBJ value
+char MANIPULABLE_OBJECTS[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][50]={"LOTR_TAPE","GREY_K7","GREY_TAPE","SURPRISE_BOX","TOYCUBE_WOOD"};
+int NUM_VALID_GRASPABLE_OBJ=5;
+
+int GRASP_EXISTS_FOR_OBJECT[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV];
+
+extern int HRP2_CURRENT_STATE;
+extern int HUMAN1_CURRENT_STATE_MM;
+#ifdef HUMAN2_EXISTS_FOR_MA
+extern int HUMAN2_CURRENT_STATE_MM;//HRI_STANDING;
+#endif
+#ifdef PR2_EXISTS_FOR_MA
+extern int PR2_CURRENT_POSTURE;
+#endif
+
+//TODO : Put below in HRI_tasks_Proto.h
 
 int get_ranking_based_on_view_point(p3d_matrix4 view_frame,point_co_ordi point,p3d_rob *object, p3d_rob *human, std::list<gpPlacement> &placementList);
 int get_placements_at_position(p3d_rob *object, point_co_ordi point, std::list<gpPlacement> placementList, int no_rot, std::list<gpPlacement> &placementListOut);
@@ -147,7 +181,7 @@ int set_current_HRI_manipulation_task(int arg)
  CURRENT_HRI_MANIPULATION_TASK=HIDE_AWAY_OBJECT;
  break;
  case 6:
- CURRENT_HRI_MANIPULATION_TASK=MAKE_SPACE_FREE_OF_OBJECT_OBJ;
+ CURRENT_HRI_MANIPULATION_TASK=MAKE_SPACE_FREE_OF_OBJECT;
  break;
  case 7:
  CURRENT_HRI_MANIPULATION_TASK=PUT_INTO_OBJECT;
@@ -327,7 +361,8 @@ show_candidate_points_for_current_task(show_weight_by_color,show_weight_by_lengt
 
 int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipulate, HRI_TASK_AGENT performed_by,  HRI_TASK_AGENT performed_for, int performing_agent_rank, candidate_poins_for_task *curr_resultant_candidate_points, int consider_object_dimension)
 {
-  int obj_index=get_index_of_robot_by_name ( obj_to_manipulate );
+  
+  ////int obj_index=get_index_of_robot_by_name ( obj_to_manipulate );
     
       ////find_candidate_points_for_current_HRI_task(CURR_TASK,  for_agent, JIDO_MA,curr_resultant_candidate_points);
    ////if(CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS==0)
@@ -572,16 +607,59 @@ performing_agent_rank=1;//Master
 else
 performing_agent_rank=0;//Slave
 
+if(CURRENT_HRI_MANIPULATION_TASK==HIDE_OBJECT)
+{
+CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS=1;//to avoid trying to hide behind the target object itself
+  
+}
+
 find_HRI_task_candidate_points(CURRENT_HRI_MANIPULATION_TASK,CURRENT_OBJECT_TO_MANIPULATE,CURRENT_TASK_PERFORMED_BY,CURRENT_TASK_PERFORMED_FOR,performing_agent_rank,curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
 
 if(curr_resultant_candidate_points->no_points<=0)
 {
  printf(" HRI TASK Planner ERROR: No Candidate point to find the solution with current effort level \n");
  AT_LEAST_1_GRASP_LIFT_FOUND=1; //To avoid prematured termination without testing for next effort level
- 
+  MY_FREE(curr_resultant_candidate_points, candidate_poins_for_task,1);
  return 0;
 }
 
+//*** To check if the cell has already been tested in the previous call of the function, may be with lower effort level
+
+for(int i=0;i<curr_resultant_candidate_points->no_points;i++)
+{
+   int cell_x=(curr_resultant_candidate_points->point[i].x- grid_around_HRP2.GRID_SET->realx)/grid_around_HRP2.GRID_SET->pace;  
+
+
+	  if(cell_x>=0&&cell_x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx)
+	    {
+      
+ 
+	     int cell_y=(curr_resultant_candidate_points->point[i].y- grid_around_HRP2.GRID_SET->realy)/grid_around_HRP2.GRID_SET->pace; 
+      
+	      if(cell_y>=0&&cell_y<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny)
+		{
+		 int cell_z=(curr_resultant_candidate_points->point[i].z- grid_around_HRP2.GRID_SET->realz)/grid_around_HRP2.GRID_SET->pace; 
+ 
+		  if(cell_z>=0&&cell_z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz)
+		    {
+		      ////curr_cell=
+		      ////curr_cell->x=cell_x;
+		      ////curr_cell->y=cell_y;
+		      ////curr_cell->z=cell_z;
+		     if(cells_tested_for_current_task[cell_x][cell_y][cell_z]==1)
+	      {
+		curr_resultant_candidate_points->status[i]=5;//already tested and failed for the same task
+	      }
+		    } 
+		}
+	    }
+
+	
+
+}
+			
+//**** END To check if the cell has already been tested 
+			
 get_grasp_list_for_object(CURRENT_OBJECT_TO_MANIPULATE, grasps_for_object);
 
 candidate_grasps_for_task=grasps_for_object;
@@ -662,12 +740,12 @@ case HIDE_OBJECT:
 
  if(is_performing_agent_supported_by_planner==1)
  {
-  
- validate_task_result=robot_perform_task ( CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, CURRENT_TASK_PERFORMED_BY, by_hand, CURRENT_TASK_PERFORMED_FOR, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList,  res_traj);
+  int filter_contact_polygon_inside_support=1;
+ validate_task_result=robot_perform_task ( CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, CURRENT_TASK_PERFORMED_BY, by_hand, CURRENT_TASK_PERFORMED_FOR, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList,  filter_contact_polygon_inside_support, res_traj);
  }
  else
  {
-   printf(" >>>> ERROR: Performing of task by this agent is not supported at trajectory finding level. May be you just want to get the candidate places for which use appropriate requests/function\n");
+   printf(" >>>> ERROR: Performing the task by this agent is not supported at trajectory finding level. May be you just want to get the candidate places. For this use appropriate requests/functions\n");
  }
  
   ////////int validate_task_result=JIDO_find_solution_to_take ( CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, CURRENT_TASK_PERFORMED_FOR, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList,  res_traj);
@@ -3408,9 +3486,9 @@ for(int g_ctr=0; g_ctr<200;g_ctr++)
 int MAINTAIN_OBJ_FRONT_VIS_CONSTRAINT=0;
 
 
-int robot_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs)
+int robot_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, int filter_contact_polygon_inside_support, traj_for_HRI_task &res_trajs)
 {
-
+p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
   
   //FOR PR2 DO fixAllJointsWithoutArm(m_manipulation->robot(),0);
   int armID= 0;
@@ -3541,6 +3619,7 @@ if(PLAN_IN_CARTESIAN == 1)
 #ifdef PR2_EXISTS_FOR_MA
   if(by_agent==PR2_MA)
   {
+    
    fixAllJointsWithoutArm(manipulation->robot(),armID);
   }
 #endif
@@ -3567,6 +3646,39 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
   {
                         printf ( ">>>> checking for place %d \n",i1);
 			
+			if(curr_candidate_points->status[i1]==5)//Already decleared as failed
+			{
+			  printf(" current candidate point %d has already been decleared as failed \n",i1);
+			  
+			  continue;
+			}
+			
+	  int cell_x=(curr_candidate_points->point[i1].x- grid_around_HRP2.GRID_SET->realx)/grid_around_HRP2.GRID_SET->pace;  
+       
+	  
+
+	  if(cell_x>=0&&cell_x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx)
+	    {
+      
+ 
+	      int cell_y=(curr_candidate_points->point[i1].y- grid_around_HRP2.GRID_SET->realy)/grid_around_HRP2.GRID_SET->pace; 
+      
+	      if(cell_y>=0&&cell_y<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny)
+		{
+		  int cell_z=(curr_candidate_points->point[i1].z- grid_around_HRP2.GRID_SET->realz)/grid_around_HRP2.GRID_SET->pace; 
+ 
+		  if(cell_z>=0&&cell_z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz)
+		    {
+		      ////curr_cell=
+		      ////curr_cell->x=cell_x;
+		      ////curr_cell->y=cell_y;
+		      ////curr_cell->z=cell_z;
+		  cells_tested_for_current_task[cell_x][cell_y][cell_z]=1;
+		     
+		    } 
+		}
+	    }
+			
 			if(i1>=1&&AT_LEAST_1_GRASP_LIFT_FOUND==0)
 			{
 			  printf("AKP ERROR: In the first pass no grasp lift found so not testing for more points \n");
@@ -3574,6 +3686,8 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 			  break;
 			}
 			  
+			
+			
                         goal_pos.x=curr_candidate_points->point[i1].x;
                         goal_pos.y=curr_candidate_points->point[i1].y;
                         goal_pos.z=curr_candidate_points->point[i1].z+0.01;
@@ -3586,6 +3700,10 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                         obj_tmp_pos[7]=point_to_give.y;
                         obj_tmp_pos[8]=point_to_give.z;
 
+			/*p3d_set_freeflyer_pose2(object, point_to_give.x, point_to_give.y, point_to_give.z, rx, ry, rz);
+g3d_draw_allwin_active();
+p3d_set_freeflyer_pose2(object, point_to_give.x, point_to_give.y, point_to_give.z+0.05, rx, ry, rz);
+g3d_draw_allwin_active();*/
                         if(task==MAKE_OBJECT_ACCESSIBLE||task==HIDE_OBJECT)
                         {
 
@@ -3601,13 +3719,29 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                          continue;
         ////return 0;
                           }
+                          
+                          //// show_all_how_to_placements_in_3D(point_to_give,0,10,0,&curr_placementList);
+			    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+			    TO_SHOW_PLACEMENT_POINT=goal_pos;
+			    
+			    SHOW_HOW_TO_PLACE_AT=1;
+			    g3d_draw_allwin_active();
+                            SHOW_HOW_TO_PLACE_AT=0;
+			    g3d_draw_allwin_active();
+			    
                          tmp_placement_list.clear();
                          tmp_placement_list= curr_placementList;
 			 support_to_place = envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]];
 			 
-	                 gpPlacement_on_support_filter ( object, support_to_place,tmp_placement_list,curr_placementList);                          
-                          printf(" Support name for placement =%s\n",support_to_place->name);
-                          printf("After gpPlacement_on_support_filter(), curr_placementList.size = %d \n",  curr_placementList.size());
+			  printf(" Support name for placement =%s\n",support_to_place->name);
+			  
+			  if(filter_contact_polygon_inside_support==1)// To further filter that the contact polygon of the placement is actually inside the support polygon
+			  {
+	                 gpPlacement_on_support_filter ( object, support_to_place,tmp_placement_list,curr_placementList); 
+			  printf("After gpPlacement_on_support_filter(), curr_placementList.size = %d \n",  curr_placementList.size());
+			  }
+			  
+                         
                           if(curr_placementList.size()==0)
                           {
                           printf(" ** So trying for next point \n");
@@ -3617,9 +3751,16 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
                          }
                          
                           
-                         
+    printf(" Found a valid stable placement list for the current point\n");                     
             grasp_ctr=0;            
-   	    
+   	    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+			    TO_SHOW_PLACEMENT_POINT=goal_pos;
+			    
+			    SHOW_HOW_TO_PLACE_AT=1;
+			    g3d_draw_allwin_active();
+                            SHOW_HOW_TO_PLACE_AT=0;
+			    g3d_draw_allwin_active();
+			    
    AT_LEAST_1_GRASP_LIFT_FOUND=0;
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
    {
@@ -3985,14 +4126,34 @@ manipulation->robot()->isCarryingObject = FALSE;
                               p3d_set_freeflyer_pose ( object, Tplacement );
                               ////p3d_matrix4 testFrame;
                               p3d_mat4Copy(Tplacement,Tfinal_placement);
+			      
+			      //*****For visualization of the grasp to test
+			       gpSet_robot_hand_grasp_configuration(hand_rob, object, *igrasp);
+//   gpSet_robot_hand_grasp_open_configuration(HAND_ROBOT, OBJECT, GRASP);
+                               p3d_copy_config_into(hand_rob, p3d_get_robot_config(hand_rob), &hand_rob->ROBOT_POS);
+			       
+			        g3d_draw_allwin_active();
+			       p3d_set_freeflyer_pose2(hand_rob,0,0,0,0,0,0);
+			       
                                g3d_draw_allwin_active();
+
                               placeConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tplacement, tAtt,  0, 0, armID, false );
+
+			       //*** END For visualization of the grasp to teste
+			       
+ 
                               ////ManipulationUtils::copyConfigToFORM ( object, placeConf ); 
                               ////pqp_print_colliding_pair();
                               if(placeConf==NULL)
                               {
+				
+			    //  gpSet_robot_hand_grasp_configuration(hand_rob, object, *igrasp);
+//   gpSet_robot_hand_grasp_open_configuration(HAND_ROBOT, OBJECT, GRASP);
+                             //  p3d_copy_config_into(hand_rob, p3d_get_robot_config(hand_rob), &hand_rob->ROBOT_POS);
+
                                printf(" No IK Found to place\n");
-			       g3d_draw_allwin_active();
+			      // g3d_draw_allwin_active();
+			      // p3d_set_freeflyer_pose2(hand_rob,0,0,0,0,0,0);
                                continue;
                               }
 
@@ -6498,7 +6659,23 @@ int get_final_configs_for_this_HRI_sub_task_traj(HRI_task_node &for_task, traj_f
    //}
   
 }
- 
+
+
+int init_tested_cell_info()
+{
+  
+  for(int i=0;i<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;i++)
+  {
+    for(int j=0;j<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny;j++)
+    {
+      for(int k=0;k<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;k++)
+      {
+      cells_tested_for_current_task[i][j][k]=0;
+      }
+    }
+  }
+}
+
 int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info)
 {
  HRI_task_node curr_task_to_validate;
@@ -6533,6 +6710,8 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   ////if(get_robot_proactive_solution_info( curr_task, curr_task_to_validate.traj)==0)
   ////if(for_proactive_info==1)
   ////{
+    
+    /*
     HRI_task_agent_effort_level desired_level;
      desired_level.performing_agent=curr_task.by_agent;
   desired_level.target_agent=curr_task.for_agent;
@@ -6543,7 +6722,8 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
    desired_level.effort_for_agent=curr_task.by_agent;
   
   desired_level.task=curr_task.task_type;
-  
+  */
+    
     int find_solution_curr_res=0;
     int cur_vis_effort=MA_NO_VIS_EFFORT;
     int cur_reach_effort=MA_NO_REACH_EFFORT;
@@ -6551,10 +6731,24 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
     int maxi_reach_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
     
     init_take_lift_traj_info();
+    init_tested_cell_info();
+    
+    int effort_for=1;// 1 for target agent, 2 for performing agent
+    
+    //In both cases currently we increase the effort level of human only
+    if(for_proactive_info==1)
+    {
+      effort_for=2; // For the performing agent. Here we assume that the task's performing agent is human and robot has to find the places where the human can perform the task to show proactive behvior
+    }
+    else
+    {
+      effort_for=1;//assuming the target agent is human and robot has to find the places where it can perform the task 
+    }
+    
     
     while(find_solution_curr_res==0&&cur_vis_effort<=maxi_vis_effort_trans_available&&cur_reach_effort<=maxi_reach_effort_trans_available)
     {
- 
+ /*
   desired_level.maxi_reach_accept=(MA_transition_reach_effort_type)cur_reach_effort;//MA_ARM_EFFORT;//MA_ARM_EFFORT;//MA_ARM_TORSO_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
   desired_level.maxi_vis_accept=(MA_transition_vis_effort_type)cur_vis_effort;//MA_HEAD_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
   
@@ -6565,12 +6759,14 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
     {
     desired_level.reach_relevant=0;
     }
-    
+    */
     //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
     //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
     if(curr_task.task_type!=HIDE_OBJECT)
     {
-  set_accepted_effort_level_for_HRI_task(desired_level);
+      
+      update_effort_levels_for_HRI_Tasks(curr_task, effort_for, cur_reach_effort, cur_vis_effort);
+  //set_accepted_effort_level_for_HRI_task(desired_level);
     }
  
   if(for_proactive_info==1)
@@ -6591,7 +6787,7 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
   
   if(find_solution_curr_res==0)
      {
-   printf(" Fail to validate current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
+   printf(" Fail to validate current task  for the effort levels to Reach: %d, to see: %d \n",cur_reach_effort,cur_vis_effort);
    ////return 0;
 //   printf("Increasing the effort levels\n");
 //   cur_reach_effort++;
@@ -6610,7 +6806,7 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
      }
      else
      {
-       printf(" Found solution for current task for agent %d, for the effort levels to Reach: %d, to see: %d \n",desired_level.effort_for_agent,desired_level.maxi_reach_accept,desired_level.maxi_vis_accept);
+       printf(" Found solution for current task for the effort levels to Reach: %d, to see: %d \n",cur_reach_effort, cur_vis_effort);
        break;
      }
      
@@ -7082,7 +7278,7 @@ int get_clean_the_table_plan(char *Table_name)
 		    if(object_MM.object[cur_obj_indx].geo_MM.visible[i][j]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
-		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[i]->name);
+		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[i]]->name);
 		      
 		    }
 		 
@@ -7097,7 +7293,7 @@ int get_clean_the_table_plan(char *Table_name)
 		    {
 		      //printf(" Drawing disc\n"); 
 		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
-		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[i]->name);
+		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[i]]->name);
 		      break;
 		   
 		    }
@@ -7106,3 +7302,1518 @@ int get_clean_the_table_plan(char *Table_name)
 		}
   }
 }
+
+int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskability_node &res_node )
+{
+  int task=curr_task.task_type;
+  ////int obj_index=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+  int performing_agent=curr_task.by_agent;
+  int agent_posture;
+  int agent_is_human=0;
+  int agent_supported=0;
+  
+  if(performing_agent==HUMAN1_MA)
+  {
+    agent_posture=HUMAN1_CURRENT_STATE_MM;
+    agent_is_human=1;
+    agent_supported=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  if(performing_agent==HUMAN2_MA)
+  {
+    agent_posture=HUMAN2_CURRENT_STATE_MM;
+    agent_is_human=1;
+        agent_supported=1;
+
+  }
+#endif
+ 
+#ifdef PR2_EXISTS_FOR_MA
+  if(performing_agent==PR2_MA)
+  {
+    agent_posture=PR2_ARBITRARY_MA;
+    agent_is_human=0;
+        agent_supported=1;
+
+  }
+#endif
+
+  
+  int agent_cur_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  int agent_maxi_allowed_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  
+  agent_cur_effort[VIS_ABILITY]=MA_NO_VIS_EFFORT;
+  agent_cur_effort[REACH_ABILITY]=MA_NO_REACH_EFFORT;
+  
+  int per_ag_hum=0;
+  
+  if(performing_agent==HUMAN1_MA)
+  {
+    per_ag_hum=1;
+  }
+  #ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(performing_agent==HUMAN2_MA)
+    {
+      per_ag_hum=1;
+    }
+  }
+  #endif
+  
+  if(per_ag_hum==1)
+  {
+    agent_maxi_allowed_effort[VIS_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+    agent_maxi_allowed_effort[REACH_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+  }
+  
+  #ifdef PR2_EXISTS_FOR_MA
+  if(performing_agent==PR2_MA)
+  {
+    agent_maxi_allowed_effort[VIS_ABILITY]=MA_HEAD_EFFORT;
+    agent_maxi_allowed_effort[REACH_ABILITY]=MA_ARM_EFFORT;
+  }
+  
+  #endif
+  
+  
+  
+  if(task==TAKE_OBJECT)
+  { 
+    
+    #ifdef JIDO_EXISTS_FOR_MA
+
+  init_manipulation_planner(envPt_MM->robot[indices_of_MA_agents[JIDO_MA]]->name);
+
+#endif
+
+#ifdef PR2_EXISTS_FOR_MA
+ 
+  init_manipulation_planner(envPt_MM->robot[indices_of_MA_agents[PR2_MA]]->name);
+
+#endif
+  
+    char by_hand[50];
+    #ifdef JIDO_EXISTS_FOR_MA
+    if(performing_agent==JIDO_MA)
+    {
+      if(JIDO_HAND_TYPE==1)
+      {
+	strcpy(by_hand,"JIDO_GRIPPER");
+      }
+      if(JIDO_HAND_TYPE==2)
+      {
+	strcpy(by_hand,"SAHandRight");
+      }
+    }
+    #endif
+    
+    #ifdef PR2_EXISTS_FOR_MA
+    if(performing_agent==PR2_MA)
+    {
+      strcpy(by_hand,"PR2_GRIPPER");
+    }
+    #endif
+    
+    if(per_ag_hum==1)
+    {
+      ////strcpy(by_hand,"SAHandRight2");
+      strcpy(by_hand,"PR2_GRIPPER");//NOTE: TMP using gripper for human as SAHandRight2 is not working
+    }
+    
+    std::list<gpGrasp> grasps_for_object;
+    
+    get_grasp_list_for_object(envPt_MM->robot[obj_index]->name, grasps_for_object);
+    
+    p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
+    printf(" Total no. of initail grasps for agent %s = %d\n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, grasps_for_object.size());
+    int ctr=0;
+    
+     p3d_col_deactivate_rob_rob(hand_rob, envPt_MM->robot[obj_index]);
+   for ( std::list<gpGrasp>::iterator igrasp=grasps_for_object.begin(); igrasp!=grasps_for_object.end(); ++igrasp )
+   {
+    ////printf(" Setting grasp %d\n",ctr); 
+    gpSet_robot_hand_grasp_configuration(hand_rob, envPt_MM->robot[obj_index], *igrasp);
+    
+   
+     ////p3d_col_deactivate_robot(hand_rob);
+   
+	  int kcd_with_report=0;
+      int res = p3d_col_test_robot ( hand_rob,kcd_with_report );
+     if ( res>0 ) ////if(p3d_col_test_robot(bitmapset->visball,FALSE))
+    {
+    ////printf(" Collision \n");
+     ////g3d_draw_allwin_active();
+    }
+    else
+    {
+    ctr++;
+    }
+   }
+   p3d_col_activate_rob_rob(hand_rob, envPt_MM->robot[obj_index]);
+   printf(" Total no. of non collision grasps = %d\n",ctr);
+   
+   if(ctr<=0)
+   {
+     printf(" No valid grasp... \n");
+     return 0;
+   }
+   
+   int sol_found=0;
+   
+   while(sol_found==0)
+   {
+     int at_least_one_analysis_to_test=0;
+     
+     update_analysis_type_effort_level_group(performing_agent, agent_posture);
+     
+    ////update_effort_levels_for_HRI_Tasks(curr_task, 2, agent_cur_effort[REACH_ABILITY], agent_cur_effort[VIS_ABILITY]);
+ 
+    int is_visible=0;
+    
+   for(int i=0;i<Analysis_type_Effort_level[performing_agent][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].num_analysis_types;i++)
+   {
+     int curr_analysis_state=Analysis_type_Effort_level[performing_agent][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].analysis_types[i];
+     
+     if(object_MM.object[obj_index].geo_MM.visible[performing_agent][i]>0)
+     {
+	
+	printf(" Object is visible by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	is_visible=1;
+	break;	      
+     }
+   }
+   
+   if(is_visible==0)
+   {
+     printf(" Object is NOT visible by agent %s \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+     
+     if(agent_cur_effort[VIS_ABILITY]<agent_maxi_allowed_effort[VIS_ABILITY])
+     {
+       agent_cur_effort[VIS_ABILITY]++;
+       at_least_one_analysis_to_test=1;
+     }
+   }
+   
+   int is_reachable=0;
+    
+   for(int i=0;i<Analysis_type_Effort_level[performing_agent][REACH_ABILITY][agent_cur_effort[REACH_ABILITY]].num_analysis_types;i++)
+   {
+     int curr_analysis_state=Analysis_type_Effort_level[performing_agent][REACH_ABILITY][agent_cur_effort[REACH_ABILITY]].analysis_types[i];
+    
+    for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
+    {
+     if(object_MM.object[obj_index].geo_MM.reachable[performing_agent][i][k]>0)
+     {
+	
+	printf(" Object is reachable by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	is_reachable=1;
+	break;	      
+     }
+    }
+   }
+   
+   if(is_reachable==0)
+   {
+     printf(" Object is NOT reachable by agent %s \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+     if(agent_cur_effort[REACH_ABILITY]<agent_maxi_allowed_effort[REACH_ABILITY])
+     {
+       agent_cur_effort[REACH_ABILITY]++;
+       at_least_one_analysis_to_test=1;
+     }
+    }
+   
+   if(is_reachable==1&&is_visible==1)
+    {
+      printf(" The agent %s could take the object %s with effort levels for vis= %d and for reach= %d \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, envPt_MM->robot[obj_index]->name, agent_cur_effort[VIS_ABILITY], agent_cur_effort[REACH_ABILITY]);
+      
+      res_node.task=curr_task.task_type;
+      res_node.performing_agent=performing_agent;
+      res_node.target_object=obj_index;
+      res_node.performing_ag_effort[VIS_ABILITY]=agent_cur_effort[VIS_ABILITY];
+      res_node.performing_ag_effort[REACH_ABILITY]=agent_cur_effort[REACH_ABILITY];
+      
+      sol_found=1;
+      return 1;
+    }
+    
+    if(at_least_one_analysis_to_test==0)
+    {
+      printf(" The agent %s could not take the object %s with its maximum allowed effort level \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, envPt_MM->robot[obj_index]->name);
+      
+      return 0;
+    }
+   }
+  }//End if(task==TAKE_OBJECT)
+  
+  
+}
+
+
+int init_grasp_exists_for_object()
+{
+  printf(" ====== LIST of Valid graspable and manipulable Objects ======\n");
+  int ctr=0;
+  for(int j=0;j<envPt_MM->nr;j++)
+    {
+      for(int k=0;k<NUM_VALID_GRASPABLE_OBJ;k++)
+      {
+	GRASP_EXISTS_FOR_OBJECT[j]=0;
+      if(strcasestr(envPt_MM->robot[j]->name,MANIPULABLE_OBJECTS[k]))
+       {
+       GRASP_EXISTS_FOR_OBJECT[j]=1;
+       printf(" * %d : %s \n",ctr, envPt_MM->robot[j]->name);
+      ctr++;
+       break;
+       }
+      }
+    }
+    printf(" >>**> MA - HRI Task Planner WARNING : Cross verify if any manipulable object is missing. Put it in the HRI_task.cpp file in MANIPULABLE_OBJECTS[] list and change in the value of NUM_VALID_GRASPABLE_OBJ.\n");
+    
+}
+  
+std::vector<taskability_node> manipulability_graph;
+std::map<std::string, int > manipulability_node_DESC_ID_map;
+  
+int find_manipulability_graph()
+{
+  manipulability_graph.clear();
+  manipulability_node_DESC_ID_map.clear();
+  
+  HRI_task_desc curr_task;
+  curr_task.task_type=TAKE_OBJECT;
+  
+  int ctr=0;
+  
+  for(int i=0; i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+  {
+    for(int j=0;j<envPt_MM->nr;j++)
+    {
+      if(GRASP_EXISTS_FOR_OBJECT[j]==1)
+      {
+	curr_task.by_agent=(HRI_TASK_AGENT)i;
+	curr_task.for_object=envPt_MM->robot[j]->name;
+       taskability_node res_node;
+       int res=find_agent_object_affordance(curr_task, j, res_node );
+       if(res==1)
+       {
+	 char manipulability_node_id_str[20];
+  std::string manipulability_node_desc;
+  sprintf (manipulability_node_id_str, "%d_",ctr);
+  manipulability_node_desc=manipulability_node_id_str;
+  manipulability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
+  manipulability_node_desc+='_';
+  manipulability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
+  manipulability_node_desc+='_';
+  
+  manipulability_node_desc+=envPt_MM->robot[res_node.target_object]->name;
+  
+  manipulability_node_DESC_ID_map[manipulability_node_desc]=ctr;
+  printf(" Inserted into manipulability_node_DESC_ID_map key= %s \n",manipulability_node_desc.c_str());
+  
+  strcpy(res_node.desc,manipulability_node_desc.c_str());
+  
+  res_node.node_id=ctr;
+  
+  manipulability_graph.push_back(res_node);
+  
+  ctr++;
+  
+       }
+      }
+    }
+  }
+}
+/////// Functions related to taskability graph //////////
+int find_taskability_link_between_two_agents_for_task(HRI_task_desc curr_task, taskability_node &res_node )
+{
+  int performing_agent=curr_task.by_agent;
+  int target_agent=curr_task.for_agent;
+  int task=curr_task.task_type;
+ 
+  int per_ag_hum=0;
+  int tar_ag_hum=0;
+  if(performing_agent==HUMAN1_MA)
+  {
+     per_ag_hum=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(performing_agent==HUMAN2_MA)
+   {
+     per_ag_hum=1;
+   }
+  }
+#endif
+
+if(target_agent==HUMAN1_MA)
+  {
+     tar_ag_hum=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(target_agent==HUMAN2_MA)
+   {
+     tar_ag_hum=1;
+   }
+  }
+#endif
+
+  candidate_poins_for_task *curr_resultant_candidate_points=MY_ALLOC(candidate_poins_for_task,1);
+
+  curr_resultant_candidate_points->no_points=0;
+  
+int performing_agent_rank=0;//Slave
+int consider_object_dimension=0;
+
+int find_solution_curr_res=0;
+
+int agent_cur_effort[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+int agent_maxi_allowed_effort[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+/*
+    int performing_ag_cur_vis_effort=MA_NO_VIS_EFFORT;
+    int performing_ag_cur_reach_effort=MA_NO_REACH_EFFORT;
+    int target_ag_cur_vis_effort=MA_NO_VIS_EFFORT;
+    int target_ag_cur_reach_effort=MA_NO_REACH_EFFORT;
+    int maxi_vis_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+    int maxi_reach_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+   */
+agent_cur_effort[performing_agent][VIS_ABILITY]=MA_NO_VIS_EFFORT;
+agent_cur_effort[performing_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;
+agent_cur_effort[target_agent][VIS_ABILITY]=MA_NO_VIS_EFFORT;
+agent_cur_effort[target_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;
+
+if(per_ag_hum==1)
+{
+  agent_maxi_allowed_effort[performing_agent][VIS_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+  agent_maxi_allowed_effort[performing_agent][REACH_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+}
+if(tar_ag_hum==1)
+{
+  agent_maxi_allowed_effort[target_agent][VIS_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+  agent_maxi_allowed_effort[target_agent][REACH_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+}
+
+#ifdef PR2_EXISTS_FOR_MA
+    if(performing_agent==PR2_MA)
+    {
+       agent_maxi_allowed_effort[performing_agent][VIS_ABILITY]=MA_HEAD_EFFORT;
+       agent_maxi_allowed_effort[performing_agent][REACH_ABILITY]=MA_ARM_EFFORT;
+    }
+    
+     if(target_agent==PR2_MA)
+    {
+       agent_maxi_allowed_effort[target_agent][VIS_ABILITY]=MA_HEAD_EFFORT;
+       agent_maxi_allowed_effort[target_agent][REACH_ABILITY]=MA_ARM_EFFORT;
+    }
+#endif
+   
+    int set_effort_for=2;// 1 for target agent, 2 for performing agent
+    
+    int sol_found=0;
+    
+    update_effort_levels_for_HRI_Tasks(curr_task, 2, agent_cur_effort[performing_agent][REACH_ABILITY], agent_cur_effort[performing_agent][VIS_ABILITY]);
+     
+    //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
+    //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
+    if(task!=HIDE_OBJECT)
+    {
+     
+      update_effort_levels_for_HRI_Tasks(curr_task, 1, agent_cur_effort[target_agent][REACH_ABILITY], agent_cur_effort[target_agent][VIS_ABILITY]);
+      
+  //set_accepted_effort_level_for_HRI_task(desired_level);
+    }
+    
+    
+int res=find_HRI_task_candidate_points((HRI_TASK_TYPE_ENUM)task,  NULL, (HRI_TASK_AGENT_ENUM)performing_agent, (HRI_TASK_AGENT_ENUM)target_agent,performing_agent_rank, curr_resultant_candidate_points,  consider_object_dimension);
+
+    if(curr_resultant_candidate_points->no_points<=0)
+     {
+     printf(" >>> Fail to find candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", agent_cur_effort[performing_agent][VIS_ABILITY], agent_cur_effort[performing_agent][REACH_ABILITY], performing_agent, agent_cur_effort[target_agent][VIS_ABILITY], agent_cur_effort[target_agent][REACH_ABILITY], target_agent);
+    
+    
+     }
+     else
+     {
+         printf(" >>>** Found candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", agent_cur_effort[performing_agent][VIS_ABILITY], agent_cur_effort[performing_agent][REACH_ABILITY], performing_agent, agent_cur_effort[target_agent][VIS_ABILITY], agent_cur_effort[target_agent][REACH_ABILITY], target_agent);
+    
+	 
+       sol_found=1;
+       printf(" curr_resultant_candidate_points->no_points=%d\n",curr_resultant_candidate_points->no_points);
+     }
+
+    //int performing_ag_maxi_effort_reached=0;
+     //int target_ag_maxi_effort_reached=0;
+     int agent_maxi_effort_reached[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+     
+     for(int i=0;i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+     {
+       agent_maxi_effort_reached[performing_agent][i]=0;
+       agent_maxi_effort_reached[target_agent][i]=0;
+     }
+    /* if(per_ag_hum==0)
+     {
+     performing_ag_maxi_effort_reached=1;//Assuming that for non human already maximum effort has been set
+       
+     }
+     
+     if(tar_ag_hum==0)
+     {
+     target_ag_maxi_effort_reached=1;//Assuming that for non human already maximum effort has been set
+       
+     }*/
+     
+    while(sol_found==0)
+    {
+      printf(" Inside while(sol_found==0)\n");
+      int effort_increased=0;
+      if(set_effort_for==2)
+      {
+	
+       if(agent_cur_effort[performing_agent][VIS_ABILITY]<agent_maxi_allowed_effort[performing_agent][VIS_ABILITY])
+       {
+	 printf(" Increasing vis effort level of performing agent\n");
+	agent_cur_effort[performing_agent][VIS_ABILITY]++;
+	effort_increased=1;
+       }
+       else
+       {
+       agent_maxi_effort_reached[performing_agent][VIS_ABILITY]=1; 
+       }
+	
+      if(agent_cur_effort[performing_agent][REACH_ABILITY]<agent_maxi_allowed_effort[performing_agent][REACH_ABILITY])
+       {
+	 printf(" Increasing Reach effort level of performing agent\n");
+	agent_cur_effort[performing_agent][REACH_ABILITY]++;
+	effort_increased=1;
+       }
+       else
+       {
+       agent_maxi_effort_reached[performing_agent][REACH_ABILITY]=1; 
+       }
+	
+       set_effort_for=1;
+      }
+     else
+      {
+     if(set_effort_for==1)
+       {
+	  if(agent_cur_effort[target_agent][VIS_ABILITY]<agent_maxi_allowed_effort[target_agent][VIS_ABILITY])
+       {
+	 printf(" Increasing vis effort level of target_agent\n");
+	agent_cur_effort[target_agent][VIS_ABILITY]++;
+	effort_increased=1;
+       }
+       else
+       {
+       agent_maxi_effort_reached[target_agent][VIS_ABILITY]=1; 
+       }
+	
+      if(agent_cur_effort[target_agent][REACH_ABILITY]<agent_maxi_allowed_effort[target_agent][REACH_ABILITY])
+       {
+	 printf(" Increasing Reach effort level of target_agent\n");
+	agent_cur_effort[target_agent][REACH_ABILITY]++;
+	effort_increased=1;
+       }
+       else
+       {
+       agent_maxi_effort_reached[target_agent][REACH_ABILITY]=1; 
+       }
+	
+       set_effort_for=2;
+       }
+     }
+      
+     if(agent_maxi_effort_reached[performing_agent][VIS_ABILITY]==1&&agent_maxi_effort_reached[performing_agent][REACH_ABILITY]==1&&agent_maxi_effort_reached[target_agent][VIS_ABILITY]==1&&agent_maxi_effort_reached[target_agent][REACH_ABILITY]==1)
+     {
+       printf(" Maximum effort levels of both the agents have been tested so, stopping further tests\n");
+       break;
+     }
+     
+     if(effort_increased==0)
+     {
+       continue;
+     }
+     
+      update_effort_levels_for_HRI_Tasks(curr_task, 2, agent_cur_effort[performing_agent][REACH_ABILITY], agent_cur_effort[performing_agent][VIS_ABILITY]);
+    
+	  //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
+    //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
+      if(task!=HIDE_OBJECT)
+       {
+      update_effort_levels_for_HRI_Tasks(curr_task, 1, agent_cur_effort[target_agent][REACH_ABILITY], agent_cur_effort[target_agent][VIS_ABILITY]);
+     
+  //set_accepted_effort_level_for_HRI_task(desired_level);
+       }
+	
+	res=find_HRI_task_candidate_points((HRI_TASK_TYPE_ENUM)task,   NULL, (HRI_TASK_AGENT_ENUM)performing_agent, (HRI_TASK_AGENT_ENUM)target_agent,performing_agent_rank, curr_resultant_candidate_points, consider_object_dimension);
+
+    if(curr_resultant_candidate_points->no_points<=0)
+     {
+     printf(" >>> Fail to find candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", agent_cur_effort[performing_agent][VIS_ABILITY], agent_cur_effort[performing_agent][REACH_ABILITY], performing_agent, agent_cur_effort[target_agent][VIS_ABILITY], agent_cur_effort[target_agent][REACH_ABILITY], target_agent);
+    
+    
+     }
+     else
+     {
+         printf(" >>>** Found candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", agent_cur_effort[performing_agent][VIS_ABILITY], agent_cur_effort[performing_agent][REACH_ABILITY], performing_agent, agent_cur_effort[target_agent][VIS_ABILITY], agent_cur_effort[target_agent][REACH_ABILITY], target_agent);
+    
+	 
+       sol_found=1;
+       printf(" curr_resultant_candidate_points->no_points=%d\n",curr_resultant_candidate_points->no_points);
+     }
+      
+      
+      
+     
+    }// END while(sol_found==0)
+
+ if(sol_found==0)
+   {
+     printf(" Fail to find the solution \n");
+     return 0;
+     
+   }
+   
+  if(sol_found==1)
+   {
+     printf(" Found the solution \n");
+     res_node.performing_agent=performing_agent;
+     res_node.target_agent=target_agent;
+     res_node.task=task;
+     res_node.performing_ag_effort[REACH_ABILITY]=agent_cur_effort[performing_agent][REACH_ABILITY];
+     res_node.performing_ag_effort[VIS_ABILITY]=agent_cur_effort[performing_agent][VIS_ABILITY];
+     res_node.target_ag_effort[REACH_ABILITY]=agent_cur_effort[target_agent][REACH_ABILITY];
+     res_node.target_ag_effort[VIS_ABILITY]=agent_cur_effort[target_agent][VIS_ABILITY];
+     res_node.candidate_points=curr_resultant_candidate_points;
+     
+     return 1;
+     
+   }
+   
+}
+
+int find_taskability_link_between_two_agents_for_task_old(HRI_task_desc curr_task, taskability_node &res_node )
+{
+  int performing_agent=curr_task.by_agent;
+  int target_agent=curr_task.for_agent;
+  int task=curr_task.task_type;
+ 
+  int per_ag_hum=0;
+  int tar_ag_hum=0;
+  if(performing_agent==HUMAN1_MA)
+  {
+     per_ag_hum=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(performing_agent==HUMAN2_MA)
+   {
+     per_ag_hum=1;
+   }
+  }
+#endif
+
+if(target_agent==HUMAN1_MA)
+  {
+     tar_ag_hum=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(target_agent==HUMAN2_MA)
+   {
+     tar_ag_hum=1;
+   }
+  }
+#endif
+
+  candidate_poins_for_task *curr_resultant_candidate_points=MY_ALLOC(candidate_poins_for_task,1);
+
+  curr_resultant_candidate_points->no_points=0;
+  
+int performing_agent_rank=0;//Slave
+int consider_object_dimension=0;
+
+int find_solution_curr_res=0;
+    int performing_ag_cur_vis_effort=MA_NO_VIS_EFFORT;
+    int performing_ag_cur_reach_effort=MA_NO_REACH_EFFORT;
+    int target_ag_cur_vis_effort=MA_NO_VIS_EFFORT;
+    int target_ag_cur_reach_effort=MA_NO_REACH_EFFORT;
+    int maxi_vis_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+    int maxi_reach_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+    
+   
+    int set_effort_for=2;// 1 for target agent, 2 for performing agent
+    
+    int sol_found=0;
+    
+    
+    //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
+    //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
+    if(task!=HIDE_OBJECT)
+    {
+      if(tar_ag_hum==1)
+      {
+      update_effort_levels_for_HRI_Tasks(curr_task, 1, target_ag_cur_reach_effort, target_ag_cur_vis_effort);
+      }
+      if(per_ag_hum==1)
+      {
+      update_effort_levels_for_HRI_Tasks(curr_task, 2, performing_ag_cur_reach_effort, performing_ag_cur_vis_effort);
+      }
+  //set_accepted_effort_level_for_HRI_task(desired_level);
+    }
+    
+    
+int res=find_HRI_task_candidate_points((HRI_TASK_TYPE_ENUM)task,  NULL, (HRI_TASK_AGENT_ENUM)performing_agent, (HRI_TASK_AGENT_ENUM)target_agent,performing_agent_rank, curr_resultant_candidate_points,  consider_object_dimension);
+
+    if(curr_resultant_candidate_points->no_points<=0)
+     {
+     printf(" >>> Fail to find candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", performing_ag_cur_vis_effort, performing_ag_cur_reach_effort, performing_agent, target_ag_cur_vis_effort, target_ag_cur_reach_effort, target_agent);
+    
+    
+     }
+     else
+     {
+        printf(" >>>** Found candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", performing_ag_cur_vis_effort, performing_ag_cur_reach_effort, performing_agent, target_ag_cur_vis_effort, target_ag_cur_reach_effort, target_agent);
+    
+       sol_found=1;
+       printf(" curr_resultant_candidate_points->no_points=%d\n",curr_resultant_candidate_points->no_points);
+     }
+
+    int performing_ag_maxi_effort_reached=0;
+     int target_ag_maxi_effort_reached=0;
+     
+     if(per_ag_hum==0)
+     {
+     performing_ag_maxi_effort_reached=1;//Assuming that for non human already maximum effort has been set
+       
+     }
+     
+     if(tar_ag_hum==0)
+     {
+     target_ag_maxi_effort_reached=1;//Assuming that for non human already maximum effort has been set
+       
+     }
+     
+    while(sol_found==0)
+    {
+      printf(" Inside while(sol_found==0)\n");
+      int effort_increased=0;
+      if(set_effort_for==2)
+      {
+	if(per_ag_hum==1)
+	{
+       if(performing_ag_cur_vis_effort<maxi_vis_effort_trans_available&&performing_ag_cur_reach_effort<maxi_reach_effort_trans_available)
+       {
+	 printf(" Increasing effort level of performing agent\n");
+	performing_ag_cur_vis_effort++;
+        performing_ag_cur_reach_effort++;
+	effort_increased=1;
+       }
+       else
+       {
+       performing_ag_maxi_effort_reached=1; 
+       }
+	}
+       set_effort_for=1;
+      }
+      else
+      {
+     if(set_effort_for==1)
+       {
+	 if(tar_ag_hum==1)
+	 {
+       if(target_ag_cur_vis_effort<maxi_vis_effort_trans_available&&target_ag_cur_reach_effort<maxi_reach_effort_trans_available)
+        {
+	 printf(" Increasing effort level of target agent\n");
+	target_ag_cur_vis_effort++;
+       target_ag_cur_reach_effort++;
+     effort_increased=1;
+        }
+       else
+        {
+       target_ag_maxi_effort_reached=1; 
+        }
+	 }
+       set_effort_for=2;
+       }
+      }
+      
+     if(performing_ag_maxi_effort_reached==1&&target_ag_maxi_effort_reached==1)
+     {
+       printf(" Maximum effort levels of both the agents have been tested so, stopping further tests\n");
+       break;
+     }
+     
+     if(effort_increased==0)
+     {
+       continue;
+     }
+	  //Below is tmp to avoid resetting the no_non_accepted_reach_states and vis states in the function called
+    //TODO: Adapt the function to include the non acceptable states also for the task of HIDE and PUT_AWAY etc.
+      if(task!=HIDE_OBJECT)
+       {
+      if(tar_ag_hum==1)
+      {
+      update_effort_levels_for_HRI_Tasks(curr_task, 1, target_ag_cur_reach_effort, target_ag_cur_vis_effort);
+      }
+      if(per_ag_hum==1)
+      {
+      update_effort_levels_for_HRI_Tasks(curr_task, 2, performing_ag_cur_reach_effort, performing_ag_cur_vis_effort);
+      }
+    
+  //set_accepted_effort_level_for_HRI_task(desired_level);
+       }
+	
+	res=find_HRI_task_candidate_points((HRI_TASK_TYPE_ENUM)task,   NULL, (HRI_TASK_AGENT_ENUM)performing_agent, (HRI_TASK_AGENT_ENUM)target_agent,performing_agent_rank, curr_resultant_candidate_points, consider_object_dimension);
+
+    if(curr_resultant_candidate_points->no_points<=0)
+     {
+     printf(" >>> Fail to find candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", performing_ag_cur_vis_effort, performing_ag_cur_reach_effort, performing_agent, target_ag_cur_vis_effort, target_ag_cur_reach_effort, target_agent);
+    
+    
+     }
+     else
+     {
+        printf(" >>>** Found candidate points for effort levels vis:%d, reach: %d, for agent %d and for effort levels vis:%d, reach: %d, for agent %d\n", performing_ag_cur_vis_effort, performing_ag_cur_reach_effort, performing_agent, target_ag_cur_vis_effort, target_ag_cur_reach_effort, target_agent);
+    
+       sol_found=1;
+       printf(" curr_resultant_candidate_points->no_points=%d\n",curr_resultant_candidate_points->no_points);
+     }
+      
+      
+      
+     
+    }// END while(sol_found==0)
+
+ if(sol_found==0)
+   {
+     printf(" Fail to find the solution \n");
+     return 0;
+     
+   }
+   
+  if(sol_found==1)
+   {
+     printf(" Found the solution \n");
+     res_node.performing_agent=performing_agent;
+     res_node.target_agent=target_agent;
+     res_node.task=task;
+     res_node.performing_ag_effort[REACH_ABILITY]=performing_ag_cur_reach_effort;
+     res_node.performing_ag_effort[VIS_ABILITY]=performing_ag_cur_vis_effort;
+     res_node.target_ag_effort[REACH_ABILITY]=target_ag_cur_reach_effort;
+     res_node.target_ag_effort[VIS_ABILITY]=target_ag_cur_vis_effort;
+     res_node.candidate_points=curr_resultant_candidate_points;
+     
+     return 1;
+     
+   }
+   
+}
+
+std::vector<taskability_node> taskability_graph;
+std::map<std::string, int > taskability_node_DESC_ID_map;
+
+int find_taskability_graph()
+{
+  taskability_node_DESC_ID_map.clear();
+HRI_task_desc curr_task;
+std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+ {
+   printf(" freeing memory for candidate points for %d th node of taskability graph\n", ctr);
+   MY_FREE(it->candidate_points, candidate_poins_for_task,1);
+   ctr++;
+ }
+ 
+taskability_graph.clear();
+ 
+ctr=0;
+  for(int i=0; i< MAXI_NUM_OF_AGENT_FOR_HRI_TASK; i++)
+  {
+    for(int j=0; j< MAXI_NUM_OF_AGENT_FOR_HRI_TASK; j++)
+    {
+      if(i==j)
+      {
+	continue;
+      }
+      
+      curr_task.for_object='\0';
+      curr_task.by_agent=(HRI_TASK_AGENT)i;
+      curr_task.for_agent=(HRI_TASK_AGENT)j;
+      
+      for(int k=0; k<MAXI_NUM_OF_HRI_TASKS; k++)
+      {
+	if(k==SHOW_OBJECT||k==HIDE_OBJECT||k==MAKE_OBJECT_ACCESSIBLE||k==GIVE_OBJECT)// NOTE: CURRENTLY these tasks are fully implemented
+	{
+	curr_task.task_type=(HRI_TASK_TYPE)k;
+	taskability_node res_node;
+	int res=find_taskability_link_between_two_agents_for_task(curr_task, res_node);
+	if(res==1)
+	 {
+	  printf(">>> Adding to the taskability graph, for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n",res_node.performing_agent, res_node.target_agent, res_node.task, res_node.candidate_points->no_points);
+	  
+	  
+	  
+  char taskability_node_id_str[20];
+  std::string taskability_node_desc;
+  sprintf (taskability_node_id_str, "%d_",ctr);
+  taskability_node_desc=taskability_node_id_str;
+  taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
+  taskability_node_desc+='_';
+  taskability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
+  taskability_node_desc+='_';
+  ////printf("task_plan_desc before adding obj name = %s \n",task_plan_desc.c_str());
+ //// printf(" curr_task.for_object.c_str() = %s\n", curr_task.for_object.c_str());
+  ////////taskability_node_desc+=curr_task_to_validate.hri_task.for_object.c_str();
+ ////  printf("task_plan_desc after adding obj name = %s \n",task_plan_desc.c_str());
+  ////////task_plan_desc+='_';
+  taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.target_agent]]->name;
+  
+  taskability_node_DESC_ID_map[taskability_node_desc]=ctr;
+  printf(" Inserted into taskability_node_DESC_ID_map key= %s \n",taskability_node_desc.c_str());
+  
+  strcpy(res_node.desc,taskability_node_desc.c_str());
+  
+  res_node.node_id=ctr;
+  
+  taskability_graph.push_back(res_node);
+  
+  ctr++;
+  
+	 }
+	}
+      }
+      
+    }
+  }
+
+
+}
+
+int print_manipulability_graph()
+{
+ 
+  
+  printf(" ========================= MANIPULABILITY GRAPH =================\n");
+std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+ {
+   ///printf(">>>  for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n**",it->performing_agent, it->target_agent, it->task, it->candidate_points->no_points);
+   
+   printf("-> Manipulability node id= %d, descriptor: %s\n",it->node_id, it->desc);
+   printf("     Performing ag effort: (vis: %d, reach: %d), \n",    it->performing_ag_effort[VIS_ABILITY],it->performing_ag_effort[REACH_ABILITY]);
+   
+   ctr++;
+ }
+}
+
+int print_taskability_graph()
+{
+printf(" ========================= TASKABILITY GRAPH =================\n");
+std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+ {
+   ///printf(">>>  for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n**",it->performing_agent, it->target_agent, it->task, it->candidate_points->no_points);
+   
+   printf("-> Taskability node id= %d, descriptor: %s\n",it->node_id, it->desc);
+   printf("    Candidate no. of points = %d, Performing ag effort: (vis: %d, reach: %d), Target ag effort: (vis: %d, reach: %d)\n",   it->candidate_points->no_points, it->performing_ag_effort[VIS_ABILITY],it->performing_ag_effort[REACH_ABILITY], it->target_ag_effort[VIS_ABILITY],it->target_ag_effort[REACH_ABILITY]);
+   
+   ctr++;
+ }
+
+
+}
+
+int show_these_candidate_points(candidate_poins_for_task *candidate_points)
+{
+  int show_weight_by_color=1;
+int show_weight_by_length=0;
+int i=0;
+  double min, max, w;
+  double color[4];
+   double radius=grid_around_HRP2.GRID_SET->pace/3.0;
+  
+for(i=0;i<candidate_points->no_points;i++)
+    {
+
+     if(show_weight_by_color==1||show_weight_by_length==1)
+	{
+	 
+	  AKP_rgb_from_hue2(candidate_points->weight[i], color);
+	}
+	
+      if(show_weight_by_color==1)
+	{
+	  g3d_drawDisc(candidate_points->point[i].x, candidate_points->point[i].y, candidate_points->point[i].z+0.01, radius, Any, color);
+	}
+      else
+	{
+	  g3d_drawDisc(candidate_points->point[i].x, candidate_points->point[i].y, candidate_points->point[i].z+0.01, radius, 4, NULL);
+	}
+    
+      if(show_weight_by_length==1)
+	{
+	  g3d_drawOneLine(candidate_points->point[i].x, candidate_points->point[i].y,candidate_points->point[i].z, candidate_points->point[i].x, candidate_points->point[i].y, candidate_points->point[i].z+w/10.0, Any, color);
+	 
+	    }
+      
+  
+    }
+  
+}
+
+
+int init_currently_supported_tasks()
+{
+for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
+ {
+   if(i==GIVE_OBJECT||i==MAKE_OBJECT_ACCESSIBLE||i==HIDE_OBJECT||i==SHOW_OBJECT)
+   {
+    TASK_CURRENTLY_SUPPORTED[i]=1;
+   }
+   else
+   {
+    TASK_CURRENTLY_SUPPORTED[i]=0;
+   }
+ }  
+}
+
+int show_all_taskability_graph(int show_edge, int show_candidates)
+{
+int show_all_candidates=0;
+std::vector<taskability_node>::iterator it; 
+double x1, y1, z1, x2, y2, z2;
+double x_c, y_c, z_c;
+////double interval=grid_around_HRP2.GRID_SET->pace/25.0;
+
+double z_shift[MAXI_NUM_OF_HRI_TASKS];
+double increment=0.1;
+
+double min_effort=0;
+double max_effort=10;//Assuming that the maximum effort level for visibility or reachability will be less than 10   
+double weight;
+double color[MAXI_NUM_OF_HRI_TASKS][4];
+double red, green, blue;
+double color_hue;
+
+p3d_vector3 p1, p2;
+
+char task_name[50];
+
+int total_no_supported_task=0;
+
+for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
+{
+  if(TASK_CURRENTLY_SUPPORTED[i]==1)
+  {
+   total_no_supported_task++;
+  }
+}
+
+int supp_task_ctr=0;
+for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
+{
+  if(TASK_CURRENTLY_SUPPORTED[i]==1)
+  {
+  strcpy(task_name,HRI_task_NAME_ID_map.find(i)->second.c_str());
+  
+ z_shift[i]=supp_task_ctr*increment; 
+ 
+ color_hue=((double)supp_task_ctr/total_no_supported_task);
+     AKP_rgb_from_hue2(color_hue, color[i]);
+     color[i][3]=1;
+     
+      g3d_draw_text_at(task_name,10, 10+15*supp_task_ctr, color[i][0], color[i][1], color[i][2] );
+      supp_task_ctr++;
+  }
+}
+
+int ctr=0;
+ for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+ {
+   ////printf(">>>  for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n**",it->performing_agent, it->target_agent, it->task, it->candidate_points->no_points);
+   
+   if(show_candidates==1)
+   {
+  show_these_candidate_points(it->candidate_points);
+   }
+   
+    if(show_edge==1)
+    {
+     
+     //x1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmax)/2.0;
+     //y1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymax)/2.0;
+     
+     x1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     y1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     z1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     //x2=(envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.xmax)/2.0;
+     //y2=(envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.ymax)/2.0;
+     x2=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->joints[1]->abs_pos[0][3];
+     y2=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->joints[1]->abs_pos[1][3];
+     z2=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.zmax;
+     
+     
+     
+     z1+=z_shift[it->task];
+     z2+=z_shift[it->task];
+     
+     p1[0]=x1;
+     p1[1]=y1;
+     p1[2]=z1;
+     
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     //g3d_drawOneLine(x1, y1,z1, x2, y2, z2, it->task, NULL);
+     /* 
+     color_hue=((double)it->task/MAXI_NUM_OF_HRI_TASKS);
+     AKP_rgb_from_hue2(color_hue, color);
+     color[3]=1;
+     */
+     //////g3d_draw_arrow(p1, p2, color[0], color[1], color[2]);
+     g3d_draw_arrow_with_width(p1, p2, 2, 0.07, color[it->task][0], color[it->task][1], color[it->task][2]);
+     g3d_drawColorSphere(x1, y1, z1, .015, Any, color[it->task]);
+     g3d_drawColorSphere(x2, y2, z2, .015, Any, color[it->task]);
+     
+     weight= ((double)it->performing_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     double t2=0.25;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)it->performing_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.30;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+      ////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+     /////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)it->target_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.35;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Red, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)it->target_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.40;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Yellow, NULL);
+     
+   ctr++;
+    }
+ }
+return 1;
+
+}
+
+
+
+int draw_taskability_edge(taskability_node &node)
+{
+
+double x1, y1, z1, x2, y2, z2;
+double x_c, y_c, z_c;
+////double interval=grid_around_HRP2.GRID_SET->pace/25.0;
+
+
+double increment=0.1;
+
+double min_effort=0;
+double max_effort=10;//Assuming that the maximum effort level for visibility or reachability will be will be less than 10   
+double weight;
+double color[MAXI_NUM_OF_HRI_TASKS][4];
+double red, green, blue;
+double color_hue;
+
+p3d_vector3 p1, p2;
+
+char task_name[50];
+
+
+int ctr=0;
+
+     //x1=(envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.xmax)/2.0;
+     //y1=(envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.ymax)/2.0;
+     x1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->joints[1]->abs_pos[0][3];
+     y1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->joints[1]->abs_pos[1][3];
+     z1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.zmax;
+     
+     //x2=(envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.xmax)/2.0;
+     //y2=(envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.ymax)/2.0;
+     x2=envPt_MM->robot[indices_of_MA_agents[node.target_agent]]->joints[1]->abs_pos[0][3];
+     y2=envPt_MM->robot[indices_of_MA_agents[node.target_agent]]->joints[1]->abs_pos[1][3];
+     z2=envPt_MM->robot[indices_of_MA_agents[node.target_agent]]->BB.zmax;
+     
+     
+   
+     
+     p1[0]=x1;
+     p1[1]=y1;
+     p1[2]=z1;
+     
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     //g3d_drawOneLine(x1, y1,z1, x2, y2, z2, it->task, NULL);
+     /* 
+     color_hue=((double)it->task/MAXI_NUM_OF_HRI_TASKS);
+     AKP_rgb_from_hue2(color_hue, color);
+     color[3]=1;
+     */
+     //////g3d_draw_arrow(p1, p2, color[0], color[1], color[2]);
+     g3d_draw_arrow_with_width(p1, p2, 2, 0.07, color[node.task][0], color[node.task][1], color[node.task][2]);
+     g3d_drawColorSphere(x1, y1, z1, .015, Any, color[node.task]);
+     g3d_drawColorSphere(x2, y2, z2, .015, Any, color[node.task]);
+     
+     weight= ((double)node.performing_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     double t2=0.25;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)node.performing_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.30;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+      ////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+     /////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)node.target_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.35;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Red, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)node.target_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.40;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Yellow, NULL);
+     
+  
+ 
+return 1;
+}
+
+int show_this_taskability_node(int node_id, int show_edge, int show_candidates)
+{
+  std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+ {
+    if(it->node_id==node_id)
+   {
+   if(show_candidates==1)
+     {
+     show_these_candidate_points(it->candidate_points);
+     }
+     if(show_edge==1)
+     {
+       //taskability_node node=it;
+      draw_taskability_edge(*it);
+     }
+  
+     break;
+   }
+ }
+  
+}
+
+int show_Ag_Ag_taskability_node(int performing_agent, int target_agent, int task, int show_edge, int show_candidates)
+{
+  std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+ {
+   
+   if(it->performing_agent==performing_agent&&it->target_agent==target_agent&&it->task==task)
+   {
+     if(show_candidates==1)
+     {
+     show_these_candidate_points(it->candidate_points);
+     }
+     if(show_edge==1)
+     {
+       //taskability_node node=it;
+      draw_taskability_edge(*it);
+     }
+     
+     break;
+   }
+ }
+  
+}
+
+
+
+int show_all_manipulability_graph()
+{
+
+std::vector<taskability_node>::iterator it; 
+double x1, y1, z1, x2, y2, z2;
+double x_c, y_c, z_c;
+////double interval=grid_around_HRP2.GRID_SET->pace/25.0;
+
+
+double min_effort=0;
+double max_effort=10;//Assuming that the maximum effort level for visibility or reachability will be will be less than 10   
+double weight;
+double color[4]={1,1,0,1};
+double red, green, blue;
+double color_hue;
+
+p3d_vector3 p1, p2;
+
+char task_name[50];
+
+
+int ctr=0;
+ for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+ {
+   ////printf(">>>  for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n**",it->performing_agent, it->target_agent, it->task, it->candidate_points->no_points);
+   
+     //x1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmax)/2.0;
+     //y1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymax)/2.0;
+     x1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     y1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     z1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     //x2=(envPt_MM->robot[it->target_object]->BB.xmin+envPt_MM->robot[it->target_object]->BB.xmax)/2.0;
+     //y2=(envPt_MM->robot[it->target_object]->BB.ymin+envPt_MM->robot[it->target_object]->BB.ymax)/2.0;
+     x2=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[0][3];
+     y2=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[1][3];
+     z2=envPt_MM->robot[it->target_object]->BB.zmax;
+     
+     p1[0]=x1;
+     p1[1]=y1;
+     p1[2]=z1;
+     
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     //g3d_drawOneLine(x1, y1,z1, x2, y2, z2, it->task, NULL);
+     /* 
+     color_hue=((double)it->task/MAXI_NUM_OF_HRI_TASKS);
+     AKP_rgb_from_hue2(color_hue, color);
+     color[3]=1;
+     */
+     //////g3d_draw_arrow(p1, p2, color[0], color[1], color[2]);
+     g3d_draw_arrow_with_width(p1, p2, 2, 0.07, color[0], color[1], color[2]);
+     g3d_drawColorSphere(x1, y1, z1, .015, Any, color);
+     g3d_drawColorSphere(x2, y2, z2, .015, Any, color);
+     
+     weight= ((double)it->performing_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     double t2=0.25;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)it->performing_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.30;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+      ////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+     /////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     
+     
+   ctr++;
+ }
+return 1;
+
+}
+
+int draw_manipulability_edge(taskability_node &node)
+{
+  double x1, y1, z1, x2, y2, z2;
+double x_c, y_c, z_c;
+////double interval=grid_around_HRP2.GRID_SET->pace/25.0;
+
+double min_effort=0;
+double max_effort=10;//Assuming that the maximum effort level for visibility or reachability will be will be less than 10   
+double weight;
+double color[4]={1,1,0,1};
+double red, green, blue;
+double color_hue;
+
+p3d_vector3 p1, p2;
+
+char task_name[50];
+
+  
+     //x1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmax)/2.0;
+     //y1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymax)/2.0;
+     x1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->joints[1]->abs_pos[0][3];
+     y1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->joints[1]->abs_pos[1][3];
+     z1=envPt_MM->robot[indices_of_MA_agents[node.performing_agent]]->BB.zmax;
+     
+     //x2=(envPt_MM->robot[node.target_object]->BB.xmin+envPt_MM->robot[node.target_object]->BB.xmax)/2.0;
+     //y2=(envPt_MM->robot[node.target_object]->BB.ymin+envPt_MM->robot[node.target_object]->BB.ymax)/2.0;
+     x2=envPt_MM->robot[node.target_object]->joints[1]->abs_pos[0][3];
+     y2=envPt_MM->robot[node.target_object]->joints[1]->abs_pos[1][3];
+     z2=envPt_MM->robot[node.target_object]->BB.zmax;
+     
+     p1[0]=x1;
+     p1[1]=y1;
+     p1[2]=z1;
+     
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     //g3d_drawOneLine(x1, y1,z1, x2, y2, z2, node.task, NULL);
+     /* 
+     color_hue=((double)node.task/MAXI_NUM_OF_HRI_TASKS);
+     AKP_rgb_from_hue2(color_hue, color);
+     color[3]=1;
+     */
+     //////g3d_draw_arrow(p1, p2, color[0], color[1], color[2]);
+     g3d_draw_arrow_with_width(p1, p2, 2, 0.07, color[0], color[1], color[2]);
+     g3d_drawColorSphere(x1, y1, z1, .015, Any, color);
+     g3d_drawColorSphere(x2, y2, z2, .015, Any, color);
+     
+     weight= ((double)node.performing_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     double t2=0.25;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)node.performing_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.30;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+      ////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+     /////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+}
+
+int show_this_manipulability_node(int node_id)
+{
+  std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+ {
+   if(it->node_id==node_id)
+   {
+     
+     draw_manipulability_edge(*it);
+     
+     return 1;
+   
+   }
+ }
+  
+}
+
+int show_Ag_Obj_manipulability_node(int performing_agent, int target_object)
+{
+ std::vector<taskability_node>::iterator it; 
+
+int ctr=0;
+ for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+ {
+   
+   if(it->performing_agent==performing_agent&&it->target_object==target_object)
+   {
+      draw_manipulability_edge(*it);
+   }
+ }
+}
+/////// ////////////////////////////////////// //////////
