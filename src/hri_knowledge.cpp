@@ -574,7 +574,7 @@ int hri_is_on(p3d_vector3 topObjC, p3d_BB *topObjBB, p3d_BB *bottomObjBB)
   if((topObjC[0] >= bottomObjBB->xmin) && (topObjC[0] <= bottomObjBB->xmax) &&
      (topObjC[1] >= bottomObjBB->ymin) && (topObjC[1] <= bottomObjBB->ymax))
     //&& (topObjC[2] >= bottomObjBB->zmax)) --> commented to manage PLACEMAT
-    if((topObjBB->zmin - bottomObjBB->zmax > -0.05) && (topObjBB->zmin-bottomObjBB->zmax < 0.05))
+    if((topObjBB->zmin - bottomObjBB->zmax > -HRI_KNOWLEDGE_IS_ON_MAX_DIST) && (topObjBB->zmin-bottomObjBB->zmax < HRI_KNOWLEDGE_IS_ON_MAX_DIST))
       return TRUE;
 
   return FALSE;
