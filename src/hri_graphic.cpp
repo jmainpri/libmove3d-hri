@@ -29,6 +29,9 @@ void g3d_hri_main()
 	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
 
 
+	  // draw monitoring spheres
+	  hri_draw_action_monitoring_spheres();
+
 #ifdef USE_MIGHTABILITY_MAPS
  //AKP: Function to display reachability, visibility of the object
           show_object_facts();
