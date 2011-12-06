@@ -18,7 +18,8 @@ HRI_ACTION_MONITORING_SPHERES * hri_create_spheres(int nbSpheresMax)
   spheres->nbActiveSpheres = 0;
   spheres->modifIndex = 0;
   spheres->nbIterSinceLastMonitorTest = 0; 
-  spheres->drawSpheres = TRUE;
+  spheres->drawSpheres = FALSE;
+  spheres->drawSpheresOpacity = 0.1;
 
   for(i=0; i<nbSpheresMax; i++) {
     spheres->spheres = MY_REALLOC(spheres->spheres , HRI_ACTION_MONITORING_SPHERE*,i,i+1);
@@ -277,10 +278,10 @@ int hriTestMonitor(HRI_AGENTS * agents, HRI_ENTITIES * ents,HRI_ACTION_MONITORIN
 
 void hri_draw_action_monitoring_spheres()
 {
-  int nbActiveSpheres;
-  int nbMaxSpheres;
-  double x,y,z,r;
-  GLfloat color[4];
+  int nbActiveSpheres,i;
+  int nbSpheresMax;
+  double x,y,z,r,opacity;
+  GLdouble color[4];
 
   if(GLOBAL_ACTION_MONITORING_SPHERES == NULL){
     return;
@@ -292,26 +293,40 @@ void hri_draw_action_monitoring_spheres()
 
   nbActiveSpheres = GLOBAL_ACTION_MONITORING_SPHERES->nbActiveSpheres;
   nbSpheresMax = GLOBAL_ACTION_MONITORING_SPHERES->nbSpheresMax;
+  opacity = GLOBAL_ACTION_MONITORING_SPHERES->drawSpheresOpacity;
+  if(opacity > 1)
+    opacity = 1.0;
+  if(opacity < 0)
+    opacity = 0.0;
 
-  for(i=0; i<nbMaxSpheres; i++) {
+  for(i=0; i<nbSpheresMax; i++) {
     if(nbActiveSpheres == 0)
       break;
     if(GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->isSphereActive){
       nbActiveSpheres--;
       //If monitor has already triggered, we don't need to test it again.
-      if(GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorEnterInResult && GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorGetOutResult)
-	color[0] = 1.0; color[1]= 0.0; color[2]= 0.0; color[3]= 0.5;
-      else if(GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorEnterInResult)
-	color[0] = 1.0; color[1]= 0.5; color[2]= 0.0; color[3]= 0.5;
-      else
-	color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= 0.5;
-      
-      glColor4f(color[0], color[1], color[2], color[3]);
+      if(GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorEnterInResult && GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorGetOutResult){
+	color[0] = 1.0; color[1]= 0.0; color[2]= 0.0; color[3]= opacity;
+      }
+      else if(GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->monitorEnterInResult){
+	color[0] = 1.0; color[1]= 0.5; color[2]= 0.0; color[3]= opacity;
+      }
+      else{
+	color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= opacity;
+      }      
+
+      //glColor4f(color[0], color[1], color[2], color[3]);
       x = GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->sphereCenterX;
       y = GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->sphereCenterY;
       z = GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->sphereCenterZ;
       r = GLOBAL_ACTION_MONITORING_SPHERES->spheres[i]->sphereRadius;
-      g3d_drawSphere(x,y,z,r);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  
+      g3d_set_color(Any,color);
+      g3d_draw_solid_sphere(x,y,z,r,20);
+  
+      glDisable(GL_BLEND);///g3d_drawSphere(x,y,z,r);
     }      
   }
 }

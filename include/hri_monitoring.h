@@ -41,6 +41,7 @@ typedef struct STRUCT_HRI_ACTION_MONITORING_SPHERES {
   int modifIndex; // each time there is something new in spheres we increment this counter.
   int nbIterSinceLastMonitorTest; // number of iter
   int drawSpheres; // do we draw spheres
+  double drawSpheresOpacity; // Opacity if we do we draw spheres
 } HRI_ACTION_MONITORING_SPHERES;
 
 
