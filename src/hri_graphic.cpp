@@ -16,74 +16,57 @@ int MA_ASA_WITHOUT_SPARK=0; // It will be used to execute the MA and ASA functio
 
 void g3d_hri_main()
 {
-	  //hri_hri_inter_point_test();
-	  g3d_hri_bt_draw_active_bitmaps(BTSET);
-	  g3d_hri_bt_draw_active_3dbitmaps(INTERPOINT);
-	  g3d_hri_bt_draw_active_3dbitmaps(OBJSET);
-	  g3d_hri_bt_draw_targets(BTSET);
-	  hri_exp_draw_ordered_points();
-	  //g3d_hri_display_test();
-    //g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
-	  g3d_hri_display_all_agents_sees(GLOBAL_AGENTS);
-	  //g3d_hri_draw_kinect_state();
-	  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
+  //hri_hri_inter_point_test();
+  g3d_hri_bt_draw_active_bitmaps(BTSET);
+  g3d_hri_bt_draw_active_3dbitmaps(INTERPOINT);
+  g3d_hri_bt_draw_active_3dbitmaps(OBJSET);
+  g3d_hri_bt_draw_targets(BTSET);
+  hri_exp_draw_ordered_points();
+  //g3d_hri_display_test();
+  //g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
+  g3d_hri_display_all_agents_sees(GLOBAL_AGENTS);
 
-
-	  // draw monitoring spheres
-	  hri_draw_action_monitoring_spheres();
-
+  if(HRI_DRAW_TRAJ){g3d_draw_all_tcur();}
+  
 #ifdef USE_MIGHTABILITY_MAPS
- //AKP: Function to display reachability, visibility of the object
-          show_object_facts();
-	  
-if(MA_ASA_WITHOUT_SPARK==1)
- {
-		  ////printf("Inside g3d_draw_env_custom() \n");
-		  execute_Mightability_Map_functions();
-		  if(STOP_AGENT_STATE_ANALYSIS!=1)
-		  {
-		  hri_execute_Agent_State_Analysis_functions();
-		  }
- }
-#endif
-	  
-	  if(FALSE) { 
-		// Writing text or anything else breaks visibility functions. 
-		// They should be enabled/disabled inside win->vs
-		// Display a string with text
-		char string[150]; 
-		//sprintf(string, "HRI cost = %2.2f", hri_cost_to_display );
-		sprintf(string,hri_text_to_display.c_str());
-
-		glColor3f(0.0,0.0,0.0);
-		g3d_draw_text(string);
-		
-	/**
-		if (hri_draw_distance) {
-		  glLineWidth(3.);
-		  
-		  for (unsigned int i = 0; i < hri_disp_dist.size() / 6; i++) 
-		  {
-			g3d_drawOneLine(hri_disp_dist[0 + 6 * i], hri_disp_dist[1 + 6 * i],
-							hri_disp_dist[2 + 6 * i], hri_disp_dist[3 + 6 * i],
-							hri_disp_dist[4 + 6 * i], hri_disp_dist[5 + 6 * i], Blue, NULL);
-		  }
-		  glLineWidth(1.);
-		}
-	*/
-	  }
-	  
-	  hri_draw_mindist();
-	  hri_draw_kinect_points();
-    hri_draw_kinect_human_arms( GLOBAL_AGENTS );
-
-    // Display things (Debug information) that is not
-    // part of the scene
-	  if(G3D_WIN->vs.enableLogo==1) 
+  //AKP: Function to display reachability, visibility of the object
+  show_object_facts();
+  
+  if(MA_ASA_WITHOUT_SPARK==1)
+  {
+    ////printf("Inside g3d_draw_env_custom() \n");
+    execute_Mightability_Map_functions();
+    if(STOP_AGENT_STATE_ANALYSIS!=1)
     {
-      g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
-	    hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07);    
+		  hri_execute_Agent_State_Analysis_functions();
     }
+  }
+#endif
+  
+  hri_draw_kinect_points();
+  hri_draw_kinect_human_arms( GLOBAL_AGENTS );
+  
+  // Displaying things (Debug information) that are not part of the scene
+  // such as writing text or minial distance vectors will break agent visibility computations. 
+  // They should be enabled/disabled inside win->vs.enableLogo which is turned off when drawing in the backbuffer
+  if(G3D_WIN->vs.enableLogo==1) 
+  {
+    g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
+    
+    hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07); 
+    hri_draw_mindist();
+    hri_draw_action_monitoring_spheres();
+    
+    if(false)
+    {
+      // Display a string with text
+      char string[150]; 
+      //sprintf(string, "HRI cost = %2.2f", hri_cost_to_display );
+      sprintf(string,hri_text_to_display.c_str());
+      glColor3f(0.0,0.0,0.0);
+      g3d_draw_text(string);
+    }
+  }
 }
 
 void g3d_hri_display_visible_objects(HRI_AGENT *agent)
