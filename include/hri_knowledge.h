@@ -109,6 +109,8 @@ typedef struct STRUCT_HRI_ENTITY {
   int is_pl_state_transition_new;
   HRI_PLACEMENT_STATE_TRANSITION pl_state_transition;
   
+  int isOnSpecialSupport; // Hack to bypass ontology to get isOn value for one chosen support to speed the system.
+  
 
   p3d_rob * robotPt;
   p3d_obj * partPt;
@@ -138,6 +140,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   double hackedReachabilityDistance; /// hacked distance to compute reachability for human while GIK do not work for Herakles.
   int maxUnexplainedUndetectionIter; /// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason.
   double isOnThreshold; /// max allowed threshold between min "isOn candidate" object height value and max furniture height value.
+  int specialSupportEntityIndex; //
 } HRI_ENTITIES;
 
 //! @ingroup KNOWLEDGE

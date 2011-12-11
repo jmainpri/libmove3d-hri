@@ -63,6 +63,7 @@ HRI_ENTITIES * hri_create_entities()
   entities->hackedReachabilityDistance = 0.8;
   entities->maxUnexplainedUndetectionIter = 7;
   entities->isOnThreshold = 0.05;
+  entities->specialSupportEntityIndex = -1;
 
   for(i=0; i<env->nr; i++) {
     if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -97,12 +98,17 @@ HRI_ENTITIES * hri_create_entities()
 	entities->entities[ent_i]->minStaticDist = 0;
 	entities->entities[ent_i]->is_pl_state_transition_new = FALSE;
 	entities->entities[ent_i]->pl_state_transition = HRI_UK_PL_STATE_TRANSITION;
+	entities->entities[ent_i]->isOnSpecialSupport = FALSE;
 
         entities->entities[ent_i]->robotPt = env->robot[i];
         entities->entities[ent_i]->partPt = NULL;
         entities->entities[ent_i]->type = HRI_OBJECT;
-	if(strcasestr(env->robot[i]->name,"TABLE")||strcasestr(env->robot[i]->name,"SHELF"))
+	if(strcasestr(env->robot[i]->name,"TABLE")||strcasestr(env->robot[i]->name,"SHELF")){
 	  entities->entities[ent_i]->subtype = HRI_OBJECT_SUPPORT;
+	  //Temporary Hack to get isOn in poster for specific furniture.
+	  if(strcasestr(env->robot[i]->name,"HRP2TABLE"))
+	    entities->specialSupportEntityIndex = ent_i;
+	}
 	else if(strcasestr(env->robot[i]->name,"TAPE")||strcasestr(env->robot[i]->name,"BOTTLE")||strcasestr(env->robot[i]->name,"BOX")||strcasestr(env->robot[i]->name,"CUBE")){
 	  entities->entities[ent_i]->subtype = HRI_MOVABLE_OBJECT;
 	  entities->entities[ent_i]->can_disappear_and_move = TRUE;
@@ -1360,11 +1366,17 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   HRI_SPATIAL_RELATION front_behind_result; 
   HRI_PLACEMENT_RELATION placement_relation_result;
   int forceRecomputation = FALSE;
+  int specialSupportEntityIndex = -1;
+  // int specialSupportEntityIndexInPresentEnts = -1;
 
   if(agents == NULL || ents == NULL) {
     printf("Not Initialized\n");
     return FALSE;
   }
+
+  // Hack to get isOn relation for special support 
+  specialSupportEntityIndex = ents->specialSupportEntityIndex;
+  //printf("specialSupportEntityIndex : %d\n" ,specialSupportEntityIndex);
 
   // update parameters used for situation if needed. 
   if(ents->needToUpdateParameters){
@@ -1630,6 +1642,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
       // PLACEMENT RELATION
       for(e_j=0; e_j<present_ents_nb; e_j++) {
 	ge_j = present_ents_global_idxs[e_j];
+	
+	// if( e_j == specialSupportEntityIndex)
+	//   specialSupportEntityIndexInPresentEnts = ge_j;
 	// do not compute placement relations that involve an agent or an agent part
 	/* if( ((ent->type == HRI_AGENT_PART) || (ent->type == HRI_ISAGENT)) || !ent->can_disappear_and_move || ((ents->entities[ge_j]->type == HRI_AGENT_PART) || (ents->entities[ge_j]->type == HRI_ISAGENT)) ) { */
 	/*   continue; */
@@ -1655,6 +1670,14 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	      kn_on_ent->placement_relation_ischanged[ge_j] = TRUE;
 	      kn_on_ent->placement_relation_isexported[ge_j] = FALSE;
 	    }
+
+	    if( ge_j == specialSupportEntityIndex){
+	      //printf(" placement_relation_result : %d\n" ,placement_relation_result);
+	      if( placement_relation_result == HRI_ISON)
+		ent->isOnSpecialSupport  = TRUE;
+	      else
+		ent->isOnSpecialSupport  = FALSE;
+	    }	  
 	  }
 	}
       }
