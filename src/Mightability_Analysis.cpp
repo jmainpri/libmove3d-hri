@@ -385,6 +385,7 @@ show_taskability_params curr_params_for_show_taskability;//It includes params fo
 
 int STORE_STATE_CONFIGS=1;//Used to store different configs of the agent corresponding to the Mightability computation. NOTE: IMPORTANT:Set thsi flag as 0 to save memory and speedup the Mightability updation and calculation process;
 
+int SHOW_OBJ_FACTS_BY_ARROW=1;
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -23951,7 +23952,7 @@ int init_object_facts_data()
 
 int show_object_facts()
 {
-  int show_by_arrow=1;
+  int show_by_arrow=SHOW_OBJ_FACTS_BY_ARROW;
   p3d_env *envPt = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
   ////printf(" Inside show_object_facts()\n");
   int i=0;

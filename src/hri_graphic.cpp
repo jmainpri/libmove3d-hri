@@ -13,6 +13,7 @@ extern std::vector<double> hri_disp_dist;
 
 int STOP_AGENT_STATE_ANALYSIS=0;//Will be used by spark to set/reset
 int MA_ASA_WITHOUT_SPARK=0; // It will be used to execute the MA and ASA functions, when libhri is used without spark, because of the synchronization problem 
+int SHOW_OBJECT_FACTS=1;
 
 void g3d_hri_main()
 {
@@ -30,6 +31,7 @@ void g3d_hri_main()
   
 #ifdef USE_MIGHTABILITY_MAPS
   //AKP: Function to display reachability, visibility of the object
+  if(SHOW_OBJECT_FACTS==1)
   show_object_facts();
   
   if(MA_ASA_WITHOUT_SPARK==1)
