@@ -687,17 +687,17 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 
       //Tmp for test
   
-
-    } 
-
-    printf(" SHOW_TASKABILITIES=%d\n",SHOW_TASKABILITIES);
-    if(SHOW_TASKABILITIES==1)
-    {
+ ////printf(" SHOW_TASKABILITIES=%d\n",SHOW_TASKABILITIES);
+     if(SHOW_TASKABILITIES==1)
+     {
       
       print_this_taskability_params(curr_params_for_show_taskability);
     show_taskabilities(curr_params_for_show_taskability);
-    }
+     }
     
+    } 
+
+   
     
   /////Tmp for testing
    /////////show_axis_of_FOV_from_mocap_eye_glass_data();
