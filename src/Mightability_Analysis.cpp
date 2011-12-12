@@ -51,6 +51,9 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <cxxabi.h>
+#include <boost/concept_check.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/concept_check.hpp>
 
 #define COMMENT_TMP
 //// This will be used for exporting the object level mightability information to the external modules/functions
@@ -298,13 +301,14 @@ int display_horizontal_triangles(std::list<gpTriangle> htris);
 int display_horizontal_triangles_samples(std::list<gpTriangle> htris);
 int get_horizontal_surfaces();
 int update_horizontal_surfaces();
-int show_Mightability_Maps();
+int show_Mightability_Maps(int show_states_configs);
 int show_Object_Oriented_Mightabilities();
-int show_Object_Oriented_Mightabilities_new();
+int show_Object_Oriented_Mightabilities_new(int show_states);
 int test_inside(int container_index, int object_index);
 int voronoi(p3d_rob *container, p3d_rob *object);
 int follow_human_head_to_object(HRI_TASK_AGENT for_agent, char *object_name);
 int update_human_posture_state();
+
 // agent_state_task_constraint accepted_states_for_HRP2[MAXI_NUM_OF_HRI_TASKS]; 
 // agent_state_task_constraint accepted_states_for_HUMAN1[MAXI_NUM_OF_HRI_TASKS]; 
 // agent_state_task_constraint accepted_states_for_JIDO[MAXI_NUM_OF_HRI_TASKS]; 
@@ -361,7 +365,7 @@ p3d_matrix4 HEAD_FRAME;
 int opengl_context =0;
 
 int OBJ_IS_VISIBLE_FOR_AGENT[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
-int OBJ_IS_REACHABLE_FOR_AGENT[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+int OBJ_IS_REACHABLE_FOR_AGENT[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_OF_HANDS_OF_AGENT];
 
 point_co_ordi TO_SHOW_PLACEMENT_POINT;
 
@@ -379,6 +383,8 @@ std::vector< configPt > Ag_State_Configs[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NU
 
 show_taskability_params curr_params_for_show_taskability;//It includes params for manipulability also
 
+int STORE_STATE_CONFIGS=1;//Used to store different configs of the agent corresponding to the Mightability computation. NOTE: IMPORTANT:Set thsi flag as 0 to save memory and speedup the Mightability updation and calculation process;
+
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -391,6 +397,7 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 
   if(Affordances_Found==1)
     {
+ 
   
       // // //Tmp for testing
       // // //   show_point_of_screen();
@@ -566,7 +573,22 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
               test_inside(get_index_of_robot_by_name("PINK_TRASHBIN" ), get_index_of_robot_by_name("SURPRISE_BOX" ));
 	      test_inside(get_index_of_robot_by_name("SURPRISE_BOX" ), get_index_of_robot_by_name("PINK_TRASHBIN" ));
 	    */
-	  //// show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 2); 
+	  /* show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
+	     show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
+	   show_agent_state_configs(PR2_MA, VIS_ABILITY, 2); 
+	   
+	   show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 2); 
+	     show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 6); 
+	     */
+	  /*
+          show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 0); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 1); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 2); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 4);
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 5);
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
+	  */
 	}
 
       if(SHOW_MIGHTABILITY_MAP_INFO==1)
@@ -580,7 +602,8 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 	  if(NEED_TO_SHOW_OBJECT_MIGHTABILITY==1)
 	  {
 	    //////show_Object_Oriented_Mightabilities();
-	    show_Object_Oriented_Mightabilities_new();
+	    int show_states=1;
+	    show_Object_Oriented_Mightabilities_new(show_states);
 	  }
 	  //printf(" **** after show_symbolic_Mightability_Map_Relations() \n");
 	  ////////////show_3d_grid_Bounding_box_for_HRP2_GIK();
@@ -601,7 +624,8 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 		  ////printf(" NEED_TO_SHOW_MIGHTABILITY_MAPS= %d\n", NEED_TO_SHOW_MIGHTABILITY_MAPS);
 		  if(NEED_TO_SHOW_MIGHTABILITY_MAPS==1)
 		  {
-		  show_Mightability_Maps();
+		    int show_states_configs=1;
+		  show_Mightability_Maps(show_states_configs);
 		  
 		  show_agent_ability_effort_points();
 		  }
@@ -666,10 +690,11 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 
     } 
 
-    
+    printf(" SHOW_TASKABILITIES=%d\n",SHOW_TASKABILITIES);
     if(SHOW_TASKABILITIES==1)
     {
-      ////print_this_taskability_params(curr_params_for_show_taskability);
+      
+      print_this_taskability_params(curr_params_for_show_taskability);
     show_taskabilities(curr_params_for_show_taskability);
     }
     
@@ -1280,23 +1305,33 @@ Effort_NAME_ID_map[for_agent][for_effort_type][MA_WHOLE_BODY_CHANGE_POS_EFFORT_R
 
 int init_effort_name_ID_map()
 {
-  int is_human=0;
+  int agent_ok=0;
   
   for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
   {
-    is_human=0;
+    agent_ok=0;
     if(i==HUMAN1_MA)
     {
-      is_human=1;
+      agent_ok=1;
     }
 #ifdef HUMAN2_EXISTS_FOR_MA
 if(i==HUMAN2_MA)
     {
-      is_human=1;
+      agent_ok=1;
     }
 #endif
 
-   if(is_human==1)
+#ifdef PR2_EXISTS_FOR_MA
+if(i==PR2_MA)
+    {
+   // maxi_num_reach_effort_levels=MA_MAXI_NUM_TRANS_REACH_EFFORT;
+   // maxi_num_vis_effort_levels=MA_MAXI_NUM_TRANS_VIS_EFFORTS;
+   agent_ok=1;
+      
+    }
+#endif
+
+   if(agent_ok==1)
    {
      printf(" >> init_effort_name_ID_map_for_human(%d)\n",i);
      
@@ -6503,7 +6538,7 @@ int caculate_and_show_resultant_MM()
   return 1;
 }
 
-int show_Mightability_Maps()
+int show_Mightability_Maps(int show_states_configs)
 {
 double radius=grid_around_HRP2.GRID_SET->pace/3.0;
 double z_world;
@@ -6512,6 +6547,34 @@ double cell_y_world;
 double cell_z_world;
  double z_shift_for_horizontal_points=0.02;
 	      
+ if(show_states_configs==1)
+ {
+   for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+	      {
+		if(SHOW_MIGHTABILITY_MAPS_FOR_AGENTS[i]==0)
+		  continue;
+		
+	      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
+		{
+		if(curr_flags_show_Mightability_Maps.show_visibility[i][j]>0)
+		 {
+		   show_agent_state_configs(i, VIS_ABILITY, j); 
+		 }
+		}
+		
+		for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
+		{
+		for(int k=0;k<agents_for_MA_obj.for_agent[i].no_of_arms;k++)
+		  {
+		  if(curr_flags_show_Mightability_Maps.show_reachability[i][j][k]>0)
+		   {
+		     show_agent_state_configs(i, REACH_ABILITY, j); 
+		   }
+		  }
+		}
+	      }
+   
+ }
   ////printf(" Inside show_Mightability_Maps \n");
   int x=0;
   for(x=0;x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;x++)
@@ -6536,6 +6599,8 @@ double cell_z_world;
 		{
 		if(curr_flags_show_Mightability_Maps.show_visibility[i][j]>0)
 		 {
+		 
+		   
 		    if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[i][j]==1)
 		    {
 		      //printf(" Drawing disc\n");
@@ -7627,6 +7692,7 @@ int MA_activate_collision_between_non_torso_parts_and_env(p3d_rob * for_human)
 int update_current_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent) 
 {
 
+
   int hum_index;
   if(for_agent==HUMAN1_MA)
     {
@@ -7650,6 +7716,7 @@ int update_current_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent)
     }
 #endif 
   //////////printf("Inside update_3d_grid_reachability_for_human_new()\n");
+free_state_configs(for_agent, CURR_REACH_STATE_INDEX_MA_AGENT[for_agent], REACH_ABILITY);
 
   p3d_col_deactivate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
   MA_deactivate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
@@ -7907,12 +7974,17 @@ int update_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent, int for_p
 	      if(collision_occured==0)
 	      {
 	      MA_agent_hand_name for_hand=MA_LEFT_HAND;
+	      
+	      free_state_configs(for_agent, straight_lean_type, REACH_ABILITY);
+	      
 	      update_3d_grid_reachability_for_agent_MM(for_agent, for_hand, straight_lean_type);
 	      for_hand=MA_RIGHT_HAND;
+
 	      update_3d_grid_reachability_for_agent_MM(for_agent, for_hand, straight_lean_type);
 	
 	      }
 	     //// printf(" Straight reach calculated \n");
+	      free_state_configs(for_agent, lean_reach_type, REACH_ABILITY);
 	      
 	      int lean_forward=1;
 	      while(lean_forward==1)
@@ -7949,6 +8021,8 @@ int update_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent, int for_p
 		    break;
 //		  }
 	      }
+	      	      
+
 	      MA_agent_hand_name for_hand=MA_LEFT_HAND;
 	      update_3d_grid_reachability_for_agent_MM(for_agent, for_hand, lean_reach_type);
 	      for_hand=MA_RIGHT_HAND;
@@ -7966,6 +8040,8 @@ int update_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent, int for_p
   int curr_state_type;
   curr_yaw_ang=ref_yaw_ang;
   
+  free_state_configs(for_agent, turn_reach_state, REACH_ABILITY);
+  
   while(turn_left==1)
   {
     curr_yaw_ang+= 0.25;
@@ -7981,6 +8057,8 @@ int update_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent, int for_p
    
     curr_state_type=turn_reach_state;//This will change to turn_lean_reach_type for lean at the end of below while loop;
   
+       
+       
     int lean_forward=1;
     
     while(lean_forward==1)
@@ -8011,6 +8089,8 @@ int update_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent, int for_p
 //		  }
 	      }
 	      
+	    
+	       
 	      MA_agent_hand_name for_hand=MA_LEFT_HAND;
 	      update_3d_grid_reachability_for_agent_MM(for_agent, for_hand, curr_state_type);
 	      for_hand=MA_RIGHT_HAND;
@@ -8365,6 +8445,14 @@ int update_3d_grid_reachability_for_JIDO_MM()
 int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_hand_name for_hand, int for_state)
 {
 
+  configPt tmp_config=MY_ALLOC(double,envPt_MM->robot[indices_of_MA_agents[for_agent]]->nb_dof);
+
+  p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&tmp_config);
+  
+  // IMPORTANT: Write functions to properly free the configs after any updations in MA
+  Ag_State_Configs[for_agent][REACH_ABILITY][for_state].push_back(tmp_config);
+  
+  
   MA_agents_hand_joints_names for_shoulder;
   if(for_hand==MA_RIGHT_HAND)
   {
@@ -8611,16 +8699,33 @@ int cell_z;
 }
 */
 
+int free_state_configs(int for_agent, int for_state, int for_ability_type)
+{
+  std::vector<configPt>::iterator it;
+  printf(" >*> Total no. of configs for agent %d, for ability %d, for state %d  is %d\n",for_agent,for_ability_type, for_state,  Ag_State_Configs[for_agent][for_ability_type][for_state].size());
+  
+  for(it=Ag_State_Configs[for_agent][for_ability_type][for_state].begin(); it!=Ag_State_Configs[for_agent][for_ability_type][for_state].end(); ++it)
+  {
+    MY_FREE(*it ,double,envPt_MM->robot[indices_of_MA_agents[for_agent]]->nb_dof);
+  }
+  Ag_State_Configs[for_agent][for_ability_type][for_state].clear();
+  
+}
+
 int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, int visibility_type)
 {
-/*
+if(agent_type==HUMAN1_MA)
+{
+  printf(" Called find_3D_grid_visibility_for_MM for agnet %d for state %d\n",agent_type, visibility_type);
+  
+}
   configPt tmp_config=MY_ALLOC(double,envPt_MM->robot[indices_of_MA_agents[agent_type]]->nb_dof);
 
   p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[agent_type]],&tmp_config);
   
-  //TODO: IMPORTANT: Write functions to properly free the configs after any updations in MA
+  // IMPORTANT: Write functions to properly free the configs after any updations in MA
   Ag_State_Configs[agent_type][VIS_ABILITY][visibility_type].push_back(tmp_config);
-  */
+  
 
   ////to_del_tmp_obs_cell_ctr=0;
   ////envPt_MM = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
@@ -8657,6 +8762,10 @@ int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, i
   int cell_x;  
   int cell_y;
   int cell_z;
+
+  int prev_cell_x;  
+  int prev_cell_y;
+  int prev_cell_z;
 
   for(int i=0;i<no_points_on_FOV_screen;i++)
     {
@@ -8702,7 +8811,8 @@ int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, i
 
 	  if(cell_valid==1)
 	    {
-	      
+	   
+	  
 	/* if(agent_type==HUMAN1_MA&&visibility_type==0)
 		  {
 	printf("Checking for cell (%d, %d, %d) having val=%lf\n",cell_x,cell_y,cell_z,grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].val);
@@ -8816,6 +8926,16 @@ int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, i
 		     }*/
 		      ////This is the first obstacle cell found in the ray
 		       grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.first_non_visible[agent_type][visibility_type]=1;
+		       
+		       ////printf(" First obstacle cell found in the ray \n");
+		       
+		       grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_x[agent_type][visibility_type] =prev_cell_x;
+		       
+		       grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_y[agent_type][visibility_type]=prev_cell_y;
+		       
+		       grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_z[agent_type][visibility_type]=prev_cell_z;
+		       
+		       
 		//t2=1;      
 //break;
 		    }
@@ -8830,10 +8950,19 @@ int find_3D_grid_visibility_for_MM(HRI_AGENT *agent,HRI_TASK_AGENT agent_type, i
 		{
 		  grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.visible[agent_type][visibility_type]=1;
 		  
-		 
+		  
+		 //// printf(" >>> grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].size()=%d\n",grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].size());
+		  if(STORE_STATE_CONFIGS==1)
+		  {
+		 grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].push_back(tmp_config);
+		  }
 		  ////grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[curr_cell->x][curr_cell->y][curr_cell->z].affordances.visible_by_human=1; //NOTE : In EARLIER version  affordance values like visibility, reachability etc will be set in HRP2_GIK_MANIP bitmap, only for checking the obstacle values for visibility,BT_AFFORDANCE_VISIBILITY bitmap will be used.
 		  ////visible_ctr++;
 		  //g3d_drawDisc(x2,y2,z2,grid_around_HRP2.GRID_SET->pace/4.0,2,NULL);
+		 
+		 prev_cell_x=cell_x;
+	   prev_cell_y=cell_y;
+	   prev_cell_z=cell_z;
 		} 
 	    }//end if(cell_valid==1)
 	}//End for(;t2<1;t2+=interval) 
@@ -10702,6 +10831,8 @@ int find_human_current_visibility_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGEN
 {
   
   int visibility_type=MM_CURRENT_STATE_HUM_VIS;
+  
+  free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   /*HRI_TASK_AGENT agent_type;
  
   if(strcasestr(human_agent_MM->robotPt->name,"HUMAN1"))
@@ -10730,12 +10861,16 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
   ////int agent_type=1;//for human 1
   int visibility_type=MM_CURRENT_STATE_HUM_VIS;
 
+  free_state_configs(agent_type, visibility_type, VIS_ABILITY);
+  
   //////////get_all_points_on_FOV_screen(primary_human_MM);
   ////find_3D_grid_visibility(primary_human_MM,1,MM_CURRENT_STATE_HUM_VIS);
   //////////find_3D_grid_visibility_for_MM(primary_human_MM,agent_type, visibility_type);//agent_type: 1 means human, 2 means HRP2, 3 means JIDO, 4 means second human
   ////ChronoPrint(" Time for getting points on HUMAN FOV screen");
 ////to_del_tmp_obs_cell_ctr=0;
   find_human_current_visibility_in_3D(human_agent_MM, agent_type);
+  
+  show_agent_state_configs(agent_type, VIS_ABILITY, visibility_type); 
   ////p3d_set_and_update_this_robot_conf(human_agent_MM->robotPt, HRI_AGENTS_FOR_MA_actual_pos[agent_type]);
  ////return 1;
   //Now making the head straight along of axis of torso
@@ -10799,6 +10934,8 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
      visibility_type=MM_STANDING_STRAIGHT_HEAD_STATE_HUM_VIS;
     }
    }
+   
+   free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   ///////get_all_points_on_FOV_screen(primary_human_MM);
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_straight_visibility(primary_human_MM,1);
@@ -10807,6 +10944,7 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
   find_3D_grid_visibility_for_MM(human_agent_MM,agent_type, visibility_type);
  /////p3d_set_and_update_this_robot_conf(human_agent_MM->robotPt, HRI_AGENTS_FOR_MA_actual_pos[agent_type]);
  ////return 1;
+ show_agent_state_configs(agent_type, VIS_ABILITY, visibility_type); 
  
   yaw=M_PI/3.0;
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[PAN]]=yaw; // Human Yaw angle relative to the human body frame
@@ -10828,9 +10966,11 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
     }
    }
 
+free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_turn_head_visibility(primary_human_MM,1);
    find_3D_grid_visibility_for_MM(human_agent_MM,agent_type, visibility_type);
+show_agent_state_configs(agent_type, VIS_ABILITY, visibility_type); 
 
   yaw=-M_PI/3.0;
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[PAN]]=yaw; // Human Yaw angle relative to the human body frame
@@ -10842,7 +10982,7 @@ int find_human_all_visibilities_in_3D(HRI_AGENT *human_agent_MM, HRI_TASK_AGENT 
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_turn_head_visibility(primary_human_MM,1);
   find_3D_grid_visibility_for_MM(human_agent_MM,agent_type, visibility_type);
-
+show_agent_state_configs(agent_type, VIS_ABILITY, visibility_type); 
   // Now leaning forward
   yaw=0.0;
   pitch=M_PI/6.0;
@@ -10877,6 +11017,7 @@ if(agents_curr_state==HRI_SITTING)
      visibility_type=MM_STANDING_LEAN_FORWARD_STATE_HUM_VIS;
     }
    }
+free_state_configs(agent_type, visibility_type, VIS_ABILITY);
 
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_turn_head_visibility(primary_human_MM,1);
@@ -10912,6 +11053,8 @@ if(agents_curr_state==HRI_SITTING)
      CURR_HUMAN_TEMP_STATE_MM=HRI_SITTING;
     }
    }
+
+free_state_configs(agent_type, visibility_type, VIS_ABILITY);
 
   p3d_get_robot_config_into(human_agent_MM->robotPt,&HRI_AGENTS_FOR_MA_running_pos[agent_type]);
   ////g3d_draw_env();
@@ -10952,7 +11095,7 @@ if(agents_curr_state==HRI_SITTING)
   visibility_type=MM_STANDING_LOOK_AROUND_HEAD_STATE_HUM_VIS;
     }
    }
- 
+ free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_turn_head_visibility(primary_human_MM,1);
@@ -11006,6 +11149,7 @@ if(CURR_HUMAN_TEMP_STATE_MM==HRI_SITTING)
      visibility_type=MM_STANDING_LEAN_FORWARD_STATE_HUM_VIS;
     }
    }
+free_state_configs(agent_type, visibility_type, VIS_ABILITY);
 
   get_all_points_on_FOV_screen(human_agent_MM, agent_type);
   ////find_3D_grid_turn_head_visibility(primary_human_MM,1);
@@ -11033,6 +11177,7 @@ if(CURR_HUMAN_TEMP_STATE_MM==HRI_SITTING)
 int find_JIDO_robot_current_visibility_in_3D()
 {
   int visibility_type=MM_CURRENT_STATE_JIDO_VIS;
+  free_state_configs(JIDO_MA, visibility_type, VIS_ABILITY);
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[JIDO_MA], JIDO_MA);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[JIDO_MA],JIDO_MA,visibility_type);
 }
@@ -11074,6 +11219,7 @@ int find_JIDO_robot_all_visibilities_in_3D()
   ////envPt_MM->robot[rob_indx.JIDO_ROBOT]->ROBOT_POS[ROBOTq_TILT]=JIDO_running_pos_MM[ROBOTq_TILT];
   
   visibility_type=MM_STRAIGHT_HEAD_STATE_JIDO_VIS;
+  free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[agent_type], agent_type);
   ////find_3D_grid_straight_visibility(jido_robot_MM,3);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[agent_type],agent_type,visibility_type);
@@ -11087,6 +11233,7 @@ int find_JIDO_robot_all_visibilities_in_3D()
   ////envPt_MM->robot[rob_indx.JIDO_ROBOT]->ROBOT_POS[ROBOTq_TILT]=JIDO_running_pos_MM[ROBOTq_TILT];
   
   visibility_type=MM_LOOK_AROUND_HEAD_STATE_JIDO_VIS;
+  free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[agent_type], agent_type);
   ////find_3D_grid_turn_head_visibility(jido_robot_MM,3);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[agent_type],agent_type,visibility_type);
@@ -11125,6 +11272,8 @@ int find_JIDO_robot_all_visibilities_in_3D()
 int find_PR2_robot_current_visibility_in_3D()
 {
   int visibility_type=MM_CURRENT_STATE_PR2_VIS;
+  free_state_configs(PR2_MA, visibility_type, VIS_ABILITY);
+  
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[PR2_MA],PR2_MA);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[PR2_MA],PR2_MA,visibility_type);
 }
@@ -11180,7 +11329,7 @@ int find_PR2_robot_all_visibilities_for_posture_in_3D(PR2_POSTURE_MA for_posture
       break;
       
   }
-
+free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[agent_type],agent_type);
   ////find_3D_grid_straight_visibility(jido_robot_MM,3);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[agent_type],agent_type,visibility_type);
@@ -11207,7 +11356,7 @@ int find_PR2_robot_all_visibilities_for_posture_in_3D(PR2_POSTURE_MA for_posture
       break;
       
   }
-  
+  free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   ////visibility_type=MM_LOW_LOOK_AROUND_HEAD_STATE_PR2_VIS;
   get_all_points_on_FOV_screen(HRI_AGENTS_FOR_MA[agent_type], agent_type);
   ////find_3D_grid_turn_head_visibility(jido_robot_MM,3);
@@ -12251,6 +12400,25 @@ int update_Mightability_Maps_new()
 		{
 		  grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.visible[i][CURR_VIS_STATE_INDEX_MA_AGENT[i]]=0;
 		  
+		  if(STORE_STATE_CONFIGS==1)
+		  {
+		    //std::vector<configPt *>::iterator it;
+		    
+		   //for(it=grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[i][CURR_VIS_STATE_INDEX_MA_AGENT].begin();it<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[i][CURR_VIS_STATE_INDEX_MA_AGENT].end();it++)
+		   //{
+		     
+		   //}
+		  //// grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[i].at(CURR_VIS_STATE_INDEX_MA_AGENT[i]).configPt_Ptr.clear();
+		   
+		    ////grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[i][CURR_VIS_STATE_INDEX_MA_AGENT[i]].clear();
+		    int j=CURR_VIS_STATE_INDEX_MA_AGENT[i];
+		    
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_x[i][j]=-1;
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_y[i][j]=-1;
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_z[i][j]=-1;
+		   
+		  }
+		  
 		  grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.first_non_visible[i][CURR_VIS_STATE_INDEX_MA_AGENT[i]]=0;
 		}
 		
@@ -12259,6 +12427,18 @@ int update_Mightability_Maps_new()
 		  for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
 		  {
 		    grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.visible[i][j]=0;
+		    
+		     if(STORE_STATE_CONFIGS==1)
+		    {
+		   
+		   ////grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[i][j].clear();
+		   
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_x[i][j]=-1;
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_y[i][j]=-1;
+		   grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.prev_visible_z[i][j]=-1;
+		   
+		    }
+		     
 		     grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_map_cell_obj_info.first_non_visible[i][j]=0;
 		  }
 		}
@@ -12371,6 +12551,7 @@ for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
 	if(NEED_CURRENT_REACHABILITY_UPDATE_AGENT[i]==1)
         {
 	////find_human_current_reachability_in_3D(HRI_AGENTS_FOR_MA[i],HRI_TASK_AGENT(i));
+	
 	update_current_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT(i));
         NEED_CURRENT_REACHABILITY_UPDATE_AGENT[i]=0;
 	}
@@ -13924,6 +14105,9 @@ int hri_bt_initialize_affordance_data(hri_bitmapset* bitmapset,int bt_type)
 		{
 	          bitmapset->bitmap[bt_type]->data[x][y][z].Mightability_Map.visible[i][j] = 0;
                   bitmapset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.first_non_visible[i][j] =0;
+		  bitmapset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_x[i][j] =-1;
+		   bitmapset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_y[i][j] =-1;
+		    bitmapset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_z[i][j] =-1;
 		}
 		for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
 		{
@@ -14012,7 +14196,14 @@ int create_Mightability_data_fields(  hri_bitmapset * btset, int bt_type)
 		
 		  btset->bitmap[bt_type]->data[x][y][z].Mightability_Map.visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
 		  
+		  btset->bitmap[bt_type]->data[x][y][z].Mightability_Map.conf[i]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+		  
 		  btset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.first_non_visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+		  
+		  btset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_x[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+		  btset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_y[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+		  btset->bitmap[bt_type]->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_z[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+		
 		  
 		  btset->bitmap[bt_type]->data[x][y][z].Mightability_Map.reachable[i]=MY_ALLOC(int*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
 		  
@@ -17967,6 +18158,8 @@ int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candida
    object_pos[0]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[0][3];
    object_pos[1]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[1][3];
    object_pos[2]=envPt_MM->robot[obje_index]->joints[1]->abs_pos[2][3];
+   
+   
    }
    double point_to_obj_dist;
 	
@@ -17983,17 +18176,20 @@ int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candida
       
          candidate_points->weight[i]= 1.0/point_to_obj_dist;
       }
-	 /*
-      switch (performing_agent_rank)
+     else
+     {
+	switch (performing_agent_rank)
       {
 	case 1: //Master
         
-	
+	 if(object_name!=NULL)
+	 {
     ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
         point_to_obj_dist=sqrt((object_pos[0]-point_in_global_frame[0])*(object_pos[0]-point_in_global_frame[0])+(object_pos[1]-point_in_global_frame[1])*(object_pos[1]-point_in_global_frame[1])+(object_pos[2]-point_in_global_frame[2])*(object_pos[2]-point_in_global_frame[2]));
   
          candidate_points->weight[i]= 1.0/point_to_obj_dist;
-	
+	 }
+	 
 	break;
         	
         
@@ -18015,7 +18211,7 @@ int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candida
        
        break;
       }
-      */
+     }
       if(max_weight<candidate_points->weight[i])
 	max_weight=candidate_points->weight[i];
       ////////candidate_points_to_show.weight[i]=Amplitude*exp(-(((yaw_mean-relative_yaw)*(yaw_mean-relative_yaw)/2.0*sig_yaw*sig_yaw)));
@@ -18340,9 +18536,11 @@ candidate_points_to_give.weight[i]+=2.0*max_weight*exp(-(((point_to_bottle_dist)
   return 1;
 }
 
-int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent)
+int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank)
 {
   
+  
+  p3d_vector4 meanPoint;
   p3d_vector4 point_in_global_frame;
   p3d_vector4 point_in_human_frame;
   p3d_matrix4 hum_pos_inverse;
@@ -18354,7 +18552,13 @@ int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_p
 
   p3d_get_robot_config_into(envPt_MM->robot[rob_indx.HUMAN],&hum_cur_pos);
 
+   p3d_matrix4 hum_pos;
+  
+  p3d_mat4Copy(envPt_MM->robot[indx_for_agent]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos);
+  p3d_matInvertXform(hum_pos, hum_pos_inverse);
 
+  for(int i=0;i<3;++i)
+    meanPoint[i]= hum_pos[i][3] + 0.5*hum_pos[i][0];
   ////double yaw=M_PI/3.0;
 
   ////double orig_pan=hum_cur_pos[HUMANq_PAN]; 
@@ -18366,18 +18570,20 @@ int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_p
   double sig_pitch=M_PI/2.0;
   double max_weight=0;
   ////int i=0;
-  double bottle_pos[3];
+  double object_pos[3];
   double sig_dist=2.0;
   int obj_index;
 
   if(object_name!=NULL)
   {
     obj_index=get_index_of_robot_by_name ( object_name );
-  bottle_pos[0]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[0][3];
-  bottle_pos[1]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[1][3];
-  bottle_pos[2]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[2][3];
+  object_pos[0]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[0][3];
+  object_pos[1]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[1][3];
+  object_pos[2]=envPt_MM->robot[obj_index]->joints[1]->abs_pos[2][3];
   }
   
+   double point_to_obj_dist;
+   
   for(i=0;i<candidate_points->no_points;i++)
     {
       point_in_global_frame[0] = candidate_points->point[i].x;
@@ -18389,11 +18595,47 @@ int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_p
       ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]);
       if(object_name!=NULL)
       {
-      double point_to_bottle_dist=sqrt((bottle_pos[0]-point_in_global_frame[0])*(bottle_pos[0]-point_in_global_frame[0])+(bottle_pos[1]-point_in_global_frame[1])*(bottle_pos[1]-point_in_global_frame[1])+(bottle_pos[2]-point_in_global_frame[2])*(bottle_pos[2]-point_in_global_frame[2]));
+      double point_to_bottle_dist=sqrt((object_pos[0]-point_in_global_frame[0])*(object_pos[0]-point_in_global_frame[0])+(object_pos[1]-point_in_global_frame[1])*(object_pos[1]-point_in_global_frame[1])+(object_pos[2]-point_in_global_frame[2])*(object_pos[2]-point_in_global_frame[2]));
   
       ////printf(" Old weight for candidate point %d to put with pos (%lf,%lf,%lf) is %lf\n", i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points_to_show.weight[i]);
       candidate_points->weight[i]=Amplitude*exp(-(((point_to_bottle_dist)*(point_to_bottle_dist)/2.0*sig_dist*sig_dist)));
       }
+      else
+     {
+	switch (performing_agent_rank)
+      {
+	case 1: //Master
+        
+	 if(object_name!=NULL)
+	 {
+    ////printf("bottle pos from ACBTSET->object = (%lf, %lf, %lf)\n",bottle_pos[0],bottle_pos[1],bottle_pos[2]); 
+        point_to_obj_dist=sqrt((object_pos[0]-point_in_global_frame[0])*(object_pos[0]-point_in_global_frame[0])+(object_pos[1]-point_in_global_frame[1])*(object_pos[1]-point_in_global_frame[1])+(object_pos[2]-point_in_global_frame[2])*(object_pos[2]-point_in_global_frame[2]));
+  
+         candidate_points->weight[i]= 1.0/point_to_obj_dist;
+	 }
+	 
+	break;
+        	
+        
+	case 0: //Slave
+      
+      ////Assigning weight wrt human axis
+      p3d_matvec4Mult(hum_pos_inverse, point_in_global_frame, point_in_human_frame);
+      /////printf("%f %f %f\n", point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2]);
+      ////  p3d_psp_cartesian2spherical(point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2],0,0,0,&relative_yaw,&relative_pitch);
+      Cartesian_to_Spherical(point_in_human_frame[0],point_in_human_frame[1],point_in_human_frame[2],0,0,0,&relative_yaw,&relative_pitch);
+      /////printf("%f %f\n", relative_yaw,relative_pitch);
+  
+      ////////candidate_points_to_put.weight[i]+=(1.0-(fabs(relative_yaw))/M_PI);
+
+      ////printf(" For point %d \n",i);
+      //     candidate_points_to_give.weight[i]=Amplitude*exp(-(((yaw_mean-relative_yaw)*(yaw_mean-relative_yaw)/2.0*sig_yaw*sig_yaw)+((pitch_mean-relative_pitch)*(pitch_mean-relative_pitch)/2.0*sig_pitch*sig_pitch)));
+
+      candidate_points->weight[i]= 1.0/( 2.0 + sqrt( pow(point_in_global_frame[0]-meanPoint[0], 2) + pow(point_in_global_frame[1]-meanPoint[1], 2) + pow(point_in_global_frame[2]-meanPoint[2], 2) ) );
+       
+       break;
+      }
+     }
       //////////printf(" New weight for candidate point %d to hide with pos (%lf,%lf,%lf) is %lf\n", i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points_to_hide.weight[i]);
     }
   normalize_weights(candidate_points);
@@ -19710,7 +19952,20 @@ int make_cells_around_point_as_obstacle(hri_bitmapset *btset, int bt_type, point
   return 1;
 }
 
-
+int check_config_already_pushed(int for_object, int for_agent, int for_state, configPt ptr)
+{
+  hri_bitmap* bitmap=grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP];
+  
+  for(int i=0; i<object_MM.object[for_object].geo_MM.conf[for_agent][for_state].size();i++)
+  {
+  if(ptr==object_MM.object[for_object].geo_MM.conf[for_agent][for_state][i])
+   {
+     return 1;
+   }
+  }
+  
+  return 0;
+}
 int find_Object_Oriented_Mightabilities_vis_reach()
 {
 
@@ -19720,6 +19975,10 @@ int find_Object_Oriented_Mightabilities_vis_reach()
   int nr = envPt_MM->nr;
   int i=0, j, k;
   int nr_ctr=0;
+  int prev_vis_cell_x;
+  int prev_vis_cell_y;
+  int prev_vis_cell_z;
+  
   for(;nr_ctr<nr;nr_ctr++)
     {
       for(i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
@@ -19727,6 +19986,10 @@ int find_Object_Oriented_Mightabilities_vis_reach()
 	for(j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
 	{
 	  object_MM.object[nr_ctr].geo_MM.visible[i][j]=0;
+	  if(STORE_STATE_CONFIGS==1)
+	  {
+	  object_MM.object[nr_ctr].geo_MM.conf[i][j].clear();
+	  }
 	}
  	for(j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
 	{
@@ -19745,15 +20008,17 @@ int find_Object_Oriented_Mightabilities_vis_reach()
 	{
 	  for(z=0; z<bitmap->nz; z++)
 	    {
-  
+             
 	      int nr_ctr=0;
 	      for(;nr_ctr<nr;nr_ctr++)
 		{
-    
+                  
 		  ////if(bitmap->data[x][y][z].Mightability_map_cell_obj_info.belongs_to_objects_indx[nr_ctr]==1)
 		    ////{
 		      for(i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
 		      {
+			//int stored_for_this_cell=0;
+			
 		       if(bitmap->data[x][y][z].Mightability_map_cell_obj_info.belongs_to_objects_indx[nr_ctr]==1)
 		       {
 		       for(j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
@@ -19761,6 +20026,24 @@ int find_Object_Oriented_Mightabilities_vis_reach()
 			 if(bitmap->data[x][y][z].Mightability_map_cell_obj_info.first_non_visible[i][j]==1)
 			 {
 			  object_MM.object[nr_ctr].geo_MM.visible[i][j]++;//=1;
+			  
+			 if(STORE_STATE_CONFIGS==1)
+		         {
+			   prev_vis_cell_x=bitmap->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_x[i][j];
+			   prev_vis_cell_y=bitmap->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_y[i][j];
+			   prev_vis_cell_z=bitmap->data[x][y][z].Mightability_map_cell_obj_info.prev_visible_z[i][j];
+			  //std::vector<configPt *>::iterator it;
+		    
+		          //for(it=bitmap->data[x][y][z].Mightability_Map.conf[i][j].begin();it<bitmap->data[x][y][z].Mightability_Map.conf[i][j].end();it++)
+		          for(int nv=0;nv<bitmap->data[prev_vis_cell_x][prev_vis_cell_y][prev_vis_cell_z].Mightability_Map.conf[i][j].size();nv++)
+			  {
+			    int res=check_config_already_pushed(nr_ctr,i,j,bitmap->data[prev_vis_cell_x][prev_vis_cell_y][prev_vis_cell_z].Mightability_Map.conf[i][j][nv]);
+			    if(res==0)
+			    {
+			  object_MM.object[nr_ctr].geo_MM.conf[i][j].push_back(bitmap->data[prev_vis_cell_x][prev_vis_cell_y][prev_vis_cell_z].Mightability_Map.conf[i][j][nv]);
+			    }
+			  }
+			 }
 			 } 
 			}
 		       
@@ -20459,34 +20742,98 @@ int Draw_Bounding_Box(double min_x, double min_y, double min_z, double max_x, do
   return 1;
 }
 
-int show_Object_Oriented_Mightabilities_new()
+int show_Object_Oriented_Mightabilities_new(int show_states)
 {
+   int act_MM_up=UPDATE_MIGHTABILITY_MAP_INFO;
+   UPDATE_MIGHTABILITY_MAP_INFO=0;
+   NEED_TO_SHOW_OBJECT_MIGHTABILITY=0;
+  G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
   init_object_facts_data();
   
   int no = envPt_MM->no;
   int nr = envPt_MM->nr;
   int i=0, j, k;
   double radius=grid_around_HRP2.GRID_SET->pace/2.0;
+  configPt actual_config=NULL;
+  p3d_rob *orig_r=XYZ_ENV->cur_robot;
+  
   int nr_ctr=0;
   for(;nr_ctr<nr;nr_ctr++)
     {
       for(i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
       {
 	if(SHOW_OBJECT_MIGHTABILITY_FOR_AGENTS[i]==0)
+	{
 	  continue;
+	}
 	
-	for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
+	
+	   if(show_states==1&&STORE_STATE_CONFIGS==1)
+	  {
+	actual_config=MY_ALLOC(double, envPt_MM->robot[indices_of_MA_agents[i]]->nb_dof);
+	p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[i]],&actual_config);
+    
+	
+    
+	XYZ_ENV->cur_robot=envPt_MM->robot[indices_of_MA_agents[i]];
+        XYZ_ENV->cur_robot->draw_transparent=true;
+	  }
+	  
+	  
+            for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
 		{
 		if(curr_flags_show_Mightability_Maps.show_visibility[i][j]>0)
 		 {
+		   
+		 
+	  
 		    if(object_MM.object[nr_ctr].geo_MM.visible[i][j]>0)
 		    {
-		      //printf(" Drawing disc\n"); 
+		      printf(" Obj %d, visible for agent %d\n", nr_ctr, i); 
 		      OBJ_IS_VISIBLE_FOR_AGENT[nr_ctr][i]=1;
+		      
+		      if(show_states==1&&STORE_STATE_CONFIGS==1)
+		         {
+			  //std::vector<configPt *>::iterator it;
+		    
+		          //for(it=bitmap->data[x][y][z].Mightability_Map.conf[i][j].begin();it<bitmap->data[x][y][z].Mightability_Map.conf[i][j].end();it++)
+		          
+                          printf("  object_MM.object[%d].geo_MM.conf[%d][%d].size()=%d\n",nr_ctr,i,j,object_MM.object[nr_ctr].geo_MM.conf[i][j].size());
+		      
+		          for(int ns=0;ns<object_MM.object[nr_ctr].geo_MM.conf[i][j].size();ns++)
+			  {
+			   p3d_set_and_update_this_robot_conf(envPt_MM->robot[indices_of_MA_agents[i]], object_MM.object[nr_ctr].geo_MM.conf[i][j][ns]);
+                            
+                           g3d_draw_robot(envPt_MM->robot[indices_of_MA_agents[i]]->num, window, 0);
+			   
+		       //g3d_draw_allwin_active();
+			  
+			  //printf(" After draw win \n");
+			   ///XYZ_ENV->cur_robot->draw_transparent=true;
+			  }
+			  //XYZ_ENV->cur_robot=orig_r;
+			 }
+			 
 		      //////g3d_drawDisc((envPt_MM->robot[nr_ctr]->BB.xmin+envPt_MM->robot[nr_ctr]->BB.xmax)/2.0,(envPt_MM->robot[nr_ctr]->BB.ymin+envPt_MM->robot[nr_ctr]->BB.ymax)/2.0, envPt_MM->robot[nr_ctr]->BB.zmax, radius, curr_flags_show_Mightability_Maps.show_visibility[i][j], NULL);
 		    }
+		    
+		    
+	  
 		 } 
 		}
+		
+		 if(show_states==1&&STORE_STATE_CONFIGS==1)
+	            {
+		      XYZ_ENV->cur_robot->draw_transparent=false;
+	            XYZ_ENV->cur_robot= orig_r;
+		    p3d_set_and_update_this_robot_conf(envPt_MM->robot[indices_of_MA_agents[i]], actual_config);
+                    MY_FREE(actual_config, double, envPt_MM->robot[indices_of_MA_agents[i]]->nb_dof);
+		  //  g3d_draw_allwin_active();
+			  
+			//  printf(" After draw win \n");
+	            }	
+        
+		 
 	      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
 		{
 		for(int k=0;k<agents_for_MA_obj.for_agent[i].no_of_arms;k++)
@@ -20497,18 +20844,20 @@ int show_Object_Oriented_Mightabilities_new()
 		    {
 		      //printf(" Drawing disc\n"); 
 		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
-		      OBJ_IS_REACHABLE_FOR_AGENT[nr_ctr][i]=1;
+		      OBJ_IS_REACHABLE_FOR_AGENT[nr_ctr][i][k]=1;
 		      //////g3d_drawDisc((envPt_MM->robot[nr_ctr]->BB.xmin+envPt_MM->robot[nr_ctr]->BB.xmax)/2.0,(envPt_MM->robot[nr_ctr]->BB.ymin+envPt_MM->robot[nr_ctr]->BB.ymax)/2.0, envPt_MM->robot[nr_ctr]->BB.zmax, radius, curr_flags_show_Mightability_Maps.show_visibility[i][j], NULL);
 		    }
 		   }
 		  }
 		}
 		
+        
 	
       }
     }  
 
-		    
+		UPDATE_MIGHTABILITY_MAP_INFO=act_MM_up;    
+		NEED_TO_SHOW_OBJECT_MIGHTABILITY=1;
 }
 
 int show_Object_Oriented_Mightabilities()
@@ -23589,7 +23938,10 @@ int init_object_facts_data()
     for(int j=0;j<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;j++)
     {
       OBJ_IS_VISIBLE_FOR_AGENT[i][j]=0;
-      OBJ_IS_REACHABLE_FOR_AGENT[i][j]=0;
+      for(int k=0; k<MAXI_NUM_OF_HANDS_OF_AGENT; k++)
+      {
+      OBJ_IS_REACHABLE_FOR_AGENT[i][j][k]=0;
+      }
       ////printf(" Done init for object facts for agent %d  \n",j);
     }
   }
@@ -23599,23 +23951,51 @@ int init_object_facts_data()
 
 int show_object_facts()
 {
+  int show_by_arrow=1;
   p3d_env *envPt = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
   ////printf(" Inside show_object_facts()\n");
   int i=0;
   double x,y,z;
+  double x2,y2,z2;
+  p3d_vector3 p1, p2;
+  double color[4];
+  
   double radius=0.015;
  
   for(int i=0;i<envPt->nr;i++)
   {
+     x=envPt->robot[i]->joints[1]->abs_pos[0][3];
+     y=envPt->robot[i]->joints[1]->abs_pos[1][3];
+     z=envPt->robot[i]->BB.zmax;
+     
+      p1[0]=x;
+     p1[1]=y;
+     p1[2]=z;
       ////printf(" For object %s \n",envPt_MM->robot[i]->name);
     for(int j=0;j<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;j++)
     {
       if(OBJ_IS_VISIBLE_FOR_AGENT[i][j]==1)
       {
 	////printf("OBJ_IS_VISIBLE_FOR_AGENT[%d][%d]\n",i,j);
-     x=(envPt->robot[i]->BB.xmin+envPt->robot[i]->BB.xmax)/2.0;
-     y=(envPt->robot[i]->BB.ymin+envPt->robot[i]->BB.ymax)/2.0;
-     z=envPt->robot[i]->BB.zmax;
+    
+     if(show_by_arrow==1&&i!=indices_of_MA_agents[j])
+     {
+        color[0]=1;
+    color[1]=0;
+    color[2]=0;
+    color[3]=1;
+    
+     x2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].head_params.joint_indices[PAN]]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+     y2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].head_params.joint_indices[PAN]]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+     ////z2= envPt->robot[indices_of_MA_agents[j]]->BB.zmax;; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+     z2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].head_params.joint_indices[PAN]]->abs_pos[2][3]+0.1; 
+   
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     g3d_draw_arrow_with_width(p2, p1, 2, 0.07, color[0],color[1],color[2]);
+     }
      
 #ifdef HUMAN1_EXISTS_FOR_MA
 	if(j==HUMAN1_MA)
@@ -23645,13 +24025,54 @@ int show_object_facts()
 	}
 #endif
       }
-      if(OBJ_IS_REACHABLE_FOR_AGENT[i][j]==1)
+      
+      for(int k=0;k<MAXI_NUM_OF_HANDS_OF_AGENT; k++)
       {
+      if(OBJ_IS_REACHABLE_FOR_AGENT[i][j][k]==1)
+       {
 		////printf("OBJ_IS_REACHABLE_FOR_AGENT[%d][%d]\n",i,j);
 
-     x=(envPt->robot[i]->BB.xmin+envPt->robot[i]->BB.xmax)/2.0;
-     y=(envPt->robot[i]->BB.ymin+envPt->robot[i]->BB.ymax)/2.0;
-     z=envPt->robot[i]->BB.zmax;
+     //x=(envPt->robot[i]->BB.xmin+envPt->robot[i]->BB.xmax)/2.0;
+     //y=(envPt->robot[i]->BB.ymin+envPt->robot[i]->BB.ymax)/2.0;
+     //z=envPt->robot[i]->BB.zmax;
+    
+     
+    int for_shoulder; 
+     if(k==MA_RIGHT_HAND)
+  {
+    for_shoulder=RSHOULDER;
+    color[0]=0;
+    color[1]=1;
+    color[2]=0;
+    color[3]=1;
+  }
+  else
+  {
+   if(k==MA_LEFT_HAND)
+   {
+    for_shoulder=LSHOULDER;
+     color[0]=0;
+    color[1]=0;
+    color[2]=1;
+    color[3]=1;
+   }
+  }
+  
+   
+     if(show_by_arrow==1&&i!=indices_of_MA_agents[j])
+     {
+     x2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].hand_params.joint_indices[for_shoulder]]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+     y2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].hand_params.joint_indices[for_shoulder]]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+     z2= envPt_MM->robot[indices_of_MA_agents[j]]->joints[agents_for_MA_obj.for_agent[j].hand_params.joint_indices[for_shoulder]]->abs_pos[2][3]+0.1; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+   
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     g3d_draw_arrow_with_width(p2, p1, 2, 0.07, color[0],color[1],color[2]);
+     ////g3d_drawColorSphere(x1, y1, z1, .015, Any, color[it->task]);
+     ////g3d_drawColorSphere(x2, y2, z2, .015, Any, color[it->task]);
+     }
      
 #ifdef HUMAN1_EXISTS_FOR_MA
 	if(j==HUMAN1_MA)
@@ -23680,8 +24101,8 @@ int show_object_facts()
 	 g3d_drawDisc(x+radius, y-3*radius, z, radius, Yellow, NULL);
 	}
 #endif
+       }
       }
-    
   }
   
   }
@@ -23710,6 +24131,14 @@ int get_effort_based_object_facts(int for_agent, int for_effort_level, int for_a
   }
 #endif
 
+#ifdef PR2_EXISTS_FOR_MA
+  if(for_agent==PR2_MA)
+  {
+    agent_posture=PR2_ARBITRARY_MA;
+    agent_supported=1;
+  }
+#endif
+
 if(agent_supported==1)
 {
   printf(" calling update_analysis_type_effort_level_group() for agent %d, for agents's posture %d\n",for_agent, agent_posture);
@@ -23717,7 +24146,7 @@ if(agent_supported==1)
 }
 else
 {
-  printf(" MA ERROR: Inside get_effort_based_object_facts(), the agent %d is not currently supported by this function\n",for_agent);
+  printf(" >>**>> MA ERROR: Inside get_effort_based_object_facts(), the agent %d is not currently supported by this function\n",for_agent);
   return 0;
 }
 
@@ -23780,7 +24209,7 @@ else
 	if(object_MM.object[j].geo_MM.reachable[for_agent][cur_accepted_analysis_type][l]>0)
 	 {
 	   printf(" Obj is reachable \n");
-	 OBJ_IS_REACHABLE_FOR_AGENT[j][for_agent]=1;
+	 OBJ_IS_REACHABLE_FOR_AGENT[j][for_agent][l]=1;
          //break;
 	 }
 	}
@@ -23834,17 +24263,19 @@ int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff)
   int agent_posture;
   
 #ifdef HUMAN1_EXISTS_FOR_MA
-  
+  //if(for_agent==HUMAN1_MA)
+  //{
     agent_posture=HUMAN1_CURRENT_STATE_MM;
     update_analysis_type_effort_level_group(HUMAN1_MA,agent_posture);
-    
+  //} 
 #endif
 
 #ifdef HUMAN2_EXISTS_FOR_MA
- 
+ //if(for_agent==HUMAN1_MA)
+  //{
     agent_posture=HUMAN2_CURRENT_STATE_MM;
     update_analysis_type_effort_level_group(HUMAN2_MA,agent_posture);
- 
+  //}
 #endif
 
   
@@ -24022,27 +24453,25 @@ int show_agent_ability_effort_points()
   
 }
 
-void pqp_p3d_to_gl_matrix(p3d_matrix4 T, GLfloat mat[16])
-{
-   mat[0]= T[0][0];      mat[4]= T[0][1];      mat[8]=  T[0][2];      mat[12]= T[0][3];
-   mat[1]= T[1][0];      mat[5]= T[1][1];      mat[9]=  T[1][2];      mat[13]= T[1][3];
-   mat[2]= T[2][0];      mat[6]= T[2][1];      mat[10]= T[2][2];      mat[14]= T[2][3];
-   mat[3]=       0;      mat[7]=       0;      mat[11]=       0;      mat[15]=       1;
-}
-
 int show_agent_state_configs(int for_agent, int for_ability_type, int for_state) 
 {
+  G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
   UPDATE_MIGHTABILITY_MAP_INFO=0;
   configPt actual_config=MY_ALLOC(double, envPt_MM->robot[indices_of_MA_agents[for_agent]]->nb_dof);
     p3d_get_robot_config_into(envPt_MM->robot[indices_of_MA_agents[for_agent]],&actual_config);
     
   std::vector<configPt>::iterator it;
   printf(" >> Total no. of configs for agent %d, for ability %d, for state %d  is %d\n",for_agent,for_ability_type, for_state,  Ag_State_Configs[for_agent][for_ability_type][for_state].size());
-  
+  ////envPt_MM->robot[indices_of_MA_agents[for_agent]]->draw_transparent = true;
+  p3d_rob *orig_r=XYZ_ENV->cur_robot;
   for(it=Ag_State_Configs[for_agent][for_ability_type][for_state].begin(); it!=Ag_State_Configs[for_agent][for_ability_type][for_state].end(); ++it)
   {
     p3d_set_and_update_this_robot_conf(envPt_MM->robot[indices_of_MA_agents[for_agent]], *it);
-
+    XYZ_ENV->cur_robot=envPt_MM->robot[indices_of_MA_agents[for_agent]];
+    
+            g3d_draw_robot(envPt_MM->robot[indices_of_MA_agents[for_agent]]->num, window, 0);
+	   XYZ_ENV->cur_robot= orig_r;
+    /*
     GLfloat matGL[16];
 pqp_p3d_to_gl_matrix(envPt_MM->robot[indices_of_MA_agents[for_agent]]->joints[1]->abs_pos,matGL);
 
@@ -24063,10 +24492,12 @@ glMultMatrixf(matGL);
     g3d_draw_p3d_polyhedre(envPt_MM->robot[indices_of_MA_agents[for_agent]]->o[i]->pol[j]->poly);
      }
     }
+    */
   }
-  glPopMatrix();
-    ////g3d_draw_allwin_active();
-  }
+  ////glPopMatrix();
+   ////g3d_draw_allwin_active();
+  
+  envPt_MM->robot[indices_of_MA_agents[for_agent]]->draw_transparent = false;
   
    p3d_set_and_update_this_robot_conf(envPt_MM->robot[indices_of_MA_agents[for_agent]], actual_config);
    MY_FREE(actual_config, double, envPt_MM->robot[indices_of_MA_agents[for_agent]]->nb_dof);
@@ -24074,3 +24505,4 @@ glMultMatrixf(matGL);
    UPDATE_MIGHTABILITY_MAP_INFO=1;
    
 }
+

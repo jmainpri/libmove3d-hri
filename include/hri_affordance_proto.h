@@ -65,7 +65,7 @@ extern int reverse_sort_weighted_candidate_points_to_put_obj();
 extern int assign_weights_on_candidte_points_to_show_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent);
 
 
-extern int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent);
+extern int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
 
 extern int reverse_sort_weighted_candidate_points_to_show_obj();
 extern int reverse_sort_weighted_candidate_points_to_hide_obj();
@@ -238,6 +238,7 @@ extern int show_Ag_Obj_manipulability_node(int performing_agent, int target_obje
 extern int show_this_manipulability_node(int node_id);
 extern int print_this_taskability_params(show_taskability_params &curr_params );
 extern int show_agent_state_configs(int for_agent, int for_ability_type, int for_state) ;
+extern int free_state_configs(int for_agent, int for_state, int for_ability_type);
 
 #endif /* __CEXTRACT__ */
 
