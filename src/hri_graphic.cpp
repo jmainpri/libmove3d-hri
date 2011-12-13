@@ -31,8 +31,8 @@ void g3d_hri_main()
   
 #ifdef USE_MIGHTABILITY_MAPS
   //AKP: Function to display reachability, visibility of the object
-  if(SHOW_OBJECT_FACTS==1)
-  show_object_facts();
+  //if(SHOW_OBJECT_FACTS==1)
+  //show_object_facts();
   
   if(MA_ASA_WITHOUT_SPARK==1)
   {
@@ -53,6 +53,12 @@ void g3d_hri_main()
   // They should be enabled/disabled inside win->vs.enableLogo which is turned off when drawing in the backbuffer
   if(G3D_WIN->vs.enableLogo==1) 
   {
+  #ifdef USE_MIGHTABILITY_MAPS
+  //AKP: Function to display reachability, visibility of the object
+  if(SHOW_OBJECT_FACTS==1)
+  show_object_facts();
+  #endif
+  
     g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
     
     hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07); 
