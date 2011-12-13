@@ -12,7 +12,7 @@
 #define MM_SHOW_DEBUG_MODE_BUTTONS
 
 #define HUMAN1_EXISTS_FOR_MA
-//#define HUMAN2_EXISTS_FOR_MA
+#define HUMAN2_EXISTS_FOR_MA
 //#define JIDO_EXISTS_FOR_MA
 #define PR2_EXISTS_FOR_MA
 //#define USE_HH_LEARNING
@@ -461,7 +461,8 @@ typedef struct Mightability_Map_set{
   int *visible[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j [i][j]
   int **reachable[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j by hand k, [i][j][k]
   
-  std::vector<configPt> *conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+  std::vector<configPt> *conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store configs for visibility
+  std::vector<configPt> **reach_conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store config for reachability
   
   //std::vector<configPt_PTR_vect> conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
   
@@ -569,13 +570,17 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
      visible[i][k]=-1;
      }
      reachable[i]=MY_ALLOC(int*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
+     reach_conf[i]=MY_ALLOC(std::vector<configPt>*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
      
      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
      {
      reachable[i][j]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].no_of_arms);
+     reach_conf[i][j]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].no_of_arms);
+     
       for(int k=0;k< agents_for_MA_obj.for_agent[i].no_of_arms;k++)
       {
       reachable[i][j][k]=-1;
+      reach_conf[i][j]=NULL;
       }
      }
     /// printf(" allocated memory for agent %d Mightability, agents_for_MA_obj.for_agent.maxi_num_vis_states=%d \n",i,agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
@@ -1132,5 +1137,14 @@ typedef struct show_taskability_params
  
 }show_taskability_params;
 
+typedef struct agent_effort_configs
+{
+  std::vector <configPt> configs;
+  std::vector <int> by_hand[MAXI_NUM_OF_HANDS_OF_AGENT]; //Index of this vector should be synchronized with the index of configs.
+  int effort_level;
+  int analysis_state;
+  
+  
+}agent_effort_configs;
 
 #endif
