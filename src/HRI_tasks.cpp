@@ -7474,10 +7474,10 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
    {
      int curr_analysis_state=Analysis_type_Effort_level[performing_agent][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].analysis_types[i];
      
-     if(object_MM.object[obj_index].geo_MM.visible[performing_agent][i]>0)
+     if(object_MM.object[obj_index].geo_MM.visible[performing_agent][curr_analysis_state]>0)
      {
 	
-	printf(" Object is visible by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	printf(" Object is visible by %d state of %s \n", curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
 	is_visible=1;
 	break;	      
      }
@@ -7502,10 +7502,10 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
     
     for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
     {
-     if(object_MM.object[obj_index].geo_MM.reachable[performing_agent][i][k]>0)
+     if(object_MM.object[obj_index].geo_MM.reachable[performing_agent][curr_analysis_state][k]>0)
      {
 	
-	printf(" Object is reachable by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	printf(" Object is reachable by %d state of %s \n", curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
 	is_reachable=1;
 	break;	      
      }
