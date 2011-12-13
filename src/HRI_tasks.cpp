@@ -392,7 +392,7 @@ int find_HRI_task_candidate_points(HRI_TASK_TYPE CURR_TASK, char *obj_to_manipul
       break;
       
       case HIDE_OBJECT:
-       assign_weights_on_candidte_points_to_hide_obj(obj_to_manipulate, curr_resultant_candidate_points, indices_of_MA_agents[performed_by], indices_of_MA_agents[performed_for]);
+       assign_weights_on_candidte_points_to_hide_obj(obj_to_manipulate, curr_resultant_candidate_points, indices_of_MA_agents[performed_by], indices_of_MA_agents[performed_for],performing_agent_rank);
       break;
       
    }
@@ -4053,7 +4053,7 @@ g3d_draw_allwin_active();*/
 			   }
                            
 			   g3d_draw_allwin_active();
-			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
+			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 0 );
 
                                 printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
 
@@ -7474,10 +7474,10 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
    {
      int curr_analysis_state=Analysis_type_Effort_level[performing_agent][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].analysis_types[i];
      
-     if(object_MM.object[obj_index].geo_MM.visible[performing_agent][i]>0)
+     if(object_MM.object[obj_index].geo_MM.visible[performing_agent][curr_analysis_state]>0)
      {
 	
-	printf(" Object is visible by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	printf(" Object is visible by %d state of %s \n", curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
 	is_visible=1;
 	break;	      
      }
@@ -7502,10 +7502,10 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
     
     for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
     {
-     if(object_MM.object[obj_index].geo_MM.reachable[performing_agent][i][k]>0)
+     if(object_MM.object[obj_index].geo_MM.reachable[performing_agent][curr_analysis_state][k]>0)
      {
 	
-	printf(" Object is reachable by %d state of %s \n", i, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	printf(" Object is reachable by %d state of %s \n", curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
 	is_reachable=1;
 	break;	      
      }

@@ -65,7 +65,7 @@ extern int reverse_sort_weighted_candidate_points_to_put_obj();
 extern int assign_weights_on_candidte_points_to_show_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent);
 
 
-extern int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent);
+extern int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
 
 extern int reverse_sort_weighted_candidate_points_to_show_obj();
 extern int reverse_sort_weighted_candidate_points_to_hide_obj();
@@ -182,7 +182,7 @@ extern int ececute_this_HRI_task_SM_Traj_in_simu(char *for_robot, SM_TRAJ &smTra
 extern int show_p3d_trajectories_for_plan_ID(int HRI_task_plan_id);
 extern int get_single_soft_motion_traj_for_SHARY(int HRI_task_plan_id, int sub_traj_st_index, int sub_traj_end_index, SM_TRAJ &smTraj );
 extern int g3d_is_object_visible_from_robot(p3d_matrix4 camera_frame, double camera_fov, p3d_rob *robot, p3d_rob *object, double *result);
-extern int init_manipulation_planner();
+extern int init_manipulation_planner(char robot_name[100]);
 extern int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_hand_name for_hand, int for_state);
 extern int get_human_head_relative_yaw_pitch_for(HRI_TASK_AGENT for_agent, point_co_ordi for_point, double &relative_yaw, double &relative_pitch);
 extern int find_MA_Agent_visibility(HRI_TASK_AGENT for_agent, char *obj_name, double &visibility_val);
@@ -238,6 +238,11 @@ extern int show_Ag_Obj_manipulability_node(int performing_agent, int target_obje
 extern int show_this_manipulability_node(int node_id);
 extern int print_this_taskability_params(show_taskability_params &curr_params );
 extern int show_agent_state_configs(int for_agent, int for_ability_type, int for_state) ;
+extern int free_state_configs(int for_agent, int for_state, int for_ability_type);
+extern int find_least_effort_state_for_agent_ability_for_obj(int for_agent, int for_ability, int for_object);
+extern int init_Ag_Obj_Ab_mini_effort_states();
+extern int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, int for_obj_index);
+extern int init_and_allocate_OOM_data_field();
 
 #endif /* __CEXTRACT__ */
 

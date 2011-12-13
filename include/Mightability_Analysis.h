@@ -451,11 +451,21 @@ typedef struct agents_for_MA
 
 static agents_for_MA agents_for_MA_obj;
 
+typedef struct configPt_PTR_vect{
+
+  std::vector<configPt *> configPt_Ptr;
+}configPt_PTR_vect;
+
 typedef struct Mightability_Map_set{
 
   int *visible[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j [i][j]
   int **reachable[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j by hand k, [i][j][k]
-
+  
+  std::vector<configPt> *conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store configs for visibility
+  std::vector<configPt> **reach_conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store config for reachability
+  
+  //std::vector<configPt_PTR_vect> conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+  
   ////MA_for_agents for_agent[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 /*  
 // For Human
@@ -542,7 +552,7 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
 // int visible_by_JIDO_neck_turn;
 */
 
- Mightability_Map_set()
+ Mightability_Map_set()//NOTE: It is not sufficient to allocate memory here. Allocate properly in create_Mightability_data_fields
  {
    ////static int mem_allo_ctr=0;
    for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
@@ -550,18 +560,27 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
      
      
      visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     
+     conf[i]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     
+     ////conf[i]->resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     
      for(int k=0; k<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;k++)
      {
      visible[i][k]=-1;
      }
      reachable[i]=MY_ALLOC(int*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
+     reach_conf[i]=MY_ALLOC(std::vector<configPt>*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
      
      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
      {
      reachable[i][j]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].no_of_arms);
+     reach_conf[i][j]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].no_of_arms);
+     
       for(int k=0;k< agents_for_MA_obj.for_agent[i].no_of_arms;k++)
       {
       reachable[i][j][k]=-1;
+      reach_conf[i][j]=NULL;
       }
      }
     /// printf(" allocated memory for agent %d Mightability, agents_for_MA_obj.for_agent.maxi_num_vis_states=%d \n",i,agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
@@ -712,6 +731,13 @@ int is_table;
 
 //For belonging to the first non visible cell 
   int *first_non_visible[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j [i][j]
+  ////int *last_visible[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j [i][j]
+  
+  //NOTE: Below will hold valid values only in the case  if(STORE_STATE_CONFIGS==1), which is used to find the corresponding configuration for OOM. to speed up the process otherwise	   
+  int *prev_visible_x[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+  int *prev_visible_y[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+  int *prev_visible_z[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+   
 /*  
 int first_non_visible_by_human[MAXI_NUM_POSSIBLE_STATES_VIS_HUMAN];
 // int first_non_visible_by_human_straight_head_orientation;
@@ -755,13 +781,19 @@ int first_non_visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
 // int first_non_visible_by_JIDO_neck_turn;
 */
 
-Mightability_map_cell_object_info()
+Mightability_map_cell_object_info()//NOTE: It is not sufficient to allocate memory here. Allocate properly in create_Mightability_data_fields
  {
    for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
    {
      
      first_non_visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
-    
+     //last_visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+      prev_visible_x[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+      prev_visible_y[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+      prev_visible_z[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     //prev_visible_x[i].resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     //prev_visible_y[i].resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     //prev_visible_z[i].resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
    }
  }
 }Mightability_map_cell_object_info;
@@ -1105,5 +1137,14 @@ typedef struct show_taskability_params
  
 }show_taskability_params;
 
+typedef struct agent_effort_configs
+{
+  std::vector <configPt> configs;
+  std::vector <int> by_hand[MAXI_NUM_OF_HANDS_OF_AGENT]; //Index of this vector should be synchronized with the index of configs.
+  int effort_level;
+  int analysis_state;
+  
+  
+}agent_effort_configs;
 
 #endif
