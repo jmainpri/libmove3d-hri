@@ -45,9 +45,6 @@ void g3d_hri_main()
   }
 #endif
   
-  hri_draw_kinect_points();
-  hri_draw_kinect_human_arms( GLOBAL_AGENTS );
-  
   // Displaying things (Debug information) that are not part of the scene
   // such as writing text or minial distance vectors will break agent visibility computations. 
   // They should be enabled/disabled inside win->vs.enableLogo which is turned off when drawing in the backbuffer
@@ -58,6 +55,9 @@ void g3d_hri_main()
   if(SHOW_OBJECT_FACTS==1)
   show_object_facts();
   #endif
+    
+    hri_draw_kinect_points();
+    hri_draw_kinect_human_arms( GLOBAL_AGENTS );
   
     g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
     
