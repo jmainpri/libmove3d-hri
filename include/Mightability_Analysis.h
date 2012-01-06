@@ -12,11 +12,13 @@
 #define MM_SHOW_DEBUG_MODE_BUTTONS
 
 #define HUMAN1_EXISTS_FOR_MA
-//#define HUMAN2_EXISTS_FOR_MA
-//#define JIDO_EXISTS_FOR_MA
+////#define HUMAN2_EXISTS_FOR_MA
+////#define JIDO_EXISTS_FOR_MA
 #define PR2_EXISTS_FOR_MA
 //#define USE_HH_LEARNING
 ////#define USE_SYM_GEO_PLAN
+
+////#define STORE_STATE_CONFIGS//Important NOTE: use it only to debug, comment this define for real robot run because of excessive memory consumption which might eventually lead to memory corruption. //Used to store different configs of the agent corresponding to the Mightability computation. NOTE: IMPORTANT:Set this flag as 0 also to save memory and speedup the Mightability updation and calculation process;
 
 #define MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV 100
 #define COMMENT_TMP
@@ -43,7 +45,7 @@ extern int CANDIDATE_POINTS_FOR_TASK_FOUND;
 extern p3d_vector3 point_to_look;
 
 #define MAX_CANDIDATE_POINT_FOR_TASK 15000
-#define MAX_POS_STATE_OF_AGENT_MM 20
+#define MAX_POS_STATE_OF_AGENT_MM 15
 
 // AKP : structure to store x-y co ordinates of point
 typedef struct point_co_ordi
@@ -451,20 +453,38 @@ typedef struct agents_for_MA
 
 static agents_for_MA agents_for_MA_obj;
 
-typedef struct configPt_PTR_vect{
+typedef struct configPt_vect{
 
-  std::vector<configPt *> configPt_Ptr;
-}configPt_PTR_vect;
+  ////std::vector<configPt> configPts;
+  configPt configPts[15];
+  int no_configs;
+}configPt_vect;
+
+////#define USE_VECTOR_FORM_FOR_CONFIGS
 
 typedef struct Mightability_Map_set{
 
   int *visible[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j [i][j]
   int **reachable[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//for agent i for state j by hand k, [i][j][k]
   
-  std::vector<configPt> *conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store configs for visibility
+  //std::vector<configPt> *conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store configs for visibility
+  ////std::vector<std::vector<std::vector<configPt> > > conf;//To store configs for visibility
+#ifdef STORE_STATE_CONFIGS
+
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
+  std::vector<configPt> conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAX_POS_STATE_OF_AGENT_MM];//To store configs for visibility
+#else
+  configPt_vect conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAX_POS_STATE_OF_AGENT_MM];//To store configs for visibility
+#endif
+
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
   std::vector<configPt> **reach_conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];//To store config for reachability
-  
+#else
+ configPt_vect reach_conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAX_POS_STATE_OF_AGENT_MM][MAXI_NUM_OF_HANDS_OF_AGENT];//To store configs for reachability
+#endif
+
   //std::vector<configPt_PTR_vect> conf[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
+#endif
   
   ////MA_for_agents for_agent[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 /*  
@@ -551,23 +571,29 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
 // int visible_by_JIDO_straight_head_orientation;
 // int visible_by_JIDO_neck_turn;
 */
-
+/*
  Mightability_Map_set()//NOTE: It is not sufficient to allocate memory here. Allocate properly in create_Mightability_data_fields
  {
    ////static int mem_allo_ctr=0;
+   conf.resize(MAXI_NUM_OF_AGENT_FOR_HRI_TASK);
+   
    for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
    {
      
      
      visible[i]=MY_ALLOC(int, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
      
-     conf[i]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     ////conf[i]=MY_ALLOC(std::vector<configPt>, agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
      
-     ////conf[i]->resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
+     conf[i].resize(agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
      
      for(int k=0; k<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;k++)
      {
      visible[i][k]=-1;
+     ////conf[i][k]=new std::vector<configPt>;
+     //conf[i][k].clear();
+     //conf[i][k]=NULL;
+     conf[i][k].resize(0);
      }
      reachable[i]=MY_ALLOC(int*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
      reach_conf[i]=MY_ALLOC(std::vector<configPt>*, agents_for_MA_obj.for_agent[i].maxi_num_reach_states);
@@ -580,7 +606,8 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
       for(int k=0;k< agents_for_MA_obj.for_agent[i].no_of_arms;k++)
       {
       reachable[i][j][k]=-1;
-      reach_conf[i][j]=NULL;
+      ////reach_conf[i][j][k]=NULL;
+      ////conf[i][k]=new std::vector<configPt>;
       }
      }
     /// printf(" allocated memory for agent %d Mightability, agents_for_MA_obj.for_agent.maxi_num_vis_states=%d \n",i,agents_for_MA_obj.for_agent[i].maxi_num_vis_states);
@@ -589,7 +616,7 @@ int visible_by_JIDO[MAXI_NUM_POSSIBLE_STATES_VIS_JIDO];
    ////printf("mem_allo_ctr=%d\n",mem_allo_ctr);
  }
  
-
+*/
 
 }Mightability_Map_set;
 

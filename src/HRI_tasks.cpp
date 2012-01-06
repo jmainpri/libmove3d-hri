@@ -129,9 +129,9 @@ int TASK_CURRENTLY_SUPPORTED[MAXI_NUM_OF_HRI_TASKS]; //To keep track of tasks wh
 extern analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][50];//3rd index will be synchronized with the enum of the corresponding effort levels
 
 // Will be used at various places to check the manipulability of an object by the agent
-// NOTE: Don't forget to add any new object for which the grasp has been calculated or the grasp file exists and increse the NUM_VALID_GRASPABLE_OBJ value
-char MANIPULABLE_OBJECTS[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][50]={"LOTR_TAPE","GREY_K7","GREY_TAPE","SURPRISE_BOX","TOYCUBE_WOOD"};
-int NUM_VALID_GRASPABLE_OBJ=5;
+// NOTE IMPORTANT: Don't forget to add any new object for which the grasp has been calculated or the grasp file exists and increse the NUM_VALID_GRASPABLE_OBJ value
+char MANIPULABLE_OBJECTS[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][50]={"LOTR_TAPE","GREY_K7","GREY_TAPE","SURPRISE_BOX","TOYCUBE_WOOD"};//, "WALLE_TAPE"};
+int NUM_VALID_GRASPABLE_OBJ=5;//IMPORTANT NOTE: Adjust its value according to number of elements in MANIPULABLE_OBJECTS
 
 int GRASP_EXISTS_FOR_OBJECT[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV];
 
@@ -3488,6 +3488,7 @@ int MAINTAIN_OBJ_FRONT_VIS_CONSTRAINT=0;
 
 int robot_perform_task ( char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, int filter_contact_polygon_inside_support, traj_for_HRI_task &res_trajs)
 {
+  G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
 p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
   
   //FOR PR2 DO fixAllJointsWithoutArm(m_manipulation->robot(),0);
@@ -4043,7 +4044,7 @@ g3d_draw_allwin_active();*/
                            iplacement->computePoseMatrix ( Tplacement );
                            p3d_set_freeflyer_pose ( object, Tplacement );
 			   
-			     int kcd_with_report=0;
+			   int kcd_with_report=0;
                            int res = p3d_col_test_robot(object,kcd_with_report);
                            if(res>0)
 			   {
@@ -4051,10 +4052,10 @@ g3d_draw_allwin_active();*/
 			     continue;
 			     
 			   }
-                           
+                           ///window->vs.enableLogo=0;
 			   g3d_draw_allwin_active();
-			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 0 );
-
+			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
+			   //// window->vs.enableLogo=1;
                                 printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
 
                                 if(mini_visibility_threshold_for_task[task]>visibility||maxi_visibility_threshold_for_task[task]<visibility) 
@@ -5564,6 +5565,7 @@ int copy_HRI_task_candidate_points(candidate_poins_for_task *from_candidate_poin
   return 1;
 }
 
+#ifndef COMMENT_TMP
 #ifdef JIDO_EXISTS_FOR_MA
 int JIDO_find_HRI_task_solution(HRI_TASK_TYPE CURR_TASK, HRI_TASK_AGENT for_agent, char *obj_to_manipulate)
 {
@@ -5606,7 +5608,7 @@ int JIDO_find_HRI_task_solution(HRI_TASK_TYPE CURR_TASK, HRI_TASK_AGENT for_agen
 }
 #endif
 
-#ifndef COMMENT_TMP
+
 
 int JIDO_make_obj_accessible_to_human ( char *obj_to_manipulate )
 {
@@ -7019,12 +7021,30 @@ int get_soft_motion_trajectory_for_p3d_traj_vector(std::vector <p3d_traj*> trajs
 {
   ////std::vector <MANPIPULATION_TRAJECTORY_CONF_STR> confs
     p3d_traj* traj = NULL;
+    /*p3d_rob *rob = envPt_MM->robot[indices_of_MA_agents[PR2_MA]];
+    int upBodyMLP = -1;
     
+       for (int i = 0; rob && i < rob->mlp->nblpGp; i++) {
+        
+         if (!strcmp(rob->mlp->mlpJoints[i]->gpName, "upBody")) {
+            upBodyMLP = i;
+        } 
+    }
+    
+    if(upBodyMLP == -1) {
+      printf("ERROR cannot find upBody group\n");
+      return 0;
+    }
+    */
+   
    if (manipulation->concatTrajectories(trajs, &traj) == MANIPULATION_TASK_OK) 
    {
         smTrajs.clear();
 //         for(unsigned i = 0; i < trajs.size(); i++){
         /* COMPUTE THE SOFTMOTION TRAJECTORY */
+	 /* p3d_multiLocalPath_disable_all_groupToPlan(rob, FALSE);
+          p3d_multiLocalPath_set_groupToPlan(rob, upBodyMLP, 1, FALSE);
+          */
           MANPIPULATION_TRAJECTORY_CONF_STR conf;
           SM_TRAJ smTraj;
           manipulation->computeSoftMotion(traj/*s.at(i)*/, conf, smTraj);
@@ -7043,7 +7063,25 @@ int get_soft_motion_trajectory_for_p3d_traj_vector(std::vector <p3d_traj*> trajs
 
 int get_soft_motion_trajectory_for_p3d_traj(p3d_traj* traj, SM_TRAJ &smTraj)
 {
+    /*TODO: Uncomment following code if SM is not correctly generated or executed
+    p3d_rob *rob = envPt_MM->robot[indices_of_MA_agents[PR2_MA]];
+    int upBodyMLP = -1;
     
+       for (int i = 0; rob && i < rob->mlp->nblpGp; i++) {
+        
+         if (!strcmp(rob->mlp->mlpJoints[i]->gpName, "upBody")) {
+            upBodyMLP = i;
+        } 
+    }
+    
+    if(upBodyMLP == -1) {
+      printf("ERROR cannot find upBody group\n");
+      return 0;
+    }
+    
+    p3d_multiLocalPath_disable_all_groupToPlan(rob, FALSE);
+    p3d_multiLocalPath_set_groupToPlan(rob, upBodyMLP, 1, FALSE);
+    */
   //// std::vector <MANPIPULATION_TRAJECTORY_CONF_STR> &confs
          ////smTrajs.clear();
 //         for(unsigned i = 0; i < trajs.size(); i++){
@@ -7115,6 +7153,7 @@ int get_soft_motion_trajectories_for_plan_ID(int HRI_task_plan_id, std::vector <
      for(int j=0;j<HRI_task_list[i].traj.sub_task_traj.size();j++)
      {
        traj=HRI_task_list[i].traj.sub_task_traj[j].traj;
+       printf(" Getting SM traj for %d \n", j);
        get_soft_motion_trajectory_for_p3d_traj(traj, smTraj);
        
        smTrajs.push_back(smTraj);
@@ -7421,6 +7460,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
     }
     
     std::list<gpGrasp> grasps_for_object;
+    grasps_for_object.clear();
     
     get_grasp_list_for_object(envPt_MM->robot[obj_index]->name, grasps_for_object);
     
@@ -7449,6 +7489,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
     ctr++;
     }
    }
+   p3d_set_freeflyer_pose2(hand_rob, 0,0,0,0,0,0);
    p3d_col_activate_rob_rob(hand_rob, envPt_MM->robot[obj_index]);
    printf(" Total no. of non collision grasps = %d\n",ctr);
    

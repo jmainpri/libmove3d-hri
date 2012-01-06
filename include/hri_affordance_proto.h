@@ -243,6 +243,7 @@ extern int find_least_effort_state_for_agent_ability_for_obj(int for_agent, int 
 extern int init_Ag_Obj_Ab_mini_effort_states();
 extern int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, int for_obj_index);
 extern int init_and_allocate_OOM_data_field();
-
+extern int init_Agent_State_configs_data();
+extern int check_config_for_cell_already_pushed(int cell_x, int cell_y, int cell_z, int for_agent, int for_ability, int for_state, int for_hand, configPt ptr);//for_hand is not used in case of VIS_ABILITY
 #endif /* __CEXTRACT__ */
 

@@ -59,6 +59,9 @@ void g3d_hri_main()
     hri_draw_kinect_points();
     hri_draw_kinect_human_arms( GLOBAL_AGENTS );
   
+    hri_draw_kinect_points();
+    hri_draw_kinect_human_arms( GLOBAL_AGENTS );
+  
     g3d_draw_all_agents_fovs(GLOBAL_AGENTS);
     
     hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07); 
