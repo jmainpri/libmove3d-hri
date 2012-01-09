@@ -13,7 +13,7 @@ extern std::vector<double> hri_disp_dist;
 
 int STOP_AGENT_STATE_ANALYSIS=0;//Will be used by spark to set/reset
 int MA_ASA_WITHOUT_SPARK=0; // It will be used to execute the MA and ASA functions, when libhri is used without spark, because of the synchronization problem 
-int SHOW_OBJECT_FACTS=0; //by default we don't show object facts.
+int SHOW_OBJECT_FACTS=0;
 
 void g3d_hri_main()
 {

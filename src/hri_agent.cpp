@@ -44,7 +44,7 @@ HRI_AGENT* hri_assign_source_agent(char *agent_name, HRI_AGENTS *agents)
     for (i=0; i<agents->all_agents_no; i++) {
       if (strcasestr(agents->all_agents[i]->robotPt->name, agent_name)) {
         agents->source_agent_idx = i;
-	agents->all_agents[i]->is_present = TRUE;
+        agents->all_agents[i]->is_present = TRUE;
         return agents->all_agents[i];
       }
     }

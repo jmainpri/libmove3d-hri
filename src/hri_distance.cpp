@@ -24,14 +24,12 @@ static const double		hri_safe_radius = 2.0; // in meters
 
 //! Enables colision detection
 //! between the robot and the human
-void hri_set_human_robot_dist( p3d_rob* rob, HRI_AGENTS* agents )
+void hri_set_human_robot_dist( p3d_rob* rob, HRI_AGENT* agent )
 {
-	for(int i=0; i<agents->humans_no; i++)
-	{
-//		std::cout << "Human is : " << GLOBAL_AGENTS->humans[i]->robotPt->name << std::endl;
-		p3d_col_activate_rob_rob(rob,
-														 agents->humans[i]->robotPt);
-	}
+//	for(int i=0; i<agents->humans_no; i++)
+//	{
+		p3d_col_activate_rob_rob( rob, agent->robotPt );
+//	}
 }
 
 //! Sets the collision checker in a normal
@@ -47,25 +45,20 @@ void hri_set_mindist_display(bool draw)
   hri_draw_distance = draw;
 }
 
-//! Comptue the distance between the
-//! robot and the closest human agent
-double hri_robot_min_distance( HRI_AGENTS* agents )
+double hri_robot_min_distance( HRI_AGENT* robot, HRI_AGENT* human, double minDistPrev )
 {
-	p3d_rob* rob = agents->robots[agents->source_agent_idx]->robotPt;
-
-	//std::cout << "Compute dist for : " << rob->name << std::endl;
-
-//	printf("hri_robot_min_distance\n");
-	hri_set_human_robot_dist(rob,agents);
-
+  p3d_rob* rob = robot->robotPt;
+  
+	hri_set_human_robot_dist( rob, human );
+  
 	int nof_bodies = rob->no;
 	double* distances = new double[nof_bodies];
 	p3d_vector3 *body = new p3d_vector3[nof_bodies];
 	p3d_vector3 *other = new p3d_vector3[nof_bodies];
-
+  
 	int k=0;
 	double minDist = std::numeric_limits<double>::max();
-
+  
 	// Checkout the collision checker version
 	switch (p3d_col_get_mode())
 	{
@@ -75,94 +68,89 @@ double hri_robot_min_distance( HRI_AGENTS* agents )
 			set_kcd_which_test((p3d_type_col_choice)(20+3));
 			// 40 = KCD_ROB_ENV
 			// 3 = DISTANCE_EXACT
-
+      
 			p3d_col_test_choice();
 			// Collision detection with other robots only
-
+      
 			p3d_kcd_closest_points_between_bodies(rob,body,other,distances);
-
+      
 			// Get Min indice of distance
 			for(int i=0;i<nof_bodies;i++)
 			{
-				//std::cout << "distances[" << i << "] = " << distances[i] << std::endl;
 				if( minDist > distances[i] )
 				{
 					minDist = distances[i];
 					k = i;
 				}
 			}
-
-			set_kcd_which_test((p3d_type_col_choice)settings);// ROB_ALL + BOOL
-
+      
+			set_kcd_which_test((p3d_type_col_choice)settings); // ROB_ALL + BOOL
+      
 			break;
 		}
 		case p3d_col_mode_pqp:
 		{
-		        minDist =  pqp_robot_robot_distance(rob,GLOBAL_AGENTS->humans[0]->robotPt, body[k], other[k]);
-
-			// Only handles two humans
-			if( GLOBAL_AGENTS->humans_no > 1 )
-			  {
-			    p3d_vector3 body2,other2;
-			    double minDist2 = pqp_robot_robot_distance(rob,GLOBAL_AGENTS->humans[1]->robotPt, body2, other2);
-
-			    if(minDist2 < minDist)
-			      {
-				minDist = minDist2;
-
-				body[k][0] = body2[0];
-				body[k][1] = body2[1];
-				body[k][2] = body2[2];
-
-				other[k][0] = other2[0];
-				other[k][1] = other2[1];
-				other[k][2] = other2[2];
-			      }
-			  }
+      minDist =  pqp_robot_robot_distance(rob,human->robotPt, body[k], other[k]);
 			break;
 		}
 	}
-
+  
 	if(hri_draw_distance)
 	{
-		hri_disp_dist.clear();
-		hri_disp_dist.push_back(body[k][0]);
-		hri_disp_dist.push_back(body[k][1]);
-		hri_disp_dist.push_back(body[k][2]);
-		hri_disp_dist.push_back(other[k][0]);
-		hri_disp_dist.push_back(other[k][1]);
-		hri_disp_dist.push_back(other[k][2]);
-
-//		std::cout	<< "vect_jim[0] = " << hri_disp_dist[0]
-//							<< " vect_jim[1] = " << hri_disp_dist[1]
-//					    << " vect_jim[2] = " << hri_disp_dist[2] << std::endl;
-//
-//		std::cout	<< "vect_jim[3] = " << hri_disp_dist[3]
-//							<< " vect_jim[4] = " << hri_disp_dist[4]
-//					    << " vect_jim[5] = " << hri_disp_dist[5] << std::endl;
+    if( minDist < minDistPrev )
+    {
+      hri_disp_dist.clear();
+      hri_disp_dist.push_back(body[k][0]);
+      hri_disp_dist.push_back(body[k][1]);
+      hri_disp_dist.push_back(body[k][2]);
+      hri_disp_dist.push_back(other[k][0]);
+      hri_disp_dist.push_back(other[k][1]);
+      hri_disp_dist.push_back(other[k][2]);
+    }
 	}
-
-//	hri_set_normal_dist(rob);
-
+  
 	delete[] distances;
 	delete[] other;
 	delete[] body;
-
+  
 	return minDist;
 }
 
-//! Cost between 0 and 1 for the distance to the robot
-//! the minimal distance is computed and a squaling is done to have
-//! a cost in [0 1]
-double hri_distance_cost(HRI_AGENTS* agents, double& distance)
+//! Comptue the distance between the
+//! robot and the closest human agent
+double hri_robot_min_distance( HRI_AGENTS* agents )
 {
-	distance = hri_robot_min_distance(agents);
+  double minDist1 = std::numeric_limits<double>::max();
+  double minDist2 = std::numeric_limits<double>::max();
+  
+  HRI_AGENT* robot = agents->robots[ agents->source_agent_idx ];
+  
+  for (int i=0; i<agents->humans_no; i++) 
+  {
+    HRI_AGENT* human = agents->humans[i];
+    
+    minDist2 = hri_robot_min_distance( robot, human, minDist1 );
+    
+    if( human->is_present == TRUE )
+    {
+      if( minDist2 < minDist1 )
+      {
+        minDist1 = minDist2;
+      }
+    }
+  }
+  
+  return minDist1;
+}
 
-	double penetrationRatio = (hri_safe_radius - distance)/hri_safe_radius;
-
+//!
+double hri_compute_cost_from_dist( double distance )
+{
+  double penetrationRatio = (hri_safe_radius - distance)/hri_safe_radius;
+  
 	double Cost=0.0;
 	// double Cost = 0.00001;
-
+  
 	// Compute of the hri cost function
 	if ( penetrationRatio > 0 )
 	{
@@ -171,14 +159,30 @@ double hri_distance_cost(HRI_AGENTS* agents, double& distance)
 	  //Cost += (exp(penetrationDist-1) - exp(-1) ) / ( 1 - exp(-1) );
 	  // Cost += _PenetrationDist[k];
 	}
-
-
+  
 	// Set the Hri Cost To Display
 	hri_mindist = hri_cost_to_display = distance;
-
+  
 	return Cost;
 }
 
+//! Cost between 0 and 1 for the distance to the robot
+//! the minimal distance is computed and a squaling is done to have
+//! a cost in [0 1]
+double hri_distance_cost( HRI_AGENTS* agents, double& distance )
+{
+	distance = hri_robot_min_distance(agents);
+  return hri_compute_cost_from_dist( distance );
+}
+
+//!
+double hri_distance_cost( HRI_AGENT* robot, HRI_AGENT* human, double& distance )
+{
+	distance = hri_robot_min_distance( robot, human );
+  return hri_compute_cost_from_dist( distance );
+}
+
+//!
 void hri_draw_mindist()
 {
   if( (!hri_draw_distance) || (hri_mindist > hri_safe_radius) )

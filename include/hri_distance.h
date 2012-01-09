@@ -12,8 +12,14 @@
 
 #include "hri_agent.h"
 
-double hri_robot_min_distance(HRI_AGENTS* agents);
+#include <limits>
+
+double hri_robot_min_distance( HRI_AGENT* robot, HRI_AGENT* human, double minDistPrev = std::numeric_limits<double>::max() ); 
+double hri_robot_min_distance( HRI_AGENTS* agents );
+
 double hri_distance_cost( HRI_AGENTS* agents, double& distance );
+double hri_distance_cost( HRI_AGENT* robot, HRI_AGENT* human, double& distance );
+
 void hri_set_mindist_display(bool draw);
 void hri_draw_mindist();
 
