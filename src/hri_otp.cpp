@@ -60,4 +60,6 @@ bool hri_get_best_otp_position( p3d_rob* rob, p3d_rob* human, p3d_vector3 otp )
     p3d_vectScale( tmp2 , tmp1, 0.10 );
     p3d_vectAdd( tmp1, wrist_center, otp );
   }
+
+  return true;
 }
