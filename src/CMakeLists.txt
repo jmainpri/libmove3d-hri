@@ -10,6 +10,7 @@ FOREACH (srcfile
 	hri_knowledge.cpp
 	hri_kinect.cpp
 	hri_monitoring.cpp
+  hri_otp.cpp
         )
 	LIST(APPEND HRI_SRC ${srcfile})
 ENDFOREACH(srcfile)

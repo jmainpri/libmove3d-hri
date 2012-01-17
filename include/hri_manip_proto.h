@@ -46,4 +46,7 @@ extern double hri_obj_reach_path_val ( hri_bitmapset* btset, int x, int y, int z
 extern void g3d_hri_display_surfaces( void );
 extern void g3d_hri_display_test( void );
 
+//OTP
+extern bool hri_get_best_otp_position( p3d_rob* rob, p3d_rob* human, p3d_vector3 otp );
+
 #endif /* __CEXTRACT__ */
