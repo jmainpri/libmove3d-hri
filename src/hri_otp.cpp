@@ -37,7 +37,7 @@ bool hri_get_best_otp_position( p3d_rob* rob, p3d_rob* human, p3d_vector3 otp )
   }
   else
   {
-    p3d_jnt* wrist = p3d_get_robot_jnt_by_name( rob, "rWristX" );
+    p3d_jnt* wrist = p3d_get_robot_jnt_by_name( human, "rWristX" );
     
     if( wrist == NULL )
     {
