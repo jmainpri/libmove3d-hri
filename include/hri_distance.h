@@ -24,5 +24,6 @@ void hri_set_mindist_display(bool draw);
 void hri_draw_mindist();
 
 bool hri_activate_coll_robot_and_all_humans_arms( HRI_AGENT* robot, HRI_AGENTS* agents, bool enable );
+bool hri_activate_coll_robot_and_object( HRI_AGENT* robot, const char* objectName, bool enable );
 
 #endif

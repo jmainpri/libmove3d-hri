@@ -43,6 +43,7 @@ bool hri_activate_coll_between_robot_and_one_human_arms( HRI_AGENT* robot, HRI_A
 {  
   if( human->type != HRI_HERAKLES )
     {
+      printf("%s only works for HRI_HERAKLES agents\n",__func__);
       return false;
     }
 
@@ -106,6 +107,34 @@ bool hri_activate_coll_robot_and_all_humans_arms( HRI_AGENT* robot, HRI_AGENTS* 
   return true;
 }
 
+//!
+//!
+bool hri_activate_coll_robot_and_object( HRI_AGENT* robot, const char* objectName, bool enable ) 
+{
+  p3d_rob* object = p3d_get_robot_by_name( objectName );
+  if( object == NULL )
+    {
+      return false;
+    }
+
+  p3d_obj* obj1 =  object->joints[1]->o;
+  if( obj1 == NULL )
+    {
+      return false;
+    }
+
+  for(int i=0;i<robot->robotPt->no;i++)
+    {
+      p3d_obj* obj2 =  robot->robotPt->o[i];
+      if( obj2 == NULL )
+	continue;
+
+      if( !enable )
+	p3d_col_deactivate_pair_of_objects( obj1, obj2 );
+      else
+	p3d_col_activate_pair_of_objects( obj1, obj2 );
+    }
+}
 
 //! set the display mode
 void hri_set_mindist_display(bool draw)
