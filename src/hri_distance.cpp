@@ -53,7 +53,7 @@ bool hri_activate_coll_between_robot_and_one_human_arms( HRI_AGENT* robot, HRI_A
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rShoulderZ" ) );
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rArmTrans" ) );
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rElbowZ" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lPoint" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rPoint" ) );
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristX" ) );
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristY" ) );
   ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristZ" ) );
@@ -134,6 +134,8 @@ bool hri_activate_coll_robot_and_object( HRI_AGENT* robot, const char* objectNam
       else
 	p3d_col_activate_pair_of_objects( obj1, obj2 );
     }
+  
+  return true;
 }
 
 //! set the display mode
