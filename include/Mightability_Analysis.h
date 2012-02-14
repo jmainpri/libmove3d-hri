@@ -12,9 +12,10 @@
 #define MM_SHOW_DEBUG_MODE_BUTTONS
 
 #define HUMAN1_EXISTS_FOR_MA
-////#define HUMAN2_EXISTS_FOR_MA
+//#define HUMAN2_EXISTS_FOR_MA
 ////#define JIDO_EXISTS_FOR_MA
 #define PR2_EXISTS_FOR_MA
+////#define BERT_EXISTS_FOR_MA
 //#define USE_HH_LEARNING
 ////#define USE_SYM_GEO_PLAN
 
@@ -30,6 +31,11 @@
 #include <boost/concept_check.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/graph/graph_concepts.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+
 
 extern p3d_vector3 to_reach_target;
 extern struct grid_3D grid_around_HRP2;
@@ -43,6 +49,7 @@ extern int SHOW_OBSTACLE_CELLS;
 extern int CANDIDATE_POINTS_FOR_TASK_FOUND;
 
 extern p3d_vector3 point_to_look;
+
 
 #define MAX_CANDIDATE_POINT_FOR_TASK 15000
 #define MAX_POS_STATE_OF_AGENT_MM 15
@@ -77,8 +84,12 @@ typedef enum HRI_TASK_AGENT_ENUM
 #ifdef PR2_EXISTS_FOR_MA  
   PR2_MA,
 #endif
+  
+#ifdef BERT_EXISTS_FOR_MA  
+  BERT_MA,
+#endif
   //NOTE: DO NOT FORGET to add new agents in the function init_HRI_agent_name_ID_map() also
-  //Add new performers here before the last line
+  //Add new performers here before the last line// TODO: Locate init_HRI_agent_name_ID_map(), disappeared mysteriously 
 
   MAXI_NUM_OF_AGENT_FOR_HRI_TASK
 }HRI_TASK_AGENT;
@@ -157,6 +168,34 @@ typedef enum MM_STATES_FOR_REACH_PR2
 
  MAXI_NUM_POSSIBLE_STATES_REACH_PR2
 }MM_STATES_FOR_REACH_PR2;
+
+typedef enum MM_STATES_FOR_REACH_ARBITRARY_ROBOT
+{
+ MM_CURRENT_STATE_AR_REACH=0,
+ MM_STRAIGHT_STATE_AR_REACH,
+ MM_LEAN_FORWARD_STATE_AR_REACH,
+ MM_TURN_AROUND_STATE_AR_REACH,
+ MM_TURN_AROUND_LEAN_STATE_AR_REACH,
+ MM_ARBITRARY_STATE_AR_REACH,
+ //Add new states before the last line 
+
+ MAXI_NUM_POSSIBLE_STATES_REACH_AR
+
+}MM_STATES_FOR_REACH_ARBITRARY_ROBOT;
+
+typedef enum MM_STATES_FOR_VIS_ARBITRARY_ROBOT
+{
+ MM_CURRENT_STATE_AR_VIS=0,
+ MM_STRAIGHT_HEAD_STATE_AR_VIS,
+ MM_LOOK_AROUND_HEAD_STATE_AR_VIS,
+ MM_LEAN_FORWARD_STATE_AR_VIS,
+ 
+ 
+ MM_ARBITRARY_STATE_AR_VIS,
+ //Add new states before the last line 
+
+ MAXI_NUM_POSSIBLE_STATES_VIS_AR
+}MM_STATES_FOR_VIS_ARBITRARY_ROBOT;
 
 typedef enum MM_STATES_FOR_VIS_HUMAN
 {
@@ -442,6 +481,19 @@ typedef struct agents_for_MA
       for_agent[i].hand_params.joint_indices[RSHOULDER]=PR2_J_RSHOULDER;
       for_agent[i].hand_params.joint_indices[LSHOULDER]=PR2_J_LSHOULDER;
 
+       break;
+#endif
+       
+#ifdef BERT_EXISTS_FOR_MA
+        case BERT_MA:
+       for_agent[i].maxi_num_reach_states=MAXI_NUM_POSSIBLE_STATES_REACH_AR;
+       for_agent[i].maxi_num_vis_states=MAXI_NUM_POSSIBLE_STATES_VIS_AR;
+       for_agent[i].no_of_arms=2;
+       
+       for_agent[i].head_params.no_joints_neck=2;
+       
+      for_agent[i].head_params.no_Qs_neck=2;
+    
        break;
 #endif
      }

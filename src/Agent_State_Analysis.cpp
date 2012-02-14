@@ -468,6 +468,44 @@ int init_indices_for_human(int for_agent)
 	  agents_for_ASA[i].Q_indx.L_knee_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_knee_jnt]->index_dof;
 }
 
+int init_indices_for_bert(int MA_agent_type)
+{
+  int i=MA_agent_type;
+  
+   agents_for_ASA[i].agent_index=indices_of_MA_agents[i];
+	  strcpy(agents_for_ASA[i].agent_name,envPt_ASA->robot[agents_for_ASA[i].agent_index]->name);
+      
+	  agents_for_ASA[i].joint_indx.torso_yaw=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J2");
+	  agents_for_ASA[i].joint_indx.torso_pitch=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J3");
+	  
+	   agents_for_ASA[i].Q_indx.torso_Q_yaw=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.torso_yaw]->index_dof;
+	  agents_for_ASA[i].Q_indx.torso_Q_pitch=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.torso_pitch]->index_dof;
+	 
+	   agents_for_ASA[i].joint_indx.head_yaw=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J4");
+	  agents_for_ASA[i].joint_indx.head_pitch=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J5");
+	  
+	   agents_for_ASA[i].Q_indx.head_Q_yaw=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.head_yaw]->index_dof;
+	  agents_for_ASA[i].Q_indx.head_Q_pitch=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.head_pitch]->index_dof;
+	  
+	  
+	  ////printf(">><< rPalm jnt index=%d\n",agents_for_ASA[i].joint_indx.R_hand_jnt);
+	  agents_for_ASA[i].joint_indx.R_shoulder_x_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J6");
+	  agents_for_ASA[i].joint_indx.R_shoulder_y_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J7");
+	  
+	  agents_for_ASA[i].Q_indx.R_shoulder_x_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_shoulder_x_jnt]->index_dof;
+	  agents_for_ASA[i].Q_indx.R_shoulder_y_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.R_shoulder_y_jnt]->index_dof;
+	  
+	
+	  agents_for_ASA[i].joint_indx.L_shoulder_x_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J10");
+	  agents_for_ASA[i].joint_indx.L_shoulder_y_jnt=p3d_get_robot_jnt_index_by_name(envPt_ASA->robot[agents_for_ASA[i].agent_index], (char*) "J11");
+	  
+	  agents_for_ASA[i].Q_indx.L_shoulder_x_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_shoulder_x_jnt]->index_dof;
+	  agents_for_ASA[i].Q_indx.L_shoulder_y_Q=envPt_ASA->robot[agents_for_ASA[i].agent_index]->joints[agents_for_ASA[i].joint_indx.L_shoulder_y_jnt]->index_dof;
+	  
+	  
+	  
+}
+
 int init_indices_of_agent_for_ASA()
 {
   for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
@@ -526,6 +564,12 @@ int init_indices_of_agent_for_ASA()
 	  /*indices_of_MA_agents[i]=get_index_of_robot_by_name("PR2_ROBOT");
 	    indices_of_eye_joint_MA_agents[i]=p3d_get_robot_jnt_index_by_name(envPt_MM->robot[indices_of_MA_agents[i]], (char*) "Eyes");
 	  */
+	  break;
+#endif
+	  
+#ifdef BERT_EXISTS_FOR_MA
+	case BERT_MA:
+	init_indices_for_bert(BERT_MA);
 	  break;
 #endif
       

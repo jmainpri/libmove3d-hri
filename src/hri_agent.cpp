@@ -346,6 +346,7 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
       persp->pointjoint = agent->robotPt->joints[24];
       persp->point_tolerance = 20;
       break;
+    case HRI_BERT://NOTE: to match with ICUB values. Hacked for Mightability which just requires fov and foa, TODO ADD SEPARATE and correct values 
     case HRI_ICUB:
       persp->camjoint = agent->robotPt->joints[34];
       persp->fov = 120; //TODO: put the correct value
