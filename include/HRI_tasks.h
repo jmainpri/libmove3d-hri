@@ -24,7 +24,9 @@ MAKE_OBJECT_ACCESSIBLE=0,
 SHOW_OBJECT,
 GIVE_OBJECT,
 HIDE_OBJECT,
-TAKE_OBJECT,
+TAKE_OBJECT,//for hand over task
+GRASP_PICK_OBJECT,//for picking from a support
+SEE_OBJECT,//To see an object
 PUT_AWAY_OBJECT,
 HIDE_AWAY_OBJECT,
 MAKE_SPACE_FREE_OF_OBJECT,
@@ -138,8 +140,8 @@ typedef struct grasp_lift_info
 
 typedef struct taskability_node
 {
-  int performing_agent;
-  int target_agent;
+  int performing_agent;//from HRI_TASK_AGENT_ENUM
+  int target_agent;//from HRI_TASK_AGENT_ENUM
   int target_object;//index of target obj in envPt
   int task;
   int performing_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
@@ -150,6 +152,34 @@ typedef struct taskability_node
   char desc[200];
 }taskability_node;
 
+
+typedef struct graph_vertex
+{
+ int Ag_or_obj_index; //if Ag index, it will be from HRI_TASK_AGENT_ENUM, if obj_index, it will be index of target obj in envPt. In case of this node represents a space, the id will be assigned through a counter IMPORTANT NOTE:It is important to use the vert_type in couple with this index to get the correct vertex because for different vertex type same value of index can be assigned 
+ int vert_type;//1 for agent, 2 for object, 3 for space// NOTE: Any vertex of type 3 will have unique property that they will have only one in vertex and only one out vertex
+ 
+ //To store the position of the vertex for visualization
+ double x;
+ double y;
+ double z;
+ 
+}graph_vertex;
+
+typedef struct graph_edge
+{
+ double performing_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+ double target_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+ int no_candidate; //to store no. of points or grasps depending upon Taskability or Manipulability graph
+ int edge_task_type;
+ 
+ int agent_role_for_edge; //1 for performing agent, 2 for target agent
+ 
+ double weight_for_graph_search;
+}graph_edge;
+
+typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, graph_vertex, graph_edge > MY_GRAPH;
+typedef boost::graph_traits<MY_GRAPH>::vertex_descriptor MY_VERTEX_DESC;
+typedef boost::graph_traits<MY_GRAPH>::edge_descriptor MY_EDGE_DESC;
 
 
 

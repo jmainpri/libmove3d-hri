@@ -245,5 +245,7 @@ extern int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, in
 extern int init_and_allocate_OOM_data_field();
 extern int init_Agent_State_configs_data();
 extern int check_config_for_cell_already_pushed(int cell_x, int cell_y, int cell_z, int for_agent, int for_ability, int for_state, int for_hand, configPt ptr);//for_hand is not used in case of VIS_ABILITY
+extern int find_current_hri_goal_solution();
+
 #endif /* __CEXTRACT__ */
 

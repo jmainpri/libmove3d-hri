@@ -43,13 +43,17 @@
 #include "HRI_tasks.h"
 #include "Mightability_Analysis.h"
 #include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/graph_concepts.hpp>
+//#include <boost/graph/graph_concepts.hpp>
 #include <hri_affordance_include_proto.h>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/graph_concepts.hpp>
+//#include <boost/graph/graph_concepts.hpp>
+//#include <boost/graph/graph_concepts.hpp>
 #include <boost/concept_check.hpp>
-#include <boost/graph/graph_concepts.hpp>
+//#include <boost/graph/graph_concepts.hpp>
 #include <QtCore/qshareddata.h>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+
 
 using namespace std;
 HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;
@@ -143,6 +147,20 @@ extern int HUMAN2_CURRENT_STATE_MM;//HRI_STANDING;
 #ifdef PR2_EXISTS_FOR_MA
 extern int PR2_CURRENT_POSTURE;
 #endif
+
+std::vector<taskability_node> manipulability_graph;
+std::map<std::string, int > manipulability_node_DESC_ID_map;
+
+// // typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, graph_vertex, graph_edge > MY_GRAPH;
+// // typedef boost::graph_traits<MY_GRAPH>::vertex_descriptor MY_VERTEX_DESC;
+// // typedef boost::graph_traits<MY_GRAPH>::edge_descriptor MY_EDGE_DESC;
+
+MY_GRAPH Ag_Ag_Taskability_graph[MAXI_NUM_OF_HRI_TASKS];//={MY_GRAPH(MAXI_NUM_OF_AGENT_FOR_HRI_TASK), MY_GRAPH(MAXI_NUM_OF_AGENT_FOR_HRI_TASK), MY_GRAPH(MAXI_NUM_OF_AGENT_FOR_HRI_TASK), MY_GRAPH(MAXI_NUM_OF_AGENT_FOR_HRI_TASK)};
+////MY_GRAPH Ag_Ag_Taskability_graph_give(MAXI_NUM_OF_AGENT_FOR_HRI_TASK);
+
+MY_GRAPH object_flow_graph;
+
+int done_object_flow_graph_init=0;
 
 //TODO : Put below in HRI_tasks_Proto.h
 
@@ -7295,51 +7313,102 @@ int get_clean_the_table_plan(char *Table_name)
     }
   }
   
+   int rob_type;
+#ifdef PR2_EXISTS_FOR_MA
+  rob_type=PR2_MA;
+#endif
+
+#ifdef JIDO_EXISTS_FOR_MA
+  rob_type=JIDO_MA;
+#endif
+  
+  find_manipulability_graph();
+    printf(" \n ==== After finding manipulability graph ==== \n");
+    
+  find_taskability_graph();
+  
+  printf(" \n ***** After finding taskability graph ***** \n");
+  
   for(int i=0;i<ON_object_list.size();i++)
   {
   int cur_obj_indx=ON_object_indices.at(i);
   
   printf(" Testing for object %s \n",envPt_MM->robot[cur_obj_indx]->name);
   
-  int i;
-#ifdef PR2_EXISTS_FOR_MA
-  i=PR2_MA;
-#endif
-
-#ifdef JIDO_EXISTS_FOR_MA
-  i=JIDO_MA;
-#endif
+  int valid_manipulable_obj=0;
+  for(int manip_obj_ctr=0;manip_obj_ctr<NUM_VALID_GRASPABLE_OBJ;manip_obj_ctr++)
+  {
+    valid_manipulable_obj=0;
+   if(strcasestr(envPt_MM->robot[cur_obj_indx]->name,MANIPULABLE_OBJECTS[manip_obj_ctr]))
+      {
+	printf(" Object %s exists in MANIPULABLE_OBJECTS list \n",envPt_MM->robot[cur_obj_indx]->name);
+	valid_manipulable_obj=1;
+	break;
+      }
+      
+  }
   
+  if(valid_manipulable_obj==0)
+  {
   
+	printf(" Object %s does not exist in MANIPULABLE_OBJECTS list, so skipping \n",envPt_MM->robot[cur_obj_indx]->name);
+	continue;
+      
+  }
   ////int nr_ctr=1;
-  for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_vis_states;j++)
+  /*
+  //JUST to print all the visible and reachable states for debug
+  for(int j=0;j<agents_for_MA_obj.for_agent[rob_type].maxi_num_vis_states;j++)
 		{
-		    if(object_MM.object[cur_obj_indx].geo_MM.visible[i][j]>0)
+		    if(object_MM.object[cur_obj_indx].geo_MM.visible[rob_type][j]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
-		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[i]]->name);
+		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[rob_type]]->name);
 		      
 		    }
 		 
 		}
 		
-	      for(int j=0;j<agents_for_MA_obj.for_agent[i].maxi_num_reach_states;j++)
+	      for(int j=0;j<agents_for_MA_obj.for_agent[rob_type].maxi_num_reach_states;j++)
 		{
-		for(int k=0;k<agents_for_MA_obj.for_agent[i].no_of_arms;k++)
+		for(int k=0;k<agents_for_MA_obj.for_agent[rob_type].no_of_arms;k++)
 		  {
 		  
-		     if(object_MM.object[cur_obj_indx].geo_MM.reachable[i][j][k]>0)
+		     if(object_MM.object[cur_obj_indx].geo_MM.reachable[rob_type][j][k]>0)
 		    {
 		      //printf(" Drawing disc\n"); 
-		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[i][j][k], NULL);
-		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[i]]->name);
+		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[rob_type][j][k], NULL);
+		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[rob_type]]->name);
 		      break;
 		   
 		    }
 		   
 		  }
 		}
-  }
+		//End for vis and reach print for debug
+		*/
+		
+		
+	     for(int ag_type=0;ag_type<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;ag_type++)
+	      {
+               std::vector<taskability_node>::iterator it; 
+
+              int ctr=0;
+              for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+               {
+               
+                if(it->performing_agent==ag_type)
+		{
+		  if(it->target_object==cur_obj_indx)
+		  {
+		    printf(" Agent %s can manipulate the object %s \n", envPt_MM->robot[indices_of_MA_agents[ag_type]]->name, envPt_MM->robot[cur_obj_indx]->name);
+		    printf("     Performing ag effort: (vis: %d, reach: %d), \n",    it->performing_ag_effort[VIS_ABILITY],it->performing_ag_effort[REACH_ABILITY]);
+		  }
+		}
+               }
+		
+	      }
+  }//END for(int i=0;i<ON_object_list.size();i++)
 }
 
 int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskability_node &res_node )
@@ -7416,7 +7485,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
   
   
   
-  if(task==TAKE_OBJECT)
+  if(task==TAKE_OBJECT||task==GRASP_PICK_OBJECT)
   { 
     
     #ifdef JIDO_EXISTS_FOR_MA
@@ -7612,8 +7681,7 @@ int init_grasp_exists_for_object()
     
 }
   
-std::vector<taskability_node> manipulability_graph;
-std::map<std::string, int > manipulability_node_DESC_ID_map;
+
   
 int find_manipulability_graph()
 {
@@ -7621,7 +7689,7 @@ int find_manipulability_graph()
   manipulability_node_DESC_ID_map.clear();
   
   HRI_task_desc curr_task;
-  curr_task.task_type=TAKE_OBJECT;
+  curr_task.task_type=GRASP_PICK_OBJECT;
   
   int ctr=0;
   
@@ -7719,9 +7787,12 @@ int agent_maxi_allowed_effort[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_T
     int maxi_reach_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
    */
 agent_cur_effort[performing_agent][VIS_ABILITY]=MA_NO_VIS_EFFORT;
-agent_cur_effort[performing_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;
+////agent_cur_effort[performing_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;// NOTE: This will result into bad result because in this case no. of acceptable reach states will be 0 which is not currently handled in the core function which finds the candidate points. So, directly giving MA_ARM_EFFORT below  
+agent_cur_effort[performing_agent][REACH_ABILITY]=MA_ARM_EFFORT;
+
 agent_cur_effort[target_agent][VIS_ABILITY]=MA_NO_VIS_EFFORT;
-agent_cur_effort[target_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;
+////agent_cur_effort[target_agent][REACH_ABILITY]=MA_NO_REACH_EFFORT;// NOTE: This will result into bad result because in this case no. of acceptable reach states will be 0 which is not currently handled in the core function which finds the candidate points. So, directly giving MA_ARM_EFFORT below  
+agent_cur_effort[target_agent][REACH_ABILITY]=MA_ARM_EFFORT;
 
 if(per_ag_hum==1)
 {
@@ -8858,3 +8929,897 @@ int ctr=0;
  }
 }
 /////// ////////////////////////////////////// //////////
+
+///// HRI Goals
+
+int init_graph_info_for_taskability()
+{
+
+/*Ag_Ag_Taskability_graph.clear();
+
+  MY_VERTEX_T v;
+
+  for(int i=0; i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+  {
+    v=*vertices(Ag_Ag_Taskability_graph).first;
+    Ag_Ag_Taskability_graph[v].Ag_or_obj_index=i;
+  }
+ */
+
+MY_VERTEX_DESC v;
+
+for(int i=0; i<MAXI_NUM_OF_HRI_TASKS; i++)
+ {
+   Ag_Ag_Taskability_graph[i].clear();
+   printf(" Init graph for task %d \n", i);
+   
+   for(int Ag_type=0; Ag_type<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;Ag_type++)
+   {
+     v=add_vertex( Ag_Ag_Taskability_graph[i] );
+     Ag_Ag_Taskability_graph[i][v].vert_type=1;//for agent
+     Ag_Ag_Taskability_graph[i][v].Ag_or_obj_index = Ag_type;
+     printf(" Added vertex for agent %d \n",Ag_type);
+   }
+ }
+ /*
+int Ag_type=0;
+for (MY_GRAPH::vertex_iterator it = vertices(Ag_Ag_Taskability_graph_give).first; it != vertices(Ag_Ag_Taskability_graph).second;++it)
+ {
+    Ag_Ag_Taskability_graph[*it].Ag_or_obj_index = Ag_type;
+ }
+*/
+}
+
+int get_vertex_desc_by_ag_type(MY_GRAPH &G, int Ag_type, MY_VERTEX_DESC &vert_desc)
+{
+for (MY_GRAPH::vertex_iterator it = vertices(G).first; it != vertices(G).second;++it)
+ {
+    if((G[*it].vert_type==1)&&(G[*it].Ag_or_obj_index == Ag_type))
+    {
+      vert_desc= *it;
+      return 1;
+    }
+ }
+ return 0;
+}
+
+//This function populates a BOOST library Graph for performing various operations 
+int create_graph_for_taskability(int task_type)
+{
+std::vector<taskability_node>::iterator it;
+  ////MY_EDGE_DESC e;
+  MY_VERTEX_DESC v1, v2;
+  std::pair<MY_EDGE_DESC, bool> e;
+  
+   for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+   {
+     if(it->task==task_type)
+     {
+     if(get_vertex_desc_by_ag_type(Ag_Ag_Taskability_graph[task_type], it->performing_agent, v1)==1)
+     {
+        if(get_vertex_desc_by_ag_type(Ag_Ag_Taskability_graph[task_type], it->target_agent, v2)==1)
+	{
+	  e=add_edge(v1, v2, Ag_Ag_Taskability_graph[task_type]);
+	  
+	  for(int i=0; i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+	  {
+	  Ag_Ag_Taskability_graph[task_type][e.first].performing_ag_effort[i] =it->performing_ag_effort[i];
+	  Ag_Ag_Taskability_graph[task_type][e.first].target_ag_effort[i]=it->target_ag_effort[i];
+	  }
+	  
+	  if(it->target_ag_effort[REACH_ABILITY]>it->target_ag_effort[VIS_ABILITY])
+	  {
+	    Ag_Ag_Taskability_graph[task_type][e.first].weight_for_graph_search=it->target_ag_effort[REACH_ABILITY];
+	  }
+	  else
+	  {
+	    Ag_Ag_Taskability_graph[task_type][e.first].weight_for_graph_search=it->target_ag_effort[VIS_ABILITY];
+	  }
+	  
+	  Ag_Ag_Taskability_graph[task_type][e.first].no_candidate=it->candidate_points->no_points;
+	  
+	}
+	
+     }
+     }
+   }
+   
+   
+
+//vector<double> distances(num_vertices(map));
+////dijkstra_shortest_paths(map, from,weight_map(get(&Highway::miles, map)).distance_map(make_iterator_property_map(distances.begin(),get(vertex_index, map))));
+    
+
+
+}
+
+int does_vertex_exist(MY_GRAPH &G, int index, int type, MY_VERTEX_DESC &vert_desc)//if it exists return the vertex
+{
+  for (MY_GRAPH::vertex_iterator it = vertices(G).first; it != vertices(G).second;++it)
+ {
+    if((G[*it].vert_type==type)&&(G[*it].Ag_or_obj_index == index))
+    {
+      vert_desc= *it;
+      return 1;
+    }
+ }
+ return 0;
+}
+
+int create_space_vertex_edges(MY_GRAPH &G, MY_VERTEX_DESC &v1, MY_VERTEX_DESC &v2, MY_VERTEX_DESC &v3, taskability_node &TN_info, int space_vertex_type)//v3 is space vertex. space_vertex_type=1 for bridge i.e. v1->v3->v2. space_vertex_type=2 for junction i.e. v1->v3<-v2
+{
+   std::pair<MY_EDGE_DESC, bool> e;
+          e=add_edge(v1, v3, G);//Add outgoing edge from performing agent to space vertex
+	  G[e.first].agent_role_for_edge=1;//for performing agent
+	  G[e.first].edge_task_type=TN_info.task;
+	  
+	  for(int i=0; i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+	  {
+	  G[e.first].performing_ag_effort[i] =TN_info.performing_ag_effort[i];
+	 
+	  }
+	   G[e.first].no_candidate=TN_info.candidate_points->no_points;
+	  
+	  if(space_vertex_type==1)
+	  {
+	  e=add_edge(v3, v2, object_flow_graph);//add outgoing egde from space vertex to target agent
+	  }
+	  
+	  if(space_vertex_type==2)
+	  {
+	  e=add_edge(v2, v3, object_flow_graph);//add incoming edge into space vertex from target agent
+	  }
+	  
+	  G[e.first].agent_role_for_edge=2;//for target agent
+	  if(TN_info.task==GIVE_OBJECT)
+	  {
+	  G[e.first].edge_task_type=TAKE_OBJECT;
+	  }
+	  if(TN_info.task==MAKE_OBJECT_ACCESSIBLE)
+	  {
+	  G[e.first].edge_task_type=GRASP_PICK_OBJECT;
+	  }
+	  if(TN_info.task==SHOW_OBJECT)
+	  {
+	  G[e.first].edge_task_type=SEE_OBJECT;
+	  }
+	  if(TN_info.task==HIDE_OBJECT)
+	  {
+	  G[e.first].edge_task_type=SEE_OBJECT;
+	  }
+	  
+	  for(int i=0; i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+	  {
+	  G[e.first].target_ag_effort[i]=TN_info.target_ag_effort[i];
+	  
+	  }
+	  G[e.first].no_candidate=TN_info.candidate_points->no_points;
+	  
+	  return 1;
+}
+
+int create_object_flow_graph()
+{
+  printf(" ** Inside create_object_flow_graph()\n");
+  
+  object_flow_graph.clear();
+  int space_vertex_ctr=0;
+  std::pair<MY_EDGE_DESC, bool> e;
+  std::vector<taskability_node>::iterator it;
+  ////MY_EDGE_DESC e;
+  MY_VERTEX_DESC v1, v2, v3;
+ 
+  int task_type;
+  int vert_type=1;// 1 for agent
+  int space_vertex_type=1;// 1 for bridge, 2 for junction
+  
+   for(it=taskability_graph.begin();it!=taskability_graph.end();it++)
+   {
+     vert_type=1;// 1 for agent
+     int vert_res=does_vertex_exist(object_flow_graph, it->performing_agent, vert_type, v1);
+     if(vert_res==0)
+     {
+       v1=add_vertex( object_flow_graph );
+     object_flow_graph[v1].vert_type=vert_type;
+     object_flow_graph[v1].Ag_or_obj_index = it->performing_agent;
+     
+     object_flow_graph[v1].x=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v1].y=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v1].z=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     printf(" Added vertex for agent %d and vertex pos=(%lf, %lf, %lf) \n",it->performing_agent,object_flow_graph[v1].x, object_flow_graph[v1].y,object_flow_graph[v1].z);
+     }
+     
+     vert_type=1;// 1 for agent
+     vert_res=does_vertex_exist(object_flow_graph, it->target_agent, vert_type, v2);
+     if(vert_res==0)
+     {
+       v2=add_vertex( object_flow_graph );
+     object_flow_graph[v2].vert_type=vert_type;
+     object_flow_graph[v2].Ag_or_obj_index = it->target_agent;
+     
+     object_flow_graph[v2].x=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v2].y=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v2].z=envPt_MM->robot[indices_of_MA_agents[it->target_agent]]->BB.zmax;
+     
+     printf(" Added vertex for agent %d and vertex pos=(%lf, %lf, %lf) \n",it->target_agent,object_flow_graph[v2].x, object_flow_graph[v2].y,object_flow_graph[v2].z);
+     
+     }
+     
+     //Add a space vertex for this task between two agents// NOTE that a space vertex will have unique property that there will be only one in and out edges
+     v3=add_vertex( object_flow_graph );
+     object_flow_graph[v3].vert_type=3;//for space vertex
+     object_flow_graph[v3].Ag_or_obj_index = space_vertex_ctr;
+     
+     object_flow_graph[v3].x=(object_flow_graph[v1].x+object_flow_graph[v2].x)/2.0;
+     object_flow_graph[v3].y=(object_flow_graph[v1].y+object_flow_graph[v2].y)/2.0;
+     object_flow_graph[v3].z=object_flow_graph[v1].z+((it->task+object_flow_graph[v1].Ag_or_obj_index)*0.2);
+     printf(" Added space vertex ID %d and vertex pos=(%lf, %lf, %lf) \n",object_flow_graph[v3].Ag_or_obj_index,object_flow_graph[v3].x, object_flow_graph[v3].y,object_flow_graph[v3].z);
+     
+     space_vertex_ctr++;
+     
+     
+     if(it->task==GIVE_OBJECT||it->task==MAKE_OBJECT_ACCESSIBLE)
+    {
+     space_vertex_type=1;//for bridge vertex
+	 create_space_vertex_edges(object_flow_graph, v1, v2, v3, *it, space_vertex_type);
+	
+     }
+     
+      if(it->task==HIDE_OBJECT||it->task==SHOW_OBJECT)
+    {
+     space_vertex_type=2;//for junction vertex
+	 create_space_vertex_edges(object_flow_graph, v1, v2, v3, *it, space_vertex_type);
+	
+     }
+   }
+   
+   //Now integrating manipulability graph
+   for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
+   {
+     vert_type=1;//for agent
+     int vert_res=does_vertex_exist(object_flow_graph, it->performing_agent, vert_type, v1);
+     if(vert_res==0)
+     {
+       v1=add_vertex( object_flow_graph );
+     object_flow_graph[v1].vert_type=vert_type;
+     object_flow_graph[v1].Ag_or_obj_index = it->performing_agent;
+     
+      object_flow_graph[v1].x=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v1].y=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v1].z=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     printf(" Added vertex for agent %d \n",it->performing_agent);
+     }
+     
+     vert_type=2;//for object
+     vert_res=does_vertex_exist(object_flow_graph, it->target_object, vert_type, v2);
+     if(vert_res==0)
+     {
+     v2=add_vertex( object_flow_graph );
+     object_flow_graph[v2].vert_type=vert_type;
+     object_flow_graph[v2].Ag_or_obj_index = it->target_object;
+     
+     object_flow_graph[v2].x=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v2].y=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v2].z=envPt_MM->robot[it->target_object]->BB.zmax;
+     
+     printf(" Added vertex for object %d \n",it->target_object);
+     }
+   
+     e=add_edge(v2, v1, object_flow_graph);//The direction is from object to agent to facilitate graph search originating from object
+      object_flow_graph[e.first].agent_role_for_edge=1;//for performing agent
+      object_flow_graph[e.first].edge_task_type=it->task;
+	  
+      for(int i=0; i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+	  {
+	  object_flow_graph[e.first].performing_ag_effort[i] =it->performing_ag_effort[i];
+	  
+	  }
+	  object_flow_graph[e.first].no_candidate=it->candidate_points->no_points;
+     
+   }
+}
+
+int print_this_edge_old_to_del(MY_GRAPH &G,MY_VERTEX_DESC &v, MY_EDGE_DESC &e)
+{
+   int src_index;
+  int targ_index;
+  MY_VERTEX_DESC src;
+  MY_VERTEX_DESC targ;
+  
+  src=source(e,G);
+  targ=target(e,G);
+  
+       if(G[v].vert_type==1)//for agent
+        {
+	 src_index=indices_of_MA_agents[G[src].Ag_or_obj_index];
+	 targ_index=indices_of_MA_agents[G[targ].Ag_or_obj_index];
+	}
+	else
+	{
+	  if(G[v].vert_type==2)//for object
+         {
+	 src_index=G[src].Ag_or_obj_index;
+	 targ_index=G[targ].Ag_or_obj_index;
+	 }
+	}
+	
+	printf(" egde (%s,%s), weight_for_graph_search= %lf \n",envPt_MM->robot[src_index]->name,envPt_MM->robot[targ_index]->name,  G[e].weight_for_graph_search);
+}
+
+int get_shortest_path_for_this_pair(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ)
+{
+ 
+ printf(" Weight = %lf \n", weights[targ]);
+ /*
+ MY_VERTEX_DESC cur_vert=targ;
+ while((cur_vert!=src)&&(predecessors[cur_vert] != boost::graph_traits<MY_GRAPH>::null_vertex())&&(predecessors[cur_vert] != cur_vert))
+ {
+  
+       if(G[cur_vert].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[cur_vert].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[cur_vert].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[cur_vert].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[cur_vert].Ag_or_obj_index);
+       	}
+       }
+       printf("  <- ");
+ cur_vert=predecessors[cur_vert];
+ }
+ 
+ if(G[cur_vert].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[cur_vert].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[cur_vert].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[cur_vert].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[cur_vert].Ag_or_obj_index);
+       	}
+       }
+ printf(" \n");
+ */
+ 
+ std::vector<MY_EDGE_DESC> path;
+ 
+ 
+  MY_VERTEX_DESC v = targ; // We want to start at the destination and work our way back to the source
+  for(MY_VERTEX_DESC u = predecessors[v]; // Start by setting 'u' to the destintaion node's predecessor
+      u != v; // Keep tracking the path until we get to the source
+      v = u, u = predecessors[v]) // Set the current vertex to the current predecessor, and the predecessor to one level up
+  {
+    std::pair<MY_EDGE_DESC, bool> edgePair = boost::edge(u, v, G);
+    MY_EDGE_DESC edge = edgePair.first;
+ 
+    path.push_back( edge );
+  }
+ 
+ MY_VERTEX_DESC cur_src=src, cur_targ;
+ if(G[cur_src].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[cur_src].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[cur_src].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[cur_src].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[cur_src].Ag_or_obj_index);
+       	}
+       }
+       
+  for(std::vector<MY_EDGE_DESC>::reverse_iterator pathIterator = path.rbegin(); pathIterator != path.rend(); ++pathIterator)
+  {
+    ////cur_src=boost::source(*pathIterator, G);
+    printf(" (%s) -> ", HRI_task_NAME_ID_map.find(G[*pathIterator].edge_task_type)->second.c_str());
+    
+    cur_targ=boost::target(*pathIterator, G);
+    
+    if(G[cur_targ].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[cur_targ].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[cur_targ].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[cur_targ].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[cur_targ].Ag_or_obj_index);
+       	}
+       }
+  }
+
+  printf(" \n ");
+}
+
+int print_this_dijkstra_shortest_paths(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights)
+{
+    MY_VERTEX_DESC v;
+       
+      for (MY_GRAPH::vertex_iterator vit = vertices(G).first; vit != vertices(G).second;++vit)
+      {
+      
+       v=*vit;
+       if(G[v].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[v].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[v].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[v].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[v].Ag_or_obj_index);
+       	}
+       }
+       if (predecessors[v] == boost::graph_traits<MY_GRAPH>::null_vertex()||predecessors[v] == v)
+       {
+	 printf(" No predecessor \n");
+	 continue;
+       }
+       
+      printf(" distance = %lf ,", weights[v]);
+      
+      if(G[predecessors[v]].vert_type==1)//For agent
+       {
+	 printf(" %s : ",envPt_MM->robot[indices_of_MA_agents[G[predecessors[v]].Ag_or_obj_index]]->name);
+       }
+       else
+       {
+	if(G[predecessors[v]].vert_type==2)//For object
+        {
+	 printf(" %s : ",envPt_MM->robot[G[predecessors[v]].Ag_or_obj_index]->name);
+        }
+        else// space vertex
+	{
+	 printf(" %d : ",G[predecessors[v]].Ag_or_obj_index);
+       	}
+       }
+       
+   printf(" \n");
+
+      }
+      
+}
+
+int print_this_edge(MY_GRAPH &G, MY_EDGE_DESC &e)
+{
+   int src_index;
+  int targ_index;
+  MY_VERTEX_DESC src;
+  MY_VERTEX_DESC targ;
+  
+  src=source(e,G);
+  targ=target(e,G);
+  
+  p3d_vector3 p1, p2;
+  p1[0]=G[src].x;
+  p1[1]=G[src].y;
+  p1[2]=G[src].z;
+  
+  p2[0]=G[targ].x;
+  p2[1]=G[targ].y;
+  p2[2]=G[targ].z;
+  
+     g3d_drawColorSphere(G[src].x, G[src].y, G[src].z, .015, Green, NULL);
+     g3d_drawColorSphere(G[targ].x, G[targ].y, G[targ].z, .015,  Green, NULL);
+  g3d_draw_arrow_with_width(p1, p2, 2, 0.07, 0.5,0.5, 0);
+  g3d_drawColorSphere((G[src].x+G[targ].x)/2.0, (G[src].y+G[targ].y)/2.0, (G[src].z+G[targ].z)/2.0, (G[e].weight_for_graph_search+1)/100.0, Blue, NULL);
+  
+  int src_index_valid_for_name=0;
+  int targ_index_valid_for_name=0;
+  
+       if(G[src].vert_type==1)//for agent
+        {
+	 src_index=indices_of_MA_agents[G[src].Ag_or_obj_index];
+	 src_index_valid_for_name=1;
+	}
+	if(G[targ].vert_type==1)//for agent
+        {
+	targ_index=indices_of_MA_agents[G[targ].Ag_or_obj_index];
+       targ_index_valid_for_name=1;
+	}
+	
+	
+	 if(G[src].vert_type==2)//for object
+         {
+	 src_index=G[src].Ag_or_obj_index;
+	 src_index_valid_for_name=1;
+	 }
+	 
+	 if(G[targ].vert_type==2)//for object
+         {
+	  targ_index=G[targ].Ag_or_obj_index;
+	  targ_index_valid_for_name=1;
+	 }
+	
+	 if(G[src].vert_type==3)//for space
+         {
+	 src_index=G[src].Ag_or_obj_index;
+	 src_index_valid_for_name=0;//because it is an arbitrary number
+	 }
+	 
+	 if(G[targ].vert_type==3)//for space
+         {
+	  targ_index=G[targ].Ag_or_obj_index;
+	  targ_index_valid_for_name=0;//because it is an arbitrary number
+	 }
+	
+	if(src_index_valid_for_name==1)
+	{
+	  printf(" egde (%s,",envPt_MM->robot[src_index]->name);
+	  
+	}
+	if(src_index_valid_for_name==0)
+	{
+	  printf(" egde (%d,",src_index);
+	}
+	if(targ_index_valid_for_name==1)
+	{
+	  printf(" %s)",envPt_MM->robot[targ_index]->name);
+	}
+	if(targ_index_valid_for_name==0)
+	{
+	  printf(" %d)",targ_index);
+	}
+	
+	printf("  weight_for_graph_search= %lf \n",  G[e].weight_for_graph_search);
+}
+
+int print_vertex_edge_of_graph(MY_GRAPH &G,MY_VERTEX_DESC &v, int out_edge )
+{
+    
+  MY_EDGE_DESC e;
+ 
+  
+	if(out_edge==1)
+	{
+     printf(" Printing out edges \n");
+     std::pair<MY_GRAPH::out_edge_iterator, MY_GRAPH::out_edge_iterator> MY_O_E;
+     
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_O_E = out_edges(v, G);
+     
+     
+         for(MY_GRAPH::out_edge_iterator it=MY_O_E.first; it!=MY_O_E.second; ++it)
+         {
+	  e=*it;
+	  ////print_this_edge(G, v, e);
+	print_this_edge(G, e);
+         }
+	}
+	else// print in edges
+	{
+	  printf(" Printing in edges \n");
+          std::pair<MY_GRAPH::in_edge_iterator, MY_GRAPH::in_edge_iterator> MY_I_E;
+     
+     //MY_GRAPH::out_edge_iterator st, end;
+         MY_I_E = in_edges(v, G);
+     
+         for(MY_GRAPH::in_edge_iterator it=MY_I_E.first; it!=MY_I_E.second; ++it)
+         {
+	  e=*it;
+	  
+	  ////print_this_edge(G, v, e);
+	  print_this_edge(G, e);
+         }
+	}
+	
+	
+
+	return 1;
+}
+
+int draw_this_graph(MY_GRAPH &G)
+{
+  std::pair<MY_GRAPH::out_edge_iterator, MY_GRAPH::out_edge_iterator> MY_O_E;
+  
+  MY_EDGE_DESC e;
+  MY_VERTEX_DESC v;
+  
+  for (MY_GRAPH::vertex_iterator vit = vertices(G).first; vit != vertices(G).second;++vit)
+ {
+   v=*vit;
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_O_E = out_edges(v, G);
+     
+     for(MY_GRAPH::out_edge_iterator eit=MY_O_E.first; eit!=MY_O_E.second; ++eit)
+     {
+	  e=*eit;
+	  //print_this_edge(G, v, e);
+	print_this_edge(G,  e);
+     }
+         
+ }
+}
+
+int assign_edge_weight_in_object_flow_graph(MY_GRAPH &G)
+{
+   std::pair<MY_GRAPH::out_edge_iterator, MY_GRAPH::out_edge_iterator> MY_O_E;
+  
+  MY_EDGE_DESC e;
+  MY_VERTEX_DESC v;
+  MY_VERTEX_DESC src;
+  MY_VERTEX_DESC targ;
+	
+  for (MY_GRAPH::vertex_iterator vit = vertices(G).first; vit != vertices(G).second;++vit)
+ {
+   v=*vit;
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_O_E = out_edges(v, G);
+     
+     for(MY_GRAPH::out_edge_iterator eit=MY_O_E.first; eit!=MY_O_E.second; ++eit)
+     {
+	e=*eit;
+
+        src=source(e,G);
+        targ=target(e,G);
+  
+	//if(G[src].vert_type==1)//for agent
+	//{
+	if(G[e].agent_role_for_edge==1)//performing agent
+	 {
+	   if(G[e].edge_task_type==MAKE_OBJECT_ACCESSIBLE||G[e].edge_task_type==GIVE_OBJECT||G[e].edge_task_type==GRASP_PICK_OBJECT)// Assign the vis or reach effort whichever is higher
+	   {
+	   if(G[e].performing_ag_effort[VIS_ABILITY]>G[e].performing_ag_effort[REACH_ABILITY])
+	    {
+	   G[e].weight_for_graph_search=G[e].performing_ag_effort[VIS_ABILITY]; 
+	    }
+	   else
+	    {
+	     G[e].weight_for_graph_search=G[e].performing_ag_effort[REACH_ABILITY];
+	    }
+	   }
+	   else// Assign weight based on visibility
+	   {
+	     G[e].weight_for_graph_search=G[e].performing_ag_effort[VIS_ABILITY]; 
+	   }
+	  //print_this_edge(G, v, e);
+	/////print_this_edge(G,e);
+	 }
+	 else
+	 {
+	   if(G[e].agent_role_for_edge==2)//target agent
+	  {
+	   if(G[e].edge_task_type==GRASP_PICK_OBJECT||G[e].edge_task_type==TAKE_OBJECT)// Assign the vis or reach effort whichever is higher
+	   {
+	   if(G[e].target_ag_effort[VIS_ABILITY]>G[e].target_ag_effort[REACH_ABILITY])
+	    {
+	   G[e].weight_for_graph_search=G[e].target_ag_effort[VIS_ABILITY]; 
+	    }
+	   else
+	    {
+	     G[e].weight_for_graph_search=G[e].target_ag_effort[REACH_ABILITY];
+	    }
+	   }
+	   else// Assign weight based on visibility
+	   {
+	     G[e].weight_for_graph_search=G[e].target_ag_effort[VIS_ABILITY]; 
+	   }
+	
+	  }
+	}
+       //}
+     /*  else
+       {
+	 if(G[src].vert_type==2)//for object, so the weight will be assigned by maxi of vis or reach of the performing agent
+	{
+	  printf(" >* Assigning weight for %s, for performing agent %s, vis effort= %lf, reach effort = %lf \n",envPt_MM->robot[G[src].Ag_or_obj_index]->name, envPt_MM->robot[indices_of_MA_agents[G[targ].Ag_or_obj_index]]->name, G[e].performing_ag_effort[VIS_ABILITY], G[e].performing_ag_effort[REACH_ABILITY]);
+	  
+	  if(G[e].performing_ag_effort[VIS_ABILITY]>G[e].performing_ag_effort[REACH_ABILITY])
+	    {
+	   G[e].weight_for_graph_search=G[e].performing_ag_effort[VIS_ABILITY]; 
+	    }
+	   else
+	    {
+	     G[e].weight_for_graph_search=G[e].performing_ag_effort[REACH_ABILITY];
+	    }
+	}
+       }*/
+     }
+         
+ }
+}
+
+int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ)
+{
+     int vert_type=2;//for object
+     int vert_res=does_vertex_exist(G, get_index_of_robot_by_name((char*)for_task.for_object.c_str()), vert_type, src);
+     
+     if(vert_res==0)
+     {
+       printf(" Source vertex does not exist \n");
+       return 0;
+     }
+     
+     vert_type=1;//for agent
+     vert_res=does_vertex_exist(G, for_task.for_agent, vert_type, targ);
+     
+     if(vert_res==0)
+     {
+       printf(" Target agent does not exist \n");
+       return 0;
+     }
+  
+     if(for_task.task_type==SEE_OBJECT)//Finding the relevant space vertex 
+     {
+        
+     std::pair<MY_GRAPH::out_edge_iterator, MY_GRAPH::out_edge_iterator> MY_O_E;
+     
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_O_E = out_edges(targ, G);
+     MY_VERTEX_DESC out_vert;
+     MY_EDGE_DESC e;
+     int valid_targ=0;
+     
+         for(MY_GRAPH::out_edge_iterator it=MY_O_E.first; it!=MY_O_E.second; ++it)
+         {
+	  e=*it;
+	  if(G[e].edge_task_type==for_task.task_type)
+	  {
+	    out_vert=target(e,G);
+	    valid_targ=1;
+	    targ=out_vert;
+	    break;
+	  }
+	 }
+	if(valid_targ==0)
+	{
+	  printf(" target agent exists but there is no possibility to perform this task for the target agent \n");
+	  return 0;
+	 }
+	 
+         
+	}
+	
+     if(for_task.task_type==GRASP_PICK_OBJECT)//Finding the relevant space vertex 
+     {
+        
+     std::pair<MY_GRAPH::in_edge_iterator, MY_GRAPH::in_edge_iterator> MY_I_E;
+     
+     
+     MY_I_E = in_edges(targ, G);
+     MY_VERTEX_DESC in_vert;
+     MY_EDGE_DESC e;
+     int valid_targ=0;
+     
+         for(MY_GRAPH::in_edge_iterator it=MY_I_E.first; it!=MY_I_E.second; ++it)
+         {
+	  e=*it;
+	  if(G[e].edge_task_type==for_task.task_type)
+	  {
+	    in_vert=source(e,G);
+	    valid_targ=1;
+	    targ=in_vert;
+	    break;
+	  }
+	 }
+	if(valid_targ==0)
+	{
+	  printf(" target agent exists but there is no possibility to perform this task for the target agent \n");
+	  return 0;
+	 }
+	 
+         
+	}
+	
+	
+	return 1;
+     
+}
+
+int find_current_hri_goal_solution()
+{
+  printf(" Inside find_current_hri_goal_solution()\n");
+  if(done_object_flow_graph_init==0)
+  {
+  init_graph_info_for_taskability();
+  
+  create_graph_for_taskability(GIVE_OBJECT);
+  create_graph_for_taskability(SHOW_OBJECT);
+  create_graph_for_taskability(MAKE_OBJECT_ACCESSIBLE);
+  create_graph_for_taskability(HIDE_OBJECT);
+  
+  create_object_flow_graph();
+  
+  assign_edge_weight_in_object_flow_graph(object_flow_graph);
+  
+   printf(" ==== Drawing object flow graph === \n");
+  
+  draw_this_graph(object_flow_graph);
+  
+  printf(" ==== FINISH Drawing object flow graph === \n");
+  
+  
+  done_object_flow_graph_init=1;
+  }
+  
+ 
+  MY_VERTEX_DESC v;
+  
+  if(get_vertex_desc_by_ag_type(Ag_Ag_Taskability_graph[CURRENT_HRI_MANIPULATION_TASK], CURRENT_TASK_PERFORMED_BY, v)==1)
+  {
+   print_vertex_edge_of_graph(Ag_Ag_Taskability_graph[CURRENT_HRI_MANIPULATION_TASK],v,1);
+  }
+  
+  std::vector<MY_VERTEX_DESC> predecessors(boost::num_vertices(object_flow_graph)); // To store parents
+  std::vector<double> distances(boost::num_vertices(object_flow_graph)); // To store distances
+  
+  ////**** Below is IMPORTANT SYNTAX For creating property map from bundle property
+  ////boost::property_map<MY_GRAPH, double graph_edge::* >::type weightmap = get(&graph_edge::weight_for_graph_search, object_flow_graph);
+
+
+  std::vector<MY_VERTEX_DESC> p(num_vertices(object_flow_graph), boost::graph_traits<MY_GRAPH>::null_vertex());//the predecessor array
+  std::vector<double> d(num_vertices(object_flow_graph));//The weight array 
+  
+  MY_VERTEX_DESC st_v;
+//   int vert_type=1; //for agent
+//   
+//   int vert_res=does_vertex_exist(object_flow_graph, PR2_MA, vert_type, st_v);
+  
+   //////int vert_type=2; //for object
+  
+  //////int vert_res=does_vertex_exist(object_flow_graph, get_index_of_robot_by_name("LOTR_TAPE"), vert_type, st_v);
+  
+    ////// if(vert_res==1)
+    ////// {
+       /*printf(" Finding dijkstra_shortest_paths \n");
+       dijkstra_shortest_paths(object_flow_graph, st_v, boost::predecessor_map(&p[0]).distance_map(&d[0]).weight_map(get(&graph_edge::weight_for_graph_search, object_flow_graph))); 
+       //dijkstra_shortest_paths(object_flow_graph, s, predecessor_map(&p[0]).distance_map(&d[0]));
+       printf(" Finished finding dijkstra_shortest_paths \n");
+	
+       print_this_dijkstra_shortest_paths(object_flow_graph, p, d);
+       */
+       MY_VERTEX_DESC src, targ;
+       HRI_task_desc curr_task;
+       
+       curr_task.task_type=GRASP_PICK_OBJECT;
+       curr_task.for_agent=CURRENT_TASK_PERFORMED_FOR;
+       curr_task.for_object=CURRENT_OBJECT_TO_MANIPULATE;
+       
+       int valid_src_targ=get_src_targ_vertex_pair_for_task(curr_task, object_flow_graph, src, targ);
+       if(valid_src_targ==1)
+       {
+	 printf(" Finding dijkstra_shortest_paths \n");
+       dijkstra_shortest_paths(object_flow_graph, src, boost::predecessor_map(&p[0]).distance_map(&d[0]).weight_map(get(&graph_edge::weight_for_graph_search, object_flow_graph))); 
+       //dijkstra_shortest_paths(object_flow_graph, s, predecessor_map(&p[0]).distance_map(&d[0]));
+       printf(" Finished finding dijkstra_shortest_paths \n");
+       
+	 get_shortest_path_for_this_pair(object_flow_graph, p, d, src, targ);
+       }
+    ////// }
+    ///// else
+    ///// {
+    /////   printf(" Source vertex for finding dijkstra_shortest_paths does not exist \n");
+       
+    ////// }
+     
+     
+  ////////show_object_flow_graph_for_object("GREY_TAPE");
+  ////get_clean_the_table_plan("HRP2TABLE");
+  
+}
+
