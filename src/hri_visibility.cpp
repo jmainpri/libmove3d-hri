@@ -10,6 +10,7 @@
 //! this function is set by the different OpenGL display manager
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 
+
 //! @ingroup VISIBILITY 
 //! This function is a wrapper to older version of the functions which enables retro compatibility
 //! It is still used in spark, this should be changed carfully
@@ -365,7 +366,7 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
   double visibility_processing_fov = 60; /// for opengl visibility processing we choose one fov different from agent fov. 
   double elevation, azimuth;
   int pan_div_no, tilt_div_no;
-  int vis_pl;
+  ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
   int save_images = FALSE;
 
   // if(ents->printVisibilityImages)
@@ -422,7 +423,11 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
 	if(ents[i]->disappeared)
 	  vis_pl= HRI_UK_VIS_PLACE;
 	else
-	  hri_object_visibility_placement(agent, ents[i]->robotPt, &vis_pl, &elevation, &azimuth);
+	  hri_object_visibility_placement(agent, 
+	                                  ents[i]->robotPt, 
+	                                  false, HRI_UK_VIS_PLACE, // no hysteresis filtering
+	                                  &vis_pl, 
+	                                  &elevation, &azimuth);
 	  
 	if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
 	  entities_to_test[o_i] = ents[i];
@@ -437,7 +442,7 @@ int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * ag
 
       if( !succeeded ) 
 	{
-	  printf("Visbility failed for agent : %s\n", agent->robotPt->name );
+	  printf("Visibility failed for agent : %s\n", agent->robotPt->name );
 	  break;
 	}
       //printf("%d. Number of tested entities: %d\n", j+2, o_i);
@@ -478,7 +483,7 @@ int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENT
   /// Here it is greatly reduced to represent "actual" robot fov. It is based on this result that we will decide if object has disappeared.
   /// It should be put as a constant
   double elevation, azimuth;
-  int vis_pl;
+  ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
   int save_images = FALSE;
 
   // if(ents->printVisibilityImages)
@@ -503,7 +508,11 @@ int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENT
     if(ents[i]->disappeared)
       vis_pl= HRI_UK_VIS_PLACE;
     else
-      hri_object_visibility_placement(agent, ents[i]->robotPt, &vis_pl, &elevation, &azimuth);
+      hri_object_visibility_placement(agent, 
+                                      ents[i]->robotPt, 
+                                      false, HRI_UK_VIS_PLACE, // no hysteresis filtering
+                                      &vis_pl, 
+                                      &elevation, &azimuth);
 	  
     if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
       entities_to_test[o_i] = ents[i];
@@ -995,136 +1004,293 @@ double hri_simple_is_point_visible_by_robot(p3d_vector3 point,p3d_rob* robotPt)
 }
 
 //! @ingroup VISIBILITY 
-int hri_entity_visibility_placement(HRI_AGENT *agent, HRI_ENTITY *ent, int *result, double *elevation, double *azimuth)
+int hri_entity_visibility_placement(HRI_AGENT *agent,
+                                  HRI_ENTITY *ent,
+                                  bool hysteresis_filtering,
+                                  HRI_VISIBILITY_PLACEMENT current_state,
+                                  HRI_VISIBILITY_PLACEMENT *result, 
+                                  double *elevation, double *azimuth)
+
 {
 
-  p3d_vector4 entCenter;
-  p3d_BB * entBB;
-  
   if(ent==NULL || agent==NULL){
     printf("%s: %d: hri_entity_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
     return FALSE;
   }
 
+  p3d_BB * entBB;
   if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
     entBB = &ent->partPt->BB;
   else
     entBB = &ent->robotPt->BB;
 
-  entCenter[0] = (((entBB->xmax - entBB->xmin)/2) + entBB->xmin);
-  entCenter[1] = (((entBB->ymax - entBB->ymin)/2) + entBB->ymin);
-  entCenter[2] = (((entBB->zmax - entBB->zmin)/2) + entBB->zmin);
-  entCenter[3] = 1.0;
+  double width = entBB->xmax - entBB->xmin;
+  double depth = entBB->ymax - entBB->ymin;
+  double height = entBB->zmax - entBB->zmin;
 
-  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos, entCenter,
-                                  DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
-                                  DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
-                                  result, elevation, azimuth);
+  p3d_vector4 objectCenter;
+  objectCenter[0] = width/2 + entBB->xmin;
+  objectCenter[1] = depth/2 + entBB->ymin;
+  objectCenter[2] = height/2 + entBB->zmin;
+  objectCenter[3] = 1.0;
+
+  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos,
+                        objectCenter,
+                        hysteresis_filtering, current_state, MAX(width, depth), height,
+                        DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
+                        DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
+                        result, elevation, azimuth);
   return TRUE;
 }
 
 //! @ingroup VISIBILITY 
-int hri_object_visibility_placement(HRI_AGENT *agent, p3d_rob *object, int *result, double *elevation, double *azimuth)
+int hri_object_visibility_placement(HRI_AGENT *agent,
+                                  p3d_rob *object,
+                                  bool hysteresis_filtering,
+                                  HRI_VISIBILITY_PLACEMENT current_state,
+                                  HRI_VISIBILITY_PLACEMENT *result,
+                                  double *elevation, double *azimuth)
 {
 
-  p3d_vector4 objectCenter;
 
   if(object==NULL || agent==NULL){
     printf("%s: %d: hri_object_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
     return FALSE;
   }
 
-  objectCenter[0] = (((object->BB.xmax - object->BB.xmin)/2) + object->BB.xmin);
-  objectCenter[1] = (((object->BB.ymax - object->BB.ymin)/2) + object->BB.ymin);
-  objectCenter[2] = (((object->BB.zmax - object->BB.zmin)/2) + object->BB.zmin);
+  double width = object->BB.xmax - object->BB.xmin;
+  double depth = object->BB.ymax - object->BB.ymin;
+  double height = object->BB.zmax - object->BB.zmin;
+
+  p3d_vector4 objectCenter;
+  objectCenter[0] = width/2 + object->BB.xmin;
+  objectCenter[1] = depth/2 + object->BB.ymin;
+  objectCenter[2] = height/2 + object->BB.zmin;
   objectCenter[3] = 1.0;
 
-  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos, objectCenter,
-                                  DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
-                                  DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
-                                  result, elevation, azimuth);
+  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos, 
+                        objectCenter,
+                        hysteresis_filtering, current_state, MAX(width, depth), height,
+                        DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
+                        DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
+                        result, elevation, azimuth);
   return TRUE;
 }
 
 //! @ingroup VISIBILITY 
-int hri_entity_pointing_placement(HRI_AGENT *agent,  HRI_ENTITY *ent, int *result, double *elevation, double *azimuth)
+int hri_entity_pointing_placement(HRI_AGENT *agent,
+                                  HRI_ENTITY *ent,
+                                  bool hysteresis_filtering,
+                                  HRI_VISIBILITY_PLACEMENT current_state,
+                                  HRI_VISIBILITY_PLACEMENT *result, 
+                                  double *elevation, double *azimuth)
 {
-  p3d_vector4 entCenter;
-  p3d_BB * entBB;
   
   if(ent==NULL || agent==NULL){
-    printf("%s: %d: hri_entity_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
+    printf("%s: %d: hri_entity_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
     return FALSE;
   }
 
+  p3d_BB * entBB;
   if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
     entBB = &ent->partPt->BB;
   else
     entBB = &ent->robotPt->BB;
 
-  entCenter[0] = (((entBB->xmax - entBB->xmin)/2) + entBB->xmin);
-  entCenter[1] = (((entBB->ymax - entBB->ymin)/2) + entBB->ymin);
-  entCenter[2] = (((entBB->zmax - entBB->zmin)/2) + entBB->zmin);
-  entCenter[3] = 1.0;
+  double width = entBB->xmax - entBB->xmin;
+  double depth = entBB->ymax - entBB->ymin;
+  double height = entBB->zmax - entBB->zmin;
+
+  p3d_vector4 objectCenter;
+  objectCenter[0] = width/2 + entBB->xmin;
+  objectCenter[1] = depth/2 + entBB->ymin;
+  objectCenter[2] = height/2 + entBB->zmin;
+  objectCenter[3] = 1.0;
   
-  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos, entCenter,
-                                  DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
-                                  DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
-                                  result, elevation, azimuth);
+  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos, 
+                        objectCenter,
+                        hysteresis_filtering, current_state, MAX(width, depth), height,
+                        DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
+                        0.0, 0.0, // ignore FoA
+                        result, elevation, azimuth);
   return TRUE;
 }
 
 //! @ingroup VISIBILITY 
-int hri_object_pointing_placement(HRI_AGENT *agent, p3d_rob *object, int *result, double *elevation, double *azimuth)
+int hri_object_pointing_placement(HRI_AGENT *agent,
+                                  p3d_rob *object,
+                                  bool hysteresis_filtering,
+                                  HRI_VISIBILITY_PLACEMENT current_state,
+                                  HRI_VISIBILITY_PLACEMENT *result,
+                                  double *elevation, double *azimuth)
 {
-  p3d_vector4 objectCenter;
-  
+
   if(object==NULL || agent==NULL){
     printf("%s: %d: hri_object_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
     return FALSE;
   }
 
-  objectCenter[0] = (((object->BB.xmax - object->BB.xmin)/2) + object->BB.xmin);
-  objectCenter[1] = (((object->BB.ymax - object->BB.ymin)/2) + object->BB.ymin);
-  objectCenter[2] = (((object->BB.zmax - object->BB.zmin)/2) + object->BB.zmin);
+  double width = object->BB.xmax - object->BB.xmin;
+  double depth = object->BB.ymax - object->BB.ymin;
+  double height = object->BB.zmax - object->BB.zmin;
+
+  p3d_vector4 objectCenter;
+  objectCenter[0] = width/2 + object->BB.xmin;
+  objectCenter[1] = depth/2 + object->BB.ymin;
+  objectCenter[2] = height/2 + object->BB.zmin;
   objectCenter[3] = 1.0;
-  
-  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos, objectCenter,
-                                  DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
-                                  DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
-                                  result, elevation, azimuth);
+
+  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos,
+                        objectCenter,
+                        hysteresis_filtering, current_state, MAX(width, depth), height,
+                        DTOR(agent->perspective->point_tolerance), DTOR(agent->perspective->point_tolerance),
+                        0.0, 0.0, // ignore FoA
+                        result, elevation, azimuth);
   return TRUE;
 }
 
 //! @ingroup VISIBILITY 
-int g3d_object_visibility_placement(p3d_matrix4 camera_frame, p3d_vector4 objectCenter, double Hfov, double Vfov, double Hfoa, double Vfoa, int *result, double *phi_result, double *theta_result)
+/**
+ * Computes if an object is in the field of view/field of attention of a 
+ * camera.
+ *
+ * This method supports a simple filtering technique called hysteresis
+ * filtering.
+ *
+ * Hysteresis filtering:
+ * 
+ *   \      FoV       /     o1
+ *    \              /       .  l
+ *     \            /         `.
+ *      \          /            O
+ *       \        /          .-'  \ l
+ *        \      /       _.-'      `.
+ *         \    /     .-' d          o2
+ *          \  /  _.-'
+ *           `/.-'
+ *           C
+ *
+ *
+ *  When an object (with center O) is seen, it means O enters
+ *  the field of view FoV.
+ *  To prevent flickering when O is near the FoV cone, hysteresis
+ *  filtering can be enabled. The idea is:
+ *   - if the object is not yet seen, it will 'start' to be seen
+ *     when the FoV cone touches o2,
+ *   - if the object is already seen, it will 'stop' to be seen
+ *     when the FoV cone 'leaves' o1,
+ *
+ *  o1 and o2 are computed from the current C->O vector + the object_width
+ *  parameter (object_width = 2*l on the diagram above).
+ *
+ * Same reasoning applies for the field of attention and pointing.
+ *
+ *
+ * \param[in] hysteresis_filtering Enables hysteresis filtering.
+ * \param[in] current_state Current visibility placement of the object. Only 
+ * used with hysteresis filtering.
+ * \param[in] object_width characteristic length of the object in meters. Only used with
+ * hysteresis filtering.
+ *
+ * \param[out] result The computed placement of the object, in the field of attention,
+ * field of view or out of them.
+ *
+ */
+int g3d_object_visibility_placement(p3d_matrix4 camera_frame, 
+                                    p3d_vector4 objectCenter, 
+                                    bool hysteresis_filtering, // Enable hysteresis filtering?
+                                    HRI_VISIBILITY_PLACEMENT current_state, // if yes, what is the current state of the object? seen? pointed at?
+                                    double width, double height, // characterisic length of the object.
+                                    double Hfov, double Vfov, 
+                                    double Hfoa, double Vfoa, 
+                                    HRI_VISIBILITY_PLACEMENT *result, 
+                                    double *phi_result, double *theta_result)
 {
   p3d_vector4 objectCenterCamFr;
   p3d_matrix4 invM;
   double rho,phi,theta;
-  
+  double hysteresis_h_angle = 0.0; // horizontal hysteresis
+  double hysteresis_v_angle = 0.0; // vertical hysteresis
+
+
   p3d_matInvertXform(camera_frame,invM);
   p3d_matvec4Mult(invM, objectCenter, objectCenterCamFr);
-  
+
   p3d_cartesian2spherical(objectCenterCamFr[0],objectCenterCamFr[1],objectCenterCamFr[2],
                           &rho,&phi,&theta);
-  //printf("Distance:%f, Elevation: %f, Azimuth: %f\n",rho,RTOD(phi),RTOD(theta));
+
+  // To prevent instability when the visibility/pointing cone is close 
+  // to the object, we add a 'geometric' hysteresis: the human must go 
+  // beyond the object's centre to start seeing/pointing it, and it 
+  // must move further away from the center to stop seeing/pointing it.
+  // This aims to get a more stable visibility/pointed status.
+  // TODO: Charateristic width of the object currently set to 10 cm (0.1m)
+  if (hysteresis_filtering) {
+      hysteresis_h_angle = ABS(atan(width / rho)); // radians
+      hysteresis_v_angle = ABS(atan(height / rho)); // radians
+
+      //printf("Distance:%f, Elevation: %f, Azimuth: %f, Vert. Hysteresis: %f, Horiz. Hysteresis: %f\n",rho,RTOD(phi),RTOD(theta), RTOD(hysteresis_v_angle), RTOD(hysteresis_h_angle));
+  }
+  else {
+      // hysteresis_angles are 0.0
+      current_state = HRI_UK_VIS_PLACE; // set state to unknown
+  }
+
 
   *phi_result = phi; // Elevation
   *theta_result = theta; // Azimuth
 
-  if( (ABS(theta)<Hfoa/2) && (ABS(phi)<Vfoa/2) ){
-    // is in foa
-    *result = 1;
-  }
-  else {
-    if ((ABS(theta)<Hfov/2) && (ABS(phi)<Vfov/2)) {
-      // is in fov
-      *result = 2;
-    }
-    else {
-      *result = 3;
-    }
+  switch (current_state) {
+    //First case: object in field of attention
+    case HRI_FOA:
+
+        if (ABS(theta) - hysteresis_h_angle > Hfoa/2 && 
+            ABS(phi) - hysteresis_v_angle > Vfoa/2) {
+            // out of FOA -> FOV
+            *result = HRI_FOV;
+        }
+        else {
+            // else, still in field of attention.
+            *result = HRI_FOA;
+        }
+        break;
+
+    //Second case: object in field of view
+    case HRI_FOV:
+
+        if (ABS(theta) + hysteresis_h_angle < Hfoa/2 && 
+            ABS(phi) + hysteresis_v_angle < Vfoa/2) {
+            // FoV -> FoA
+            *result = HRI_FOA;
+        }
+        else {
+            if (ABS(theta) - hysteresis_h_angle > Hfov/2 &&
+                ABS(phi) - hysteresis_v_angle > Vfov/2) {
+                // out of FOV -> out of field of view
+                *result = HRI_OOF;
+            }
+            else {
+                // else, still in field of view.
+                *result = HRI_FOV;
+            }
+        }
+        break;
+
+    //Else: we do not see yet the object (or hysteresis filtering is off)
+    default:
+
+        if (ABS(theta) + hysteresis_h_angle < Hfov/2 && 
+            ABS(phi) + hysteresis_v_angle < Vfov/2) {
+            // enters in FoV
+            *result = HRI_FOV;
+        }
+        else {
+            // still out of view
+            *result = HRI_OOF;
+        }
+
+        break; 
+
   }
 
   return TRUE;
@@ -1433,7 +1599,7 @@ int hri_compute_agent_sees(HRI_AGENT * agent, int threshold, int save, int draw_
   double elevation, azimuth;
   p3d_rob **test_obj_list;
   int obj_idx = 0;
-  int placement_res;
+  ENUM_HRI_VISIBILITY_PLACEMENT placement_res;
   double *vis_res;
   int saved_sees_display_mode;
   int point,fov,visobj;
@@ -1486,14 +1652,18 @@ int hri_compute_agent_sees(HRI_AGENT * agent, int threshold, int save, int draw_
   test_obj_list = MY_ALLOC(p3d_rob*,env->nr);
 
   for(i=0; i<env->nr; i++) {
-    hri_object_visibility_placement(agent, env->robot[i], &placement_res, &elevation, &azimuth);
+    hri_object_visibility_placement(agent, 
+                                    env->robot[i], 
+                                    true, agent->knowledge->entities[i].is_placed_from_visibility, // do hysteresis filtering
+                                    &placement_res, 
+                                    &elevation, &azimuth);
     switch (placement_res) {
-      case 1:
+      case HRI_FOA:
         agent->perspective->currently_sees.vispl[i] = HRI_FOA;
         test_obj_list[obj_idx] = env->robot[i];
         obj_idx++;
         break;
-      case 2:
+      case HRI_FOV:
         agent->perspective->currently_sees.vispl[i] = HRI_FOV;
         test_obj_list[obj_idx] = env->robot[i];
         obj_idx++;

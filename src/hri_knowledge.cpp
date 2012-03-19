@@ -1357,7 +1357,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
   int present_ents_nb;
   HRI_AGENT * agent;
   HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
-  int res;
+  ENUM_HRI_VISIBILITY_PLACEMENT res;
   int counter = 0;
   HRI_VISIBILITY * vis_result;
   HRI_REACHABILITY reachability_result;
@@ -1501,92 +1501,118 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    
       }
 
-      //We try to process looksAt continuously to avoid nearly synchronous add/remove of these facts. 
+    //We try to process looksAt continuously to avoid nearly synchronous add/remove of these facts. 
 
-      // Update look at also only when head as moved
-      //if((ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate ){
-	  
-      // LOOKS AT / VISIBILITY PLACEMENT - FOV,FOA,OOF
-      // TODO: visibility placement for robot parts	
-      if(ent->disappeared)
-	res = HRI_UK_VIS_PLACE;
-      else
-	hri_entity_visibility_placement(agent, ent, &res, &elevation, &azimuth);
+    // Update look at also only when head as moved
+    //if((ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate ){
 
-      // need to update is_exported , is_changed?
-      kn_on_ent->is_placed_from_visibility = (HRI_VISIBILITY_PLACEMENT) res;
-      
-      if ( (((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOA) && (kn_on_ent->visibility  == HRI_VISIBLE)) {
-	if (kn_on_ent->is_looked_at != HRI_TRUE_V){
-	  kn_on_ent->is_looked_at = HRI_TRUE_V;
-	  kn_on_ent->is_looked_at_ischanged = TRUE;
-	  kn_on_ent->is_looked_at_isexported = FALSE;
-	}	      	      
-      }
-      else {
-	if (kn_on_ent->is_looked_at == HRI_TRUE_V){
-	  kn_on_ent->is_looked_at_ischanged = TRUE;
-	  kn_on_ent->is_looked_at_isexported = FALSE;
-	}	 
-	if( (res == HRI_UK_VIS_PLACE) || (kn_on_ent->visibility  == HRI_UK_VIS))
-	  kn_on_ent->is_looked_at = HRI_UK_V;
-	else
-	  kn_on_ent->is_looked_at = HRI_FALSE_V;
-      }
+    // LOOKS AT / VISIBILITY PLACEMENT - FOV,FOA,OOF
+    // TODO: visibility placement for robot parts	
+    if(ent->disappeared)
+        res = HRI_UK_VIS_PLACE;
+    else
+        hri_entity_visibility_placement(agent, 
+                                        ent, 
+                                        true, kn_on_ent->is_placed_from_visibility, // use hysteresis filtering
+                                        &res, 
+                                        &elevation, &azimuth);
 
-      ////////////////////////////////////////////
-      // isSeen. We use the value processed above.
-      /////////////////////////////////////////////
-      
-      
-      if ( ((((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOA) || (((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOV)) && (kn_on_ent->visibility  == HRI_VISIBLE)) {
-	if (kn_on_ent->isSeen != HRI_TRUE_V){
-	  kn_on_ent->isSeen = HRI_TRUE_V;
-	  kn_on_ent->isSeenischanged = TRUE;
-	  kn_on_ent->isSeenisexported = FALSE;
-	}	      	      
-      }
-      else {
-	if (kn_on_ent->isSeen == HRI_TRUE_V){
-	  kn_on_ent->isSeenischanged = TRUE;
-	  kn_on_ent->isSeenisexported = FALSE;
-	}	 
-	if( (res == HRI_UK_VIS_PLACE) || (kn_on_ent->visibility  == HRI_UK_VIS))
-	  kn_on_ent->isSeen = HRI_UK_V;
-	else
-	  kn_on_ent->isSeen = HRI_FALSE_V;
-      }
+    // need to update is_exported , is_changed?
+    kn_on_ent->is_placed_from_visibility = res;
 
-      
-      //We try to process pointsAt continuously to avoid nearly synchronous add/remove of these facts. 
+    ////////////////////////////////////////////
+    // is_looked_at
+    ////////////////////////////////////////////
+    if ( res == HRI_FOA
+           && kn_on_ent->visibility  == HRI_VISIBLE) {
+        if (kn_on_ent->is_looked_at != HRI_TRUE_V){
+            kn_on_ent->is_looked_at = HRI_TRUE_V;
+            kn_on_ent->is_looked_at_ischanged = TRUE;
+            kn_on_ent->is_looked_at_isexported = FALSE;
+         }
+      }
+    else {
+        if (kn_on_ent->is_looked_at == HRI_TRUE_V){
+            kn_on_ent->is_looked_at_ischanged = TRUE;
+            kn_on_ent->is_looked_at_isexported = FALSE;
+        }
+        if( res == HRI_UK_VIS_PLACE
+            || kn_on_ent->visibility  == HRI_UK_VIS) {
+            kn_on_ent->is_looked_at = HRI_UK_V;
+        }
+        else {
+            kn_on_ent->is_looked_at = HRI_FALSE_V;
+        }
+    }
 
-      //if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
-      // POINTS AT / POINTING PLACEMENT - FOV,FOA,OOF
-      // TODO: visibility placement for robot parts	
-      if(ent->disappeared)
-	res = HRI_UK_VIS_PLACE;
-      else
-	hri_entity_pointing_placement(agent, ent, &res, &elevation, &azimuth);
-      
-      if ( (((HRI_VISIBILITY_PLACEMENT) res) == HRI_FOA) && (kn_on_ent->visibility  == HRI_VISIBLE)) {
-	if (kn_on_ent->is_pointed_at != HRI_TRUE_V){
-	  kn_on_ent->is_pointed_at = HRI_TRUE_V;
-	  kn_on_ent->is_pointed_at_ischanged = TRUE;
-	  kn_on_ent->is_pointed_at_isexported = FALSE;
-	}	      	      
-      }
-      else {
-	if (kn_on_ent->is_pointed_at == HRI_TRUE_V){
-	  kn_on_ent->is_pointed_at_ischanged = TRUE;
-	  kn_on_ent->is_pointed_at_isexported = FALSE;
-	}	 
-	if( (res == HRI_UK_VIS_PLACE) || (kn_on_ent->visibility  == HRI_UK_VIS))
-	  kn_on_ent->is_pointed_at = HRI_UK_V;
-	else
-	  kn_on_ent->is_pointed_at = HRI_FALSE_V;
-      }
-	  
-      if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
+    ////////////////////////////////////////////
+    // isSeen. We use the value processed above.
+    /////////////////////////////////////////////
+    if (   (res == HRI_FOA || res == HRI_FOV)
+        && (kn_on_ent->visibility  == HRI_VISIBLE)) {
+
+        if (kn_on_ent->isSeen != HRI_TRUE_V){
+            kn_on_ent->isSeen = HRI_TRUE_V;
+            kn_on_ent->isSeenischanged = TRUE;
+            kn_on_ent->isSeenisexported = FALSE;
+        }
+    }
+    else {
+
+        if (kn_on_ent->isSeen == HRI_TRUE_V){
+            kn_on_ent->isSeenischanged = TRUE;
+            kn_on_ent->isSeenisexported = FALSE;
+        }
+
+        if( res == HRI_UK_VIS_PLACE
+            || kn_on_ent->visibility == HRI_UK_VIS) {
+            kn_on_ent->isSeen = HRI_UK_V;
+        }
+        else {
+            kn_on_ent->isSeen = HRI_FALSE_V;
+        }
+    }
+
+    //We try to process pointsAt continuously to avoid nearly synchronous add/remove of these facts. 
+
+    //if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
+    // POINTS AT / POINTING PLACEMENT - FOV,FOA,OOF
+    // TODO: visibility placement for robot parts	
+    if(ent->disappeared) {
+    res = HRI_UK_VIS_PLACE;
+    }
+    else {
+    HRI_VISIBILITY_PLACEMENT current_state =
+        (kn_on_ent->is_pointed_at == HRI_TRUE_V) ? HRI_FOV : HRI_OOF;
+
+    hri_entity_pointing_placement(agent, 
+                                    ent, 
+                                    true, current_state, // use hysteresis filtering
+                                    &res, 
+                                    &elevation, &azimuth);
+    }
+
+    if ( (res == HRI_FOV || res == HRI_FOA) && 
+        kn_on_ent->visibility == HRI_VISIBLE) {
+
+        if (kn_on_ent->is_pointed_at != HRI_TRUE_V){
+            kn_on_ent->is_pointed_at = HRI_TRUE_V;
+            kn_on_ent->is_pointed_at_ischanged = TRUE;
+            kn_on_ent->is_pointed_at_isexported = FALSE;
+        }
+    }
+    else {
+        if (kn_on_ent->is_pointed_at == HRI_TRUE_V){
+            kn_on_ent->is_pointed_at_ischanged = TRUE;
+            kn_on_ent->is_pointed_at_isexported = FALSE;
+        }
+        if( (res == HRI_UK_VIS_PLACE) || (kn_on_ent->visibility  == HRI_UK_VIS))
+            kn_on_ent->is_pointed_at = HRI_UK_V;
+        else
+            kn_on_ent->is_pointed_at = HRI_FALSE_V;
+    }
+
+    if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
 	// REACHABILITY - REACHABLE, UNREACHABLE, HARDLY REACHABLE
 	// TODO: Fix this global variable use. It's ugly.     
 	// To simplify we do not compute reachability on agent or agent parts
