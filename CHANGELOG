@@ -1,0 +1,6 @@
+Since libmove3d-hri-2.1
+-----------------------
+
+- added (optional) 'hysteresis' filtering for pointing and field of view/field 
+  of attention computation. See details in documentation of 
+  hri_visibility.cpp:g3d_object_visibility_placement.
