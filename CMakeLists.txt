@@ -75,6 +75,9 @@ INCLUDE_directories(${OPENGL_INCLUDE_DIR})
 SET(INCLUDE_DIRS ${INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR})
 SET(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 ########################################
 ##          Documentation             ##
 ########################################
