@@ -1370,23 +1370,23 @@ int g3d_draw_visibility_by_frame(p3d_matrix4 camera_frame, double Hfov, double V
     z_source = camera_frame[2][3];
 
     left_up[0] = max_dist;
-    left_up[1] = atan(Hfov/2)*max_dist;
-    left_up[2] = atan(Vfov/2)*max_dist;
+    left_up[1] = tan(Hfov/2)*max_dist;
+    left_up[2] = tan(Vfov/2)*max_dist;
     left_up[3] = 1;
 
     left_down[0] = max_dist;
-    left_down[1] = atan(Hfov/2)*max_dist;
-    left_down[2] = -atan(Vfov/2)*max_dist;
+    left_down[1] = tan(Hfov/2)*max_dist;
+    left_down[2] = -tan(Vfov/2)*max_dist;
     left_down[3] = 1;
 
     right_up[0] = max_dist;
-    right_up[1] = -atan(Hfov/2)*max_dist;
-    right_up[2] = atan(Vfov/2)*max_dist;
+    right_up[1] = -tan(Hfov/2)*max_dist;
+    right_up[2] = tan(Vfov/2)*max_dist;
     right_up[3] = 1;
 
     right_down[0] = max_dist;
-    right_down[1] = -atan(Hfov/2)*max_dist;
-    right_down[2] = -atan(Vfov/2)*max_dist;
+    right_down[1] = -tan(Hfov/2)*max_dist;
+    right_down[2] = -tan(Vfov/2)*max_dist;
     right_down[3] = 1;
 
     p3d_matvec4Mult(camera_frame, left_up, left_up_abs);
