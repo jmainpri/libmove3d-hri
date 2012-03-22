@@ -123,18 +123,21 @@ typedef struct STRUCT_HRI_ENTITY {
 typedef struct STRUCT_HRI_ENTITIES {
   HRI_ENTITY ** entities;
   int entities_nb;
-  int eventsInTheWorld;
-  int lastEventsInTheWorldStep;
-  int isWorldStatic;
+  int eventsInTheWorld; // put to 1 if something happen that make SA recomputation necessary
+  int lastEventsInTheWorldStep; // number of step without something happening that make Situation Assessment recomputation necessary
+  int isWorldStatic; // 1 if nothing has happened since a given step threshold that make Situation Assessment recomputation necessary
   int maxWorldNotStaticBeforeRecompute; // number of maximum step with world not static before to force recoompute
   int numSuccessiveWorldNotStaticSinceLastRecompute; // number of step with world not static since last recoomputation
 
   int forbidWorldStatic;
-  int needSituationAssessmentUpdate;
-  int needLooksatUpdate;
+  int needSituationAssessmentUpdate; //1 if full situation assessment update is required
+  int needLooksatUpdate; //1 if specific look at situation assessment update is required
   int general_allow_disappear; /// flag to allow or forbid disappear management
   int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
   int printSARecomputeStatus; /// flag to print info about SA recomputation Status.
+
+  bool manageDivergentBeliefs; /// true if divergent belief management is activated.
+
   int needToUpdateParameters; /// true if we need to update parameters used for situation assement
   int numParameterToUpdate; /// 0 for hackedReachabilityDistance / 1 for maxUnexplainedUndetectionIter / 2 isOnThreshold. 
   double hackedReachabilityDistance; /// hacked distance to compute reachability for human while GIK do not work for Herakles.
@@ -221,6 +224,11 @@ typedef enum ENUM_HRI_SPATIAL_RELATION {
 //! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
   HRI_ENTITY * entPt;
+
+  configPt entityPositionForAgent;  // to save entity position in case it is different from main agent position. 
+  bool hasDifferentBeliefOnEntity;  /// true if different from main agent.
+  bool isCurrentPositionForEntityInModel; /// true if this position is currently the one in model
+  bool hasPositionOnEntity; /// true if agent has a position for this entity
 
   long update_date;
 

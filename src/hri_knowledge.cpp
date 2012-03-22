@@ -1408,9 +1408,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     if(ents->printSARecomputeStatus)
         printf("needSituationAssessmentUpdate : %d ; EventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ; ; ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
 
-    //
-    //if(ents->eventsInTheWorld || (ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate){
-
     vis_result = MY_ALLOC(HRI_VISIBILITY, ents->entities_nb); // ALLOC
     present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
     present_ents_global_idxs = MY_ALLOC(int, ents->entities_nb); // ALLOC
@@ -1420,8 +1417,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
         if(agent->is_present == FALSE)
             continue;
-
-
 
 
         // Pick entities that exist
@@ -1501,11 +1496,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
             }
 
-            //We try to process looksAt continuously to avoid nearly synchronous add/remove of these facts.
-
-            // Update look at also only when head as moved
-            //if((ents->needSituationAssessmentUpdate && ents->isWorldStatic) || ents->needLooksatUpdate ){
-
             // LOOKS AT / VISIBILITY PLACEMENT - FOV,FOA,OOF
             // TODO: visibility placement for robot parts
             if(ent->disappeared)
@@ -1573,9 +1563,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                 }
             }
 
-            //We try to process pointsAt continuously to avoid nearly synchronous add/remove of these facts.
-
-            //if(ents->needSituationAssessmentUpdate && ents->isWorldStatic){
             // POINTS AT / POINTING PLACEMENT - FOV,FOA,OOF
             // TODO: visibility placement for robot parts
             if(ent->disappeared) {
