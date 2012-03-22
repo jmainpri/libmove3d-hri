@@ -1224,24 +1224,27 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
     // beyond the object's centre to start seeing/pointing it, and it
     // must move further away from the center to stop seeing/pointing it.
     // This aims to get a more stable visibility/pointed status.
-    // TODO: Charateristic width of the object currently set to 10 cm (0.1m)
     if (hysteresis_filtering) {
         hysteresis_h_angle = ABS(atan(width / rho)); // radians
         hysteresis_v_angle = ABS(atan(height / rho)); // radians
-
-        //printf("Distance:%f, Elevation: %f, Azimuth: %f, Vert. Hysteresis: %f, Horiz. Hysteresis: %f\n",rho,RTOD(phi),RTOD(theta), RTOD(hysteresis_v_angle), RTOD(hysteresis_h_angle));
     }
     else {
-        // hysteresis_angles are 0.0
+        // hysteresis angles are 0.0
         current_state = HRI_UK_VIS_PLACE; // set state to unknown
     }
 
+    //printf("== Field computation ==\nDistance camera-obj: %f\n"+
+            //"Obj elevation: %f, Vert. Hysteresis: %f <-> vFoA: %f | vFoV: %f" +
+            //"\nObj azimuth: %f, Horiz. Hysteresis: %f <-> hFoA: %f | hFoV: %f",
+            //rho,
+            //RTOD(phi), RTOD(hysteresis_v_angle), RTOD(Vfoa), RTOD(Vfov),
+            //RTOD(theta), RTOD(hysteresis_h_angle), RTOD(Hfoa), RTOD(Hfov));
 
     *phi_result = phi; // Elevation
     *theta_result = theta; // Azimuth
 
     switch (current_state) {
-        //First case: object in field of attention
+    //First case: object in field of attention
     case HRI_FOA:
 
         if (ABS(theta) - hysteresis_h_angle > Hfoa/2 &&
@@ -1255,7 +1258,7 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
         }
         break;
 
-        //Second case: object in field of view
+    //Second case: object in field of view
     case HRI_FOV:
 
         if (ABS(theta) + hysteresis_h_angle < Hfoa/2 &&
@@ -1276,13 +1279,22 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
         }
         break;
 
-        //Else: we do not see yet the object (or hysteresis filtering is off)
+    //Else: we do not see yet the object (or hysteresis filtering is off)
     default:
 
         if (ABS(theta) + hysteresis_h_angle < Hfov/2 &&
             ABS(phi) + hysteresis_v_angle < Vfov/2) {
-            // enters in FoV
-            *result = HRI_FOV;
+
+            // directly in field of attention?
+            if (ABS(theta) + hysteresis_h_angle < Hfoa/2 &&
+                ABS(phi) + hysteresis_v_angle < Vfoa/2) {
+                // enters in FoA
+                *result = HRI_FOA;
+            }
+            else {
+                // enters in FoV
+                *result = HRI_FOV;
+            }
         }
         else {
             // still out of view

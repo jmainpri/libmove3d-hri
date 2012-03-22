@@ -1525,6 +1525,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
             ////////////////////////////////////////////
             if ( res == HRI_FOA
                  && kn_on_ent->visibility  == HRI_VISIBLE) {
+
                 if (kn_on_ent->is_looked_at != HRI_TRUE_V){
                     kn_on_ent->is_looked_at = HRI_TRUE_V;
                     kn_on_ent->is_looked_at_ischanged = TRUE;
@@ -1548,8 +1549,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
             ////////////////////////////////////////////
             // isSeen. We use the value processed above.
             /////////////////////////////////////////////
-            if (   (res == HRI_FOA || res == HRI_FOV)
-                && (kn_on_ent->visibility  == HRI_VISIBLE)) {
+            if ( (res == HRI_FOA || res == HRI_FOV) &&
+                 kn_on_ent->visibility  == HRI_VISIBLE) {
 
                 if (kn_on_ent->isSeen != HRI_TRUE_V){
                     kn_on_ent->isSeen = HRI_TRUE_V;
@@ -1564,8 +1565,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                     kn_on_ent->isSeenisexported = FALSE;
                 }
 
-                if( res == HRI_UK_VIS_PLACE
-                    || kn_on_ent->visibility == HRI_UK_VIS) {
+                if( res == HRI_UK_VIS_PLACE || kn_on_ent->visibility == HRI_UK_VIS) {
                     kn_on_ent->isSeen = HRI_UK_V;
                 }
                 else {
@@ -1592,6 +1592,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                                               &elevation, &azimuth);
             }
 
+            // For pointing computation, FoA is set to 0.0 rad. Only FoV is actually useful.
             if ( (res == HRI_FOV || res == HRI_FOA) &&
                  kn_on_ent->visibility == HRI_VISIBLE) {
 
@@ -1613,6 +1614,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
             }
 
             if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
+
                 // REACHABILITY - REACHABLE, UNREACHABLE, HARDLY REACHABLE
                 // TODO: Fix this global variable use. It's ugly.
                 // To simplify we do not compute reachability on agent or agent parts
@@ -1644,7 +1646,15 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                         far_near_result = HRI_UK_RELATION;
                     }
                     else
-                        spatial_relation_result = hri_spatial_relation_new(ent, agent,&front_behind_result , &left_right_result , &far_near_result, kn_on_ent->is_front_behind_from_agent , kn_on_ent->is_left_right_from_agent , kn_on_ent->is_far_near_from_agent);
+                        spatial_relation_result = hri_spatial_relation_new(ent,
+                                                                           agent,
+                                                                           &front_behind_result ,
+                                                                           &left_right_result ,
+                                                                           &far_near_result,
+                                                                           kn_on_ent->is_front_behind_from_agent,
+                                                                           kn_on_ent->is_left_right_from_agent, 
+                                                                           kn_on_ent->is_far_near_from_agent);
+
                     if (  ( kn_on_ent->is_front_behind_from_agent == front_behind_result) &&
                           ( kn_on_ent->is_left_right_from_agent == left_right_result) &&
                           ( kn_on_ent->is_far_near_from_agent == far_near_result)){
