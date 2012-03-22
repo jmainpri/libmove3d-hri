@@ -5,65 +5,65 @@
 
 //! @defgroup VISIBILITY Visibility
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 //! Function pointer to link with a draw function working on the OpenGL backbuffer
 //! this function is set by the different OpenGL display manager
 void (*ext_g3d_draw_allwin_active_backbuffer)();
 
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 //! This function is a wrapper to older version of the functions which enables retro compatibility
 //! It is still used in spark, this should be changed carfully
 void g3d_draw_win_back_buffer(g3d_win *)
 {
-  ext_g3d_draw_allwin_active_backbuffer();
+    ext_g3d_draw_allwin_active_backbuffer();
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 void hri_initialize_visibility()
 {
-  ext_g3d_draw_allwin_active_backbuffer = (void (*)())(g3d_draw_allwin_active_back_buffer);
+    ext_g3d_draw_allwin_active_backbuffer = (void (*)())(g3d_draw_allwin_active_back_buffer);
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_is_object_visible(HRI_AGENT * agent, p3d_rob *object, int threshold, int save, int draw_at_end)
 {
-  g3d_win *win = g3d_get_win_by_name((char*)"Move3D");
-  double result;
-  int point, fov, visobj;
+    g3d_win *win = g3d_get_win_by_name((char*)"Move3D");
+    double result;
+    int point, fov, visobj;
 
-  if(object==NULL || agent==NULL){
-    printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n", __FILE__, __LINE__);
-    return FALSE;
-  }
+    if(object==NULL || agent==NULL){
+        printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n", __FILE__, __LINE__);
+        return FALSE;
+    }
 
-  point = agent->perspective->enable_pointing_draw;
-  fov = agent->perspective->enable_vision_draw;
-  visobj = agent->perspective->enable_visible_objects_draw;
+    point = agent->perspective->enable_pointing_draw;
+    fov = agent->perspective->enable_vision_draw;
+    visobj = agent->perspective->enable_visible_objects_draw;
 
-  agent->perspective->enable_pointing_draw = FALSE;
-  agent->perspective->enable_vision_draw = FALSE;
-  agent->perspective->enable_visible_objects_draw = FALSE;
+    agent->perspective->enable_pointing_draw = FALSE;
+    agent->perspective->enable_vision_draw = FALSE;
+    agent->perspective->enable_visible_objects_draw = FALSE;
 
 
-  g3d_is_object_visible_from_viewpoint(agent->perspective->camjoint->abs_pos,
-                                       agent->perspective->fov,
-                                       object, &result, save);
+    g3d_is_object_visible_from_viewpoint(agent->perspective->camjoint->abs_pos,
+                                         agent->perspective->fov,
+                                         object, &result, save);
 
-  agent->perspective->enable_pointing_draw = point;
-  agent->perspective->enable_vision_draw = fov;
-  agent->perspective->enable_visible_objects_draw = visobj;
+    agent->perspective->enable_pointing_draw = point;
+    agent->perspective->enable_vision_draw = fov;
+    agent->perspective->enable_visible_objects_draw = visobj;
 
-  if(draw_at_end)
-    g3d_draw_win(win);
+    if(draw_at_end)
+        g3d_draw_win(win);
 
-  if(100*result>=threshold)
-    return TRUE;
-  else
-    return FALSE;
+    if(100*result>=threshold)
+        return TRUE;
+    else
+        return FALSE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 //! This function return how much % of the object is visible from a given viewpoint.
 //! \param camera_frame the frame of the viewpoint (the looking direction is X, Y points downward and Z to the left)
 //! \param camera_fov the field of view angle of the robot's camera (in degrees)
@@ -73,65 +73,65 @@ int hri_is_object_visible(HRI_AGENT * agent, p3d_rob *object, int threshold, int
 float elapsed_time_vis = 0;
 int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera_fov, p3d_rob *object, double *result, int save)
 {
-  GLint viewport[4];
-  g3d_states st;
-  g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
+    GLint viewport[4];
+    g3d_states st;
+    g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
 
-  if(object==NULL){
-    printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
+    if(object==NULL){
+        printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
 
-  //Change the size of the viewport if you want speed
-  if(!save){
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
-  }
+    //Change the size of the viewport if you want speed
+    if(!save){
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
+    }
 
-  g3d_save_win_camera(win->vs);
-  g3d_save_state(win, &st);
+    g3d_save_win_camera(win->vs);
+    g3d_save_state(win, &st);
 
-  // only keep what is necessary:
-  win->vs.fov            = camera_fov;
-  win->vs.displayFrame   = FALSE;
-  win->vs.displayJoints  = FALSE;
-  win->vs.displayShadows = FALSE;
-  win->vs.displayWalls   = FALSE;
-  win->vs.displayFloor   = FALSE;
-  win->vs.displayTiles   = FALSE;
-  win->vs.cullingEnabled=  1;
-  win->vs.enableLogo = 0;
+    // only keep what is necessary:
+    win->vs.fov            = camera_fov;
+    win->vs.displayFrame   = FALSE;
+    win->vs.displayJoints  = FALSE;
+    win->vs.displayShadows = FALSE;
+    win->vs.displayWalls   = FALSE;
+    win->vs.displayFloor   = FALSE;
+    win->vs.displayTiles   = FALSE;
+    win->vs.cullingEnabled=  1;
+    win->vs.enableLogo = 0;
 
-  g3d_no_shader();
+    g3d_no_shader();
 
-  //do not forget to set the backgroung to black:
-  g3d_set_win_bgcolor(win->vs, 0, 0, 0);
+    //do not forget to set the backgroung to black:
+    g3d_set_win_bgcolor(win->vs, 0, 0, 0);
 
-  // move the camera to the desired pose and apply the new projection matrix:
-  g3d_set_camera_parameters_from_frame(camera_frame, win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode);
+    // move the camera to the desired pose and apply the new projection matrix:
+    g3d_set_camera_parameters_from_frame(camera_frame, win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode);
 
-  //everything is ready now.
+    //everything is ready now.
 
-  g3d_is_object_visible_from_current_viewpoint(win, object, result, save, (char*)"../screenshots/");
+    g3d_is_object_visible_from_current_viewpoint(win, object, result, save, (char*)"../screenshots/");
 
-  //restore viewport
-  if(!save){
-    glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-  }
-  g3d_load_state(win, &st);
+    //restore viewport
+    if(!save){
+        glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+    }
+    g3d_load_state(win, &st);
 
-  if (win->vs.enableShaders) {
-    g3d_use_shader();
-  }
+    if (win->vs.enableShaders) {
+        g3d_use_shader();
+    }
 
-  g3d_restore_win_camera(win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
+    g3d_restore_win_camera(win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
 
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 // g3d_compute_visibility_for_given_entities
 // g3d_compute_visibility_in_fov_for_given_entities
 //! This function return how much % of the object is visible from a given viewpoint.
@@ -142,757 +142,757 @@ int g3d_is_object_visible_from_viewpoint(p3d_matrix4 camera_frame, double camera
 //! \return TRUE in case of success, FALSE otherwise
 int g3d_get_given_entities_pixelpresence_from_viewpoint(p3d_matrix4 camera_frame, double camera_fov, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue,double *results, int save)
 {
-  int succeeded = TRUE;
-  GLint viewport[4];
-  g3d_states st;
-  g3d_win *win = g3d_get_win_by_name((char*) "Move3D");
+    int succeeded = TRUE;
+    GLint viewport[4];
+    g3d_states st;
+    g3d_win *win = g3d_get_win_by_name((char*) "Move3D");
 
 
-  GLint viewportDiv[4];
-  char name[256];
-  static int crntcnt2 = 0;
-  int createIntermediateImages = FALSE;
+    GLint viewportDiv[4];
+    char name[256];
+    static int crntcnt2 = 0;
+    int createIntermediateImages = FALSE;
 
-  if(objects==NULL) {
-    printf("%s: %d: input objects are NULL.\n", __FILE__, __LINE__);
-    return FALSE;
-  }
+    if(objects==NULL) {
+        printf("%s: %d: input objects are NULL.\n", __FILE__, __LINE__);
+        return FALSE;
+    }
 
-  if(objects_nb == 0) {
+    if(objects_nb == 0) {
+        return succeeded;
+    }
+
+    if(createIntermediateImages){
+        glReadBuffer(GL_BACK);
+        g3d_draw_win_back_buffer(win);
+        sprintf(name, "/%svisibilityview%i_A.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
+        g3d_export_OpenGL_display(name);
+    }
+
+    // Change the size of the viewport if you want speed
+    if(!save){
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
+    }
+
+    if(createIntermediateImages){
+        g3d_draw_win_back_buffer(win);
+        sprintf(name, "/%svisibilityview%i_B.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
+        g3d_export_OpenGL_display(name);
+        printf("Viewport dimensions %d , %d\n", viewport[2],viewport[3]);
+        glGetIntegerv(GL_VIEWPORT, viewportDiv);
+        printf("Viewport dimensions after divide %d , %d\n", viewportDiv[2],viewportDiv[3]);
+    }
+
+    g3d_save_win_camera(win->vs);
+    g3d_save_state(win, &st);
+
+    // only keep what is necessary:
+    win->vs.fov            = camera_fov;
+    win->vs.displayFrame   = FALSE;
+    win->vs.displayJoints  = FALSE;
+    win->vs.displayShadows = FALSE;
+    win->vs.displayWalls   = FALSE;
+    win->vs.displayFloor   = FALSE;
+    win->vs.displayTiles   = FALSE;
+    win->vs.cullingEnabled = 1;
+    win->vs.enableLogo     = 0;
+
+    // move the camera to the desired pose and apply the new projection matrix:
+    g3d_set_camera_parameters_from_frame(camera_frame, win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode);
+
+    if(createIntermediateImages){
+        g3d_draw_win_back_buffer(win);
+        sprintf(name, "/%svisibilityview%i_C.ppm", (char*)"/tmp/visibility_images/", crntcnt2++);
+        g3d_export_OpenGL_display(name);
+    }
+
+
+    // everything is ready now.
+    succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/tmp/visibility_images/");
+
+    // restore viewport
+    // if succeded false we print the image
+    // if(!save && succeeded){
+    //   glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+    // }
+
+    // restore viewport
+    glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+
+    g3d_load_state(win, &st);
+
+    g3d_restore_win_camera(win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
+
     return succeeded;
-  }
-
-  if(createIntermediateImages){
-    glReadBuffer(GL_BACK); 
-    g3d_draw_win_back_buffer(win); 
-    sprintf(name, "/%svisibilityview%i_A.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
-    g3d_export_OpenGL_display(name);
-  }
-
-  // Change the size of the viewport if you want speed
-  if(!save){
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
-  }
-
-  if(createIntermediateImages){
-    g3d_draw_win_back_buffer(win); 
-    sprintf(name, "/%svisibilityview%i_B.ppm", (char*)"/tmp/visibility_images/", crntcnt2);
-    g3d_export_OpenGL_display(name);
-    printf("Viewport dimensions %d , %d\n", viewport[2],viewport[3]);
-    glGetIntegerv(GL_VIEWPORT, viewportDiv);
-    printf("Viewport dimensions after divide %d , %d\n", viewportDiv[2],viewportDiv[3]);
-  }
-
-  g3d_save_win_camera(win->vs);
-  g3d_save_state(win, &st);
-
-  // only keep what is necessary:
-  win->vs.fov            = camera_fov;
-  win->vs.displayFrame   = FALSE;
-  win->vs.displayJoints  = FALSE;
-  win->vs.displayShadows = FALSE;
-  win->vs.displayWalls   = FALSE;
-  win->vs.displayFloor   = FALSE;
-  win->vs.displayTiles   = FALSE;
-  win->vs.cullingEnabled = 1;
-  win->vs.enableLogo     = 0;
-
-  // move the camera to the desired pose and apply the new projection matrix:
-  g3d_set_camera_parameters_from_frame(camera_frame, win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode);
-
-  if(createIntermediateImages){
-    g3d_draw_win_back_buffer(win); 
-    sprintf(name, "/%svisibilityview%i_C.ppm", (char*)"/tmp/visibility_images/", crntcnt2++);
-    g3d_export_OpenGL_display(name);
-  }
-
-
-  // everything is ready now.
-  succeeded = g3d_get_given_entities_pixelpresence_in_current_viewpoint(win, objects, objects_nb, display_others_in_blue,results, save, (char*)"/tmp/visibility_images/");
-
-  // restore viewport
-  // if succeded false we print the image
-  // if(!save && succeeded){
-  //   glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-  // }  
-
-  // restore viewport
-  glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-
-  g3d_load_state(win, &st);
-
-  g3d_restore_win_camera(win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
-
-  return succeeded;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int g3d_is_object_visible_from_current_viewpoint(g3d_win* win, p3d_rob *object, double *result, int save, char *path)
 {
-  int idealpixels;
-  int visiblepixels;
-  unsigned char *image;
-  int i, width, height;
-  GLint viewport[4];
-  static int crntcnt= 0, idlcnt = 0;
-  char name[256];
+    int idealpixels;
+    int visiblepixels;
+    unsigned char *image;
+    int i, width, height;
+    GLint viewport[4];
+    static int crntcnt= 0, idlcnt = 0;
+    char name[256];
 
-  // disable the display of all obstacles and of all the robots of no interest:
-  for(i=0; i<XYZ_ENV->no; ++i) {
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_NO_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; ++i) {
-    if(XYZ_ENV->robot[i]==object) {
-      continue;
-    }
-    else {
-      p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_NO_DISPLAY);
-    }
-  }
-  // display the object in red
-  p3d_set_robot_display_mode(object, P3D_ROB_UNLIT_RED_DISPLAY);
-
-//   ext_g3d_draw_allwin_active_backbuffer(); //only the object should be drawn in red, everthing else is black
-  g3d_draw_win_back_buffer(win); //only the object should be drawn in red, everthing else is black
-
-  if(save) {
-    sprintf(name, "%sidealview%i.ppm",path, crntcnt++);
-    g3d_export_OpenGL_display(name);
-  }
-
-  glGetIntegerv(GL_VIEWPORT, viewport);
-  width = viewport[2];
-  height= viewport[3];
-
-  // get the OpenGL image buffer:
-  image = (unsigned char*) malloc(3*width*height*sizeof(unsigned char));
-
-  glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
-
-  // choose 1-byte alignment:
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-  // get the image pixels (from (0,0) position):
-  glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-  // count the pixels corresponding to the object's color:
-  idealpixels= 0;
-  for(i=0; i<width*height; i++) {
-    if(image[3*i]> 0.8) {
-      idealpixels++;
-    }
-  }
-
-  if(idealpixels!=0){
-    // display everything in blue except the object which is in red
+    // disable the display of all obstacles and of all the robots of no interest:
     for(i=0; i<XYZ_ENV->no; ++i) {
-      p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_UNLIT_BLUE_DISPLAY);
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_NO_DISPLAY);
     }
     for(i=0; i<XYZ_ENV->nr; ++i) {
-      if(XYZ_ENV->robot[i]==object) {
-        continue;
-      }
-      else {
-        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_UNLIT_BLUE_DISPLAY);
-      }
+        if(XYZ_ENV->robot[i]==object) {
+            continue;
+        }
+        else {
+            p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_NO_DISPLAY);
+        }
     }
     // display the object in red
     p3d_set_robot_display_mode(object, P3D_ROB_UNLIT_RED_DISPLAY);
 
-    //ext_g3d_draw_allwin_active_backbuffer();
-    g3d_draw_win_back_buffer(win);
+    //   ext_g3d_draw_allwin_active_backbuffer(); //only the object should be drawn in red, everthing else is black
+    g3d_draw_win_back_buffer(win); //only the object should be drawn in red, everthing else is black
 
-
-    if(save){
-      //save the image. All is blue, the object is red.
-      sprintf(name, "%scurrentview%i.ppm",path, idlcnt++);
-      g3d_export_OpenGL_display(name);
+    if(save) {
+        sprintf(name, "%sidealview%i.ppm",path, crntcnt++);
+        g3d_export_OpenGL_display(name);
     }
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    width = viewport[2];
+    height= viewport[3];
+
+    // get the OpenGL image buffer:
+    image = (unsigned char*) malloc(3*width*height*sizeof(unsigned char));
+
     glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
 
     // choose 1-byte alignment:
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     // get the image pixels (from (0,0) position):
-
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
 
-    visiblepixels= 0;
-    for(i=0; i<width*height; i++){
-      if(image[3*i]> 0.8) {
-        visiblepixels++;
-      }
+    // count the pixels corresponding to the object's color:
+    idealpixels= 0;
+    for(i=0; i<width*height; i++) {
+        if(image[3*i]> 0.8) {
+            idealpixels++;
+        }
     }
 
-    // visiblepixels present the pixels that we see and not blocked by obstructions
+    if(idealpixels!=0){
+        // display everything in blue except the object which is in red
+        for(i=0; i<XYZ_ENV->no; ++i) {
+            p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_UNLIT_BLUE_DISPLAY);
+        }
+        for(i=0; i<XYZ_ENV->nr; ++i) {
+            if(XYZ_ENV->robot[i]==object) {
+                continue;
+            }
+            else {
+                p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_UNLIT_BLUE_DISPLAY);
+            }
+        }
+        // display the object in red
+        p3d_set_robot_display_mode(object, P3D_ROB_UNLIT_RED_DISPLAY);
 
-    *result= ((double) visiblepixels)/((double) idealpixels);
-  }
-  else{
-    //printf("Not looking at the object: %s\n",object->name);
-    *result = -1;
-  }
+        //ext_g3d_draw_allwin_active_backbuffer();
+        g3d_draw_win_back_buffer(win);
 
-  free(image);
 
-  // reset the display modes of everything
-  for(i=0; i<XYZ_ENV->no; ++i){
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; ++i){
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
-  }
+        if(save){
+            //save the image. All is blue, the object is red.
+            sprintf(name, "%scurrentview%i.ppm",path, idlcnt++);
+            g3d_export_OpenGL_display(name);
+        }
+        glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
 
-  return TRUE;
+        // choose 1-byte alignment:
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+        // get the image pixels (from (0,0) position):
+
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+        visiblepixels= 0;
+        for(i=0; i<width*height; i++){
+            if(image[3*i]> 0.8) {
+                visiblepixels++;
+            }
+        }
+
+        // visiblepixels present the pixels that we see and not blocked by obstructions
+
+        *result= ((double) visiblepixels)/((double) idealpixels);
+    }
+    else{
+        //printf("Not looking at the object: %s\n",object->name);
+        *result = -1;
+    }
+
+    free(image);
+
+    // reset the display modes of everything
+    for(i=0; i<XYZ_ENV->no; ++i){
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
+    }
+    for(i=0; i<XYZ_ENV->nr; ++i){
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
+    }
+
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int g3d_compute_visibility_for_given_entities(HRI_ENTITY ** ents, HRI_AGENT * agent, HRI_VISIBILITY * res, int ent_nb)
 {
-  int succeeded = TRUE;
-  double saved_pan_value, saved_tilt_value;
-  configPt q;
-  p3d_rob * robot;
-  p3d_jnt * panJnt, * tiltJnt;
-  HRI_ENTITY ** entities_to_test;
-  int * entities_to_test_indexes;
-  double * results;
-  int i, o_i, j, t;
-  double pan_max_head_turning, tilt_max_head_turning, pan_head_turning_iter, tilt_head_turning_iter;
-  double visible_pixel_treshold = 0.001;
-  double visibility_processing_fov = 60; /// for opengl visibility processing we choose one fov different from agent fov. 
-  double elevation, azimuth;
-  int pan_div_no, tilt_div_no;
-  ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
-  int save_images = FALSE;
+    int succeeded = TRUE;
+    double saved_pan_value, saved_tilt_value;
+    configPt q;
+    p3d_rob * robot;
+    p3d_jnt * panJnt, * tiltJnt;
+    HRI_ENTITY ** entities_to_test;
+    int * entities_to_test_indexes;
+    double * results;
+    int i, o_i, j, t;
+    double pan_max_head_turning, tilt_max_head_turning, pan_head_turning_iter, tilt_head_turning_iter;
+    double visible_pixel_treshold = 0.001;
+    double visibility_processing_fov = 60; /// for opengl visibility processing we choose one fov different from agent fov.
+    double elevation, azimuth;
+    int pan_div_no, tilt_div_no;
+    ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
+    int save_images = FALSE;
 
-  // if(ents->printVisibilityImages)
-  //   save_images = TRUE;
-  //TODO: Do not compute all visibility placements in each step
-  //TODO: There should be a more intelligent way of dealing with the tilt angle
-  //TODO: Here the fov of an agent is unchanged, since it has to move the head many times. If we can enlarge the fov it'll turn less -> less computation
+    // if(ents->printVisibilityImages)
+    //   save_images = TRUE;
+    //TODO: Do not compute all visibility placements in each step
+    //TODO: There should be a more intelligent way of dealing with the tilt angle
+    //TODO: Here the fov of an agent is unchanged, since it has to move the head many times. If we can enlarge the fov it'll turn less -> less computation
 
-  robot  = agent->robotPt;
-  panJnt  = robot->joints[agent->perspective->pan_jnt_idx];
-  tiltJnt = robot->joints[agent->perspective->tilt_jnt_idx];
+    robot  = agent->robotPt;
+    panJnt  = robot->joints[agent->perspective->pan_jnt_idx];
+    tiltJnt = robot->joints[agent->perspective->tilt_jnt_idx];
 
-  results = MY_ALLOC(double, ent_nb); // ALLOC
-  entities_to_test = MY_ALLOC(HRI_ENTITY *, ent_nb); // ALLOC
-  entities_to_test_indexes = MY_ALLOC(int, ent_nb); // ALLOC
+    results = MY_ALLOC(double, ent_nb); // ALLOC
+    entities_to_test = MY_ALLOC(HRI_ENTITY *, ent_nb); // ALLOC
+    entities_to_test_indexes = MY_ALLOC(int, ent_nb); // ALLOC
 
-  q = p3d_get_robot_config(robot);
+    q = p3d_get_robot_config(robot);
 
-  for(i=0; i<ent_nb; i++) {
-    if(ents[i]->disappeared)
-      res[i] = HRI_UK_VIS;
-    else
-      res[i] = HRI_INVISIBLE;
-  }
-
-  //TODO : manage better this : Ack to manage big differences in field of view.
-  /* visible_pixel_treshold = visible_pixel_treshold_init*tan( DTOR(30))*tan(DTOR(30))/(tan(DTOR(visibility_processing_fov/2))*tan(DTOR(visibility_processing_fov/2))); */
-
-  // SAVE AGENT PARAMETERS
-  saved_pan_value = q[panJnt->index_dof];
-  saved_tilt_value = q[tiltJnt->index_dof];
-
-  // COMPUTE HOW MANY TIMES AGENTS NEEDS TO TURN HIS HEAD TO SEE ALL THE SCENE
-  pan_max_head_turning = RTOD(panJnt->dof_data[0].vmax - panJnt->dof_data[0].vmin);
-  pan_div_no = ceil(pan_max_head_turning/visibility_processing_fov);
-  pan_head_turning_iter = DTOR(pan_max_head_turning-0.1)/pan_div_no; // -1 to be sure not to reach panJnt->dof_data[0].vmax
-  tilt_max_head_turning = RTOD(tiltJnt->dof_data[0].vmax - tiltJnt->dof_data[0].vmin);
-  tilt_div_no = ceil(tilt_max_head_turning/(visibility_processing_fov*0.75));
-  tilt_head_turning_iter = DTOR(tilt_max_head_turning-0.1)/tilt_div_no; // -1 to be sure not to reach tiltJnt->dof_data[0].vmax
-
-  // FOR EACH TILT
-  for(t=0; t<tilt_div_no+1; t++) {
-    q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmin +  t*tilt_head_turning_iter;    
-    
-    // 2- TURN HEAD STEP BY STEP
-    for(j=0; j<pan_div_no+1; j++) {
-      
-      // TURN HEAD
-      q[panJnt->index_dof] = panJnt->dof_data[0].vmin + j*pan_head_turning_iter;
-      p3d_set_and_update_this_robot_conf(robot, q);
-      
-      // SELECT IN FOV/FOA OBJECTS
-      for(o_i=0, i=0; i<ent_nb; i++) {
-	if(ents[i]->disappeared)
-	  vis_pl= HRI_UK_VIS_PLACE;
-	else
-	  hri_object_visibility_placement(agent, 
-	                                  ents[i]->robotPt, 
-	                                  false, HRI_UK_VIS_PLACE, // no hysteresis filtering
-	                                  &vis_pl, 
-	                                  &elevation, &azimuth);
-	  
-	if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
-	  entities_to_test[o_i] = ents[i];
-	  entities_to_test_indexes[o_i] = i;
-	  o_i++;
-	}
-      }
-            
-      // TEST THEIR VISIBILITY
-      succeeded = g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
-							  entities_to_test, o_i, TRUE,results, save_images);
-
-      if( !succeeded ) 
-	{
-	  printf("Visibility failed for agent : %s\n", agent->robotPt->name );
-	  break;
-	}
-      //printf("%d. Number of tested entities: %d\n", j+2, o_i);
-
-      // EVALUATE AND WRITE THE RESULT
-      for(i=0; i<o_i; i++) {
-	if(visible_pixel_treshold < results[i]) {
-        res[entities_to_test_indexes[i]] = HRI_VISIBLE;
-	}
-      }
+    for(i=0; i<ent_nb; i++) {
+        if(ents[i]->disappeared)
+            res[i] = HRI_UK_VIS;
+        else
+            res[i] = HRI_INVISIBLE;
     }
-  }
-  
-  // RESTORE AGENT HEAD POSITION
-  q[panJnt->index_dof] = saved_pan_value; 
-  q[tiltJnt->index_dof] = saved_tilt_value;
-  p3d_set_and_update_this_robot_conf(robot, q);
 
-  MY_FREE(results, double, ent_nb); // FREE
-  MY_FREE(entities_to_test, HRI_ENTITY *, ent_nb); // FREE
-  MY_FREE(entities_to_test_indexes, int, ent_nb); // FREE
+    //TODO : manage better this : Ack to manage big differences in field of view.
+    /* visible_pixel_treshold = visible_pixel_treshold_init*tan( DTOR(30))*tan(DTOR(30))/(tan(DTOR(visibility_processing_fov/2))*tan(DTOR(visibility_processing_fov/2))); */
 
-  return TRUE;
+    // SAVE AGENT PARAMETERS
+    saved_pan_value = q[panJnt->index_dof];
+    saved_tilt_value = q[tiltJnt->index_dof];
+
+    // COMPUTE HOW MANY TIMES AGENTS NEEDS TO TURN HIS HEAD TO SEE ALL THE SCENE
+    pan_max_head_turning = RTOD(panJnt->dof_data[0].vmax - panJnt->dof_data[0].vmin);
+    pan_div_no = ceil(pan_max_head_turning/visibility_processing_fov);
+    pan_head_turning_iter = DTOR(pan_max_head_turning-0.1)/pan_div_no; // -1 to be sure not to reach panJnt->dof_data[0].vmax
+    tilt_max_head_turning = RTOD(tiltJnt->dof_data[0].vmax - tiltJnt->dof_data[0].vmin);
+    tilt_div_no = ceil(tilt_max_head_turning/(visibility_processing_fov*0.75));
+    tilt_head_turning_iter = DTOR(tilt_max_head_turning-0.1)/tilt_div_no; // -1 to be sure not to reach tiltJnt->dof_data[0].vmax
+
+    // FOR EACH TILT
+    for(t=0; t<tilt_div_no+1; t++) {
+        q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmin +  t*tilt_head_turning_iter;
+
+        // 2- TURN HEAD STEP BY STEP
+        for(j=0; j<pan_div_no+1; j++) {
+
+            // TURN HEAD
+            q[panJnt->index_dof] = panJnt->dof_data[0].vmin + j*pan_head_turning_iter;
+            p3d_set_and_update_this_robot_conf(robot, q);
+
+            // SELECT IN FOV/FOA OBJECTS
+            for(o_i=0, i=0; i<ent_nb; i++) {
+                if(ents[i]->disappeared)
+                    vis_pl= HRI_UK_VIS_PLACE;
+                else
+                    hri_object_visibility_placement(agent,
+                                                    ents[i]->robotPt,
+                                                    false, HRI_UK_VIS_PLACE, // no hysteresis filtering
+                                                    &vis_pl,
+                                                    &elevation, &azimuth);
+
+                if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
+                    entities_to_test[o_i] = ents[i];
+                    entities_to_test_indexes[o_i] = i;
+                    o_i++;
+                }
+            }
+
+            // TEST THEIR VISIBILITY
+            succeeded = g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+                                                                            entities_to_test, o_i, TRUE,results, save_images);
+
+            if( !succeeded )
+            {
+                printf("Visibility failed for agent : %s\n", agent->robotPt->name );
+                break;
+            }
+            //printf("%d. Number of tested entities: %d\n", j+2, o_i);
+
+            // EVALUATE AND WRITE THE RESULT
+            for(i=0; i<o_i; i++) {
+                if(visible_pixel_treshold < results[i]) {
+                    res[entities_to_test_indexes[i]] = HRI_VISIBLE;
+                }
+            }
+        }
+    }
+
+    // RESTORE AGENT HEAD POSITION
+    q[panJnt->index_dof] = saved_pan_value;
+    q[tiltJnt->index_dof] = saved_tilt_value;
+    p3d_set_and_update_this_robot_conf(robot, q);
+
+    MY_FREE(results, double, ent_nb); // FREE
+    MY_FREE(entities_to_test, HRI_ENTITY *, ent_nb); // FREE
+    MY_FREE(entities_to_test_indexes, int, ent_nb); // FREE
+
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) 
+//! @ingroup VISIBILITY
+//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands)
 //! that can hide some objects Added Matthieu Warnier 22/02/2011
 int g3d_compute_visibility_in_fov_for_given_entities(HRI_ENTITY ** ents, HRI_ENTITY * agent_entity ,HRI_AGENT * agent, HRI_VISIBILITY * res, int ent_nb)
 {
-  HRI_ENTITY ** entities_to_test;
-  int * entities_to_test_indexes;
-  double * results;
-  int i, o_i;
-  double visible_pixel_treshold = 0.001;
-  double visibility_processing_fov = 25; 
-  /// for opengl visibility processing we choose one fov different from agent fov.
-  /// Here it is greatly reduced to represent "actual" robot fov. It is based on this result that we will decide if object has disappeared.
-  /// It should be put as a constant
-  double elevation, azimuth;
-  ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
-  int save_images = FALSE;
+    HRI_ENTITY ** entities_to_test;
+    int * entities_to_test_indexes;
+    double * results;
+    int i, o_i;
+    double visible_pixel_treshold = 0.001;
+    double visibility_processing_fov = 25;
+    /// for opengl visibility processing we choose one fov different from agent fov.
+    /// Here it is greatly reduced to represent "actual" robot fov. It is based on this result that we will decide if object has disappeared.
+    /// It should be put as a constant
+    double elevation, azimuth;
+    ENUM_HRI_VISIBILITY_PLACEMENT vis_pl;
+    int save_images = FALSE;
 
-  // if(ents->printVisibilityImages)
-  //   save_images = TRUE;
-  //TODO : manage better this : Ack to manage big differences in field of view.
-  /* visible_pixel_treshold = visible_pixel_treshold_init*tan( DTOR(30))*tan(DTOR(30))/(tan(DTOR(visibility_processing_fov/2))*tan(DTOR(visibility_processing_fov/2))); */
+    // if(ents->printVisibilityImages)
+    //   save_images = TRUE;
+    //TODO : manage better this : Ack to manage big differences in field of view.
+    /* visible_pixel_treshold = visible_pixel_treshold_init*tan( DTOR(30))*tan(DTOR(30))/(tan(DTOR(visibility_processing_fov/2))*tan(DTOR(visibility_processing_fov/2))); */
 
-  /// We add one element more in results and entities to test to include agent itself entity
-  results = MY_ALLOC(double, ent_nb+1); // ALLOC
-  entities_to_test = MY_ALLOC(HRI_ENTITY *, ent_nb+1); // ALLOC
-  entities_to_test_indexes = MY_ALLOC(int, ent_nb); // ALLOC
+    /// We add one element more in results and entities to test to include agent itself entity
+    results = MY_ALLOC(double, ent_nb+1); // ALLOC
+    entities_to_test = MY_ALLOC(HRI_ENTITY *, ent_nb+1); // ALLOC
+    entities_to_test_indexes = MY_ALLOC(int, ent_nb); // ALLOC
 
- 
-  for(i=0; i<ent_nb; i++) {
-    if(ents[i]->disappeared)
-      res[i] = HRI_UK_VIS;
-  }
 
-      
-  // SELECT IN FOV/FOA OBJECTS
-  for(o_i=0, i=0; i<ent_nb; i++) {
-    if(ents[i]->disappeared)
-      vis_pl= HRI_UK_VIS_PLACE;
-    else
-      hri_object_visibility_placement(agent, 
-                                      ents[i]->robotPt, 
-                                      false, HRI_UK_VIS_PLACE, // no hysteresis filtering
-                                      &vis_pl, 
-                                      &elevation, &azimuth);
-	  
-    if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
-      entities_to_test[o_i] = ents[i];
-      entities_to_test_indexes[o_i] = i;
-      o_i++;
+    for(i=0; i<ent_nb; i++) {
+        if(ents[i]->disappeared)
+            res[i] = HRI_UK_VIS;
     }
-  }
 
-  // Add agent itself. We could try to use only its parts that are in fov
-  entities_to_test[o_i] = agent_entity;
-  o_i++;
 
-  // TEST THEIR VISIBILITY
-  if (! g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
-							    entities_to_test, o_i, TRUE,results, save_images) )
+    // SELECT IN FOV/FOA OBJECTS
+    for(o_i=0, i=0; i<ent_nb; i++) {
+        if(ents[i]->disappeared)
+            vis_pl= HRI_UK_VIS_PLACE;
+        else
+            hri_object_visibility_placement(agent,
+                                            ents[i]->robotPt,
+                                            false, HRI_UK_VIS_PLACE, // no hysteresis filtering
+                                            &vis_pl,
+                                            &elevation, &azimuth);
+
+        if( (vis_pl == HRI_FOV) || (vis_pl == HRI_FOA)) {
+            entities_to_test[o_i] = ents[i];
+            entities_to_test_indexes[o_i] = i;
+            o_i++;
+        }
+    }
+
+    // Add agent itself. We could try to use only its parts that are in fov
+    entities_to_test[o_i] = agent_entity;
+    o_i++;
+
+    // TEST THEIR VISIBILITY
+    if (! g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+                                                              entities_to_test, o_i, TRUE,results, save_images) )
     {
-      printf("Visbility failed for agent : %s\n", agent->robotPt->name );
+        printf("Visbility failed for agent : %s\n", agent->robotPt->name );
     }
 
-  //printf("agent %s threshold %f\n",agent->robotPt->name,visible_pixel_treshold);
-  // EVALUATE AND WRITE THE RESULT (except for agent itself)
-  for(i=0; i<o_i-1; i++) {
-    //printf("name: %s , value %f , threshold %f , %f\n",entities_to_test[i]->name,results[i],visible_pixel_treshold,results[i]/visible_pixel_treshold);
-    if(visible_pixel_treshold < results[i]) 
-      res[entities_to_test_indexes[i]] = HRI_VISIBLE;
-    else
-      res[entities_to_test_indexes[i]] = HRI_INVISIBLE;    
-  }
-  
-  MY_FREE(results, double, ent_nb+1); // FREE
-  MY_FREE(entities_to_test, HRI_ENTITY *, ent_nb+1); // FREE
-  MY_FREE(entities_to_test_indexes, int, ent_nb); // FREE
+    //printf("agent %s threshold %f\n",agent->robotPt->name,visible_pixel_treshold);
+    // EVALUATE AND WRITE THE RESULT (except for agent itself)
+    for(i=0; i<o_i-1; i++) {
+        //printf("name: %s , value %f , threshold %f , %f\n",entities_to_test[i]->name,results[i],visible_pixel_treshold,results[i]/visible_pixel_treshold);
+        if(visible_pixel_treshold < results[i])
+            res[entities_to_test_indexes[i]] = HRI_VISIBLE;
+        else
+            res[entities_to_test_indexes[i]] = HRI_INVISIBLE;
+    }
 
-  return TRUE;
+    MY_FREE(results, double, ent_nb+1); // FREE
+    MY_FREE(entities_to_test, HRI_ENTITY *, ent_nb+1); // FREE
+    MY_FREE(entities_to_test_indexes, int, ent_nb); // FREE
+
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands) 
+//! @ingroup VISIBILITY
+//! Compute visibility on field of view only and taking into account agent itself (mostly arms and hands)
 //! that can hide some objects Added Matthieu Warnier 22/02/2011*/
 int g3d_compute_visibility_in_fov_for_suspect_undetected_entity(HRI_ENTITIES * ents, int suspect_undetected_entity_index,HRI_AGENT * agent,HRI_AGENTS * agents)
 {
-  HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
-  HRI_ENTITY ** entities_to_test;
-  int * entities_to_test_indexes;
-  double * results;
-  int o_i, e_i , visibility_processing_suspect_undetected_entity_index;
-  double visibility_processing_fov = 25; /// for opengl visibility processing we choose one fov different from agent fov. 
-  double suspect_untedected_entity_real_visibility_score;
-  /* double elevation, azimuth; */
-  /* int vis_pl; */
-  int save_images = FALSE;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+    HRI_ENTITY ** entities_to_test;
+    int * entities_to_test_indexes;
+    double * results;
+    int o_i, e_i , visibility_processing_suspect_undetected_entity_index;
+    double visibility_processing_fov = 25; /// for opengl visibility processing we choose one fov different from agent fov.
+    double suspect_untedected_entity_real_visibility_score;
+    /* double elevation, azimuth; */
+    /* int vis_pl; */
+    int save_images = FALSE;
 
-  // if(ents->printVisibilityImages)
-  //   save_images = TRUE;
-  /// We add one element more in results and entities to test to include agent itself entity
-  results = MY_ALLOC(double,ents->entities_nb ); // ALLOC
-  entities_to_test = MY_ALLOC(HRI_ENTITY *,ents->entities_nb ); // ALLOC
-  entities_to_test_indexes = MY_ALLOC(int,ents->entities_nb ); // ALLOC
-  
-  /// First select entities that are present, not disppeared not part or agent itself and in FOV / FOA.
-  for(o_i=0, e_i=0; e_i<ents->entities_nb; e_i++) {
-    // If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of view
-    // TODO: Or does it?
-    if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
-      if( agent == agents->all_agents[ents->entities[e_i]->agent_idx] )
-	continue;
+    // if(ents->printVisibilityImages)
+    //   save_images = TRUE;
+    /// We add one element more in results and entities to test to include agent itself entity
+    results = MY_ALLOC(double,ents->entities_nb ); // ALLOC
+    entities_to_test = MY_ALLOC(HRI_ENTITY *,ents->entities_nb ); // ALLOC
+    entities_to_test_indexes = MY_ALLOC(int,ents->entities_nb ); // ALLOC
+
+    /// First select entities that are present, not disppeared not part or agent itself and in FOV / FOA.
+    for(o_i=0, e_i=0; e_i<ents->entities_nb; e_i++) {
+        // If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of view
+        // TODO: Or does it?
+        if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
+            if( agent == agents->all_agents[ents->entities[e_i]->agent_idx] )
+                continue;
+        }
+
+        if(ents->entities[e_i]->is_present && !ents->entities[e_i]->disappeared) {
+            kn_on_ent = &agent->knowledge->entities[e_i];
+            if((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)){
+                entities_to_test[o_i] = ents->entities[e_i];
+                entities_to_test_indexes[o_i] = e_i;
+                //printf("Entity name %s",ents->entities[e_i]->name);
+                if(suspect_undetected_entity_index == e_i)
+                    visibility_processing_suspect_undetected_entity_index = o_i;
+                o_i++;
+            }
+        }
     }
-  	   
-    if(ents->entities[e_i]->is_present && !ents->entities[e_i]->disappeared) {
-      kn_on_ent = &agent->knowledge->entities[e_i];  
-      if((kn_on_ent->is_placed_from_visibility == HRI_FOV) || (kn_on_ent->is_placed_from_visibility == HRI_FOA)){
-	entities_to_test[o_i] = ents->entities[e_i];
-	entities_to_test_indexes[o_i] = e_i;
-	//printf("Entity name %s",ents->entities[e_i]->name);
-	if(suspect_undetected_entity_index == e_i)
-	  visibility_processing_suspect_undetected_entity_index = o_i;
-	o_i++;
-      }
+    //printf("g3d_compute_visibility_in_fov_for_suspect_undetected_entity :%d %d\n",visibility_processing_suspect_undetected_entity_index, o_i);
+
+    // Check we do not have too many entities in the selection. It should not be possible and would create some memory problems
+    if(o_i < ents->entities_nb){
+
+        // Add agent itself. We could try to use only its parts that are in fov
+        entities_to_test[o_i] = ents->entities[agent->entity_idx];
+        o_i++;
+
+        // TEST REAL VISIBILITY
+        g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+                                                            entities_to_test, o_i,TRUE, results, save_images);
+
+        // Save suspect object value
+        suspect_untedected_entity_real_visibility_score = results[visibility_processing_suspect_undetected_entity_index];
+
+        o_i=0;
+        entities_to_test[o_i] = ents->entities[suspect_undetected_entity_index];
+        o_i++;
+
+        // TEST OBJECT ONLY VISIBILITY
+        g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
+                                                            entities_to_test, o_i, FALSE , results, save_images);
+
+        if(results[0]>0)
+            ents->entities[suspect_undetected_entity_index]->visibility_percentage = suspect_untedected_entity_real_visibility_score / results[0]*100;
+        else
+            printf("impossible Result 0 for object only visibility in g3d_compute_visibility_in_fov_for_suspect_undetected_entity\n");
+
+        //printf("g3d_compute_visibility_in_fov_for_suspect_undetected_entity :%f %f %f\n",suspect_untedected_entity_real_visibility_score ,results[0] , ents->entities[suspect_undetected_entity_index]->visibility_percentage);
+
     }
-  }
-  //printf("g3d_compute_visibility_in_fov_for_suspect_undetected_entity :%d %d\n",visibility_processing_suspect_undetected_entity_index, o_i);
-
-  // Check we do not have too many entities in the selection. It should not be possible and would create some memory problems
-  if(o_i < ents->entities_nb){
-    
-    // Add agent itself. We could try to use only its parts that are in fov
-    entities_to_test[o_i] = ents->entities[agent->entity_idx];
-    o_i++;
-  
-    // TEST REAL VISIBILITY
-    g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
-							entities_to_test, o_i,TRUE, results, save_images);
-
-    // Save suspect object value
-    suspect_untedected_entity_real_visibility_score = results[visibility_processing_suspect_undetected_entity_index];
- 
-    o_i=0;
-    entities_to_test[o_i] = ents->entities[suspect_undetected_entity_index];
-    o_i++;
-
-    // TEST OBJECT ONLY VISIBILITY
-    g3d_get_given_entities_pixelpresence_from_viewpoint(agent->perspective->camjoint->abs_pos, visibility_processing_fov,
-							entities_to_test, o_i, FALSE , results, save_images);
-
-    if(results[0]>0)
-      ents->entities[suspect_undetected_entity_index]->visibility_percentage = suspect_untedected_entity_real_visibility_score / results[0]*100;
     else
-      printf("impossible Result 0 for object only visibility in g3d_compute_visibility_in_fov_for_suspect_undetected_entity\n");
+        printf("entity table size too bif g3d_compute_visibility_in_fov_for_suspect_undetected_entity\n");
+    MY_FREE(results, double, ents->entities_nb); // FREE
+    MY_FREE(entities_to_test, HRI_ENTITY *, ents->entities_nb); // FREE
+    MY_FREE(entities_to_test_indexes, int, ents->entities_nb); // FREE
 
-    //printf("g3d_compute_visibility_in_fov_for_suspect_undetected_entity :%f %f %f\n",suspect_untedected_entity_real_visibility_score ,results[0] , ents->entities[suspect_undetected_entity_index]->visibility_percentage);
-
-  }
-  else
-    printf("entity table size too bif g3d_compute_visibility_in_fov_for_suspect_undetected_entity\n");
-  MY_FREE(results, double, ents->entities_nb); // FREE
-  MY_FREE(entities_to_test, HRI_ENTITY *, ents->entities_nb); // FREE
-  MY_FREE(entities_to_test_indexes, int, ents->entities_nb); // FREE
-
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-//! Computes visibility in one image acquisition for given objects 
+//! @ingroup VISIBILITY
+//! Computes visibility in one image acquisition for given objects
 int g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(g3d_win* win, p3d_rob **objects, int objects_nb, double *res, int save, char *path)
 {
-  int idealpixels[objects_nb];
-  int visiblepixels[objects_nb];
-  unsigned char *image;
-  int i, j, width, height;
-  GLint viewport[4];
-  static int crntcnt = 0;
-  char name[256];
-  double color[4]= {0,0,0,1};
+    int idealpixels[objects_nb];
+    int visiblepixels[objects_nb];
+    unsigned char *image;
+    int i, j, width, height;
+    GLint viewport[4];
+    static int crntcnt = 0;
+    char name[256];
+    double color[4]= {0,0,0,1};
 
-  if(objects_nb == 0) {
-    return TRUE;
-  }
+    if(objects_nb == 0) {
+        return TRUE;
+    }
 
-  // disable the display of all obstacles and of all the robots:
-  for(i=0; i<XYZ_ENV->no; ++i) {
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_NO_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; ++i) {
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_NO_DISPLAY);
-  }
+    // disable the display of all obstacles and of all the robots:
+    for(i=0; i<XYZ_ENV->no; ++i) {
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_NO_DISPLAY);
+    }
+    for(i=0; i<XYZ_ENV->nr; ++i) {
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_NO_DISPLAY);
+    }
 
-  glGetIntegerv(GL_VIEWPORT, viewport);
-  width = viewport[2];
-  height= viewport[3];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    width = viewport[2];
+    height= viewport[3];
 
-  // get the OpenGL image buffer:
-  image = (unsigned char*) malloc(3*width*height*sizeof(unsigned char));
-  glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
+    // get the OpenGL image buffer:
+    image = (unsigned char*) malloc(3*width*height*sizeof(unsigned char));
+    glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
 
-  // choose 1-byte alignment:
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    // choose 1-byte alignment:
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-  // display each object separately and get its pixel count
-  for(i=0; i<objects_nb; i++) {
-    p3d_set_robot_display_mode(objects[i], P3D_ROB_UNLIT_RED_DISPLAY);
+    // display each object separately and get its pixel count
+    for(i=0; i<objects_nb; i++) {
+        p3d_set_robot_display_mode(objects[i], P3D_ROB_UNLIT_RED_DISPLAY);
+
+        g3d_draw_win_back_buffer(win); //only the object should be drawn in red, everthing else is black
+
+        if(save) {
+            sprintf(name, "/%sidealview%i.ppm", path, crntcnt++);
+            g3d_export_OpenGL_display(name);
+        }
+
+        // get the image pixels (from (0,0) position):
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+        // count the pixels corresponding to the object's color:
+        idealpixels[i]= 0;
+        visiblepixels[i] = 0;
+        for(j=0; j<width*height; j++) {
+            if(image[3*j]> 0.8) {
+                idealpixels[i]++;
+            }
+        }
+        p3d_set_robot_display_mode(objects[i], P3D_ROB_NO_DISPLAY);
+    }
+
+    // check if the image is empty
+    for(i=0; i<XYZ_ENV->no; ++i) {
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_UNLIT_BLUE_DISPLAY);
+    }
+    for(i=0; i<XYZ_ENV->nr; ++i) {
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_UNLIT_BLUE_DISPLAY);
+    }
+
+    // display all the objects in a single image in the different colors of red
+    for(i=0; i<objects_nb; i++) {
+        color[0]+=(10.0/255.0);
+        p3d_set_robot_display_mode(objects[i], P3D_ROB_UNLIT_CUSTOM_COLOR_DISPLAY, color);
+    }
 
     g3d_draw_win_back_buffer(win); //only the object should be drawn in red, everthing else is black
 
     if(save) {
-      sprintf(name, "/%sidealview%i.ppm", path, crntcnt++);
-      g3d_export_OpenGL_display(name);
+        sprintf(name, "/%scurrentview%i.ppm", path, crntcnt++);
+        g3d_export_OpenGL_display(name);
     }
 
-    // get the image pixels (from (0,0) position):
     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
 
-    // count the pixels corresponding to the object's color:
-    idealpixels[i]= 0;
-    visiblepixels[i] = 0;
-    for(j=0; j<width*height; j++) {
-      if(image[3*j]> 0.8) {
-        idealpixels[i]++;
-      }
+    for(j=0; j<width*height; j++){
+        if(image[3*j]>0) {
+            visiblepixels[(int)((image[3*j])/10)-1]++;
+        }
     }
-    p3d_set_robot_display_mode(objects[i], P3D_ROB_NO_DISPLAY);
-  }
 
-  // check if the image is empty
-  for(i=0; i<XYZ_ENV->no; ++i) {
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_UNLIT_BLUE_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; ++i) {
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_UNLIT_BLUE_DISPLAY);
-  }
-
-  // display all the objects in a single image in the different colors of red
-  for(i=0; i<objects_nb; i++) {
-    color[0]+=(10.0/255.0);
-    p3d_set_robot_display_mode(objects[i], P3D_ROB_UNLIT_CUSTOM_COLOR_DISPLAY, color);
-  }
-
-  g3d_draw_win_back_buffer(win); //only the object should be drawn in red, everthing else is black
-
-  if(save) {
-    sprintf(name, "/%scurrentview%i.ppm", path, crntcnt++);
-    g3d_export_OpenGL_display(name);
-  }
-
-  glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-  for(j=0; j<width*height; j++){
-    if(image[3*j]>0) {
-      visiblepixels[(int)((image[3*j])/10)-1]++;
+    // visiblepixels present the pixels that we see and not blocked by obstructions
+    for (i=0; i<objects_nb; i++) {
+        res[i] = ((double) visiblepixels[i])/((double) idealpixels[i]);
     }
-  }
 
-  // visiblepixels present the pixels that we see and not blocked by obstructions
-  for (i=0; i<objects_nb; i++) {
-    res[i] = ((double) visiblepixels[i])/((double) idealpixels[i]);
-  }
+    free(image);
 
-  free(image);
+    // reset the display modes of everything
+    for(i=0; i<XYZ_ENV->no; ++i){
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
+    }
+    for(i=0; i<XYZ_ENV->nr; ++i){
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
+    }
 
-  // reset the display modes of everything
-  for(i=0; i<XYZ_ENV->no; ++i){
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; ++i){
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
-  }
-
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-//! Computes visibility in one image acquisition for given objects 
-//! Return FALSE if visbility computation has failed 
+//! @ingroup VISIBILITY
+//! Computes visibility in one image acquisition for given objects
+//! Return FALSE if visbility computation has failed
 int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_ENTITY **objects, int objects_nb, bool display_others_in_blue , double *vis_results, int save, char *path)
 {
-  int succeeded = TRUE;  
-  int numTooHighValuePixels =0;
-  int numTooLowValuePixels =0;
-  unsigned char *image;
-  int i, width, height,pixel_value_to_array_index;
-  GLint viewport[4];
-  static int crntcnt = 0;
-  char name[256];
-  char nameBlack[256];
-  char nameBlue[256];
-  double color[4]= {0,0,0,1};
-  int *visiblepixels;
-  p3d_rob_display_mode _p3d_rob_display_mode;
-  p3d_obj_display_mode _p3d_obj_display_mode;
-  int createIntermediateImages = FALSE;
+    int succeeded = TRUE;
+    int numTooHighValuePixels =0;
+    int numTooLowValuePixels =0;
+    unsigned char *image;
+    int i, width, height,pixel_value_to_array_index;
+    GLint viewport[4];
+    static int crntcnt = 0;
+    char name[256];
+    char nameBlack[256];
+    char nameBlue[256];
+    double color[4]= {0,0,0,1};
+    int *visiblepixels;
+    p3d_rob_display_mode _p3d_rob_display_mode;
+    p3d_obj_display_mode _p3d_obj_display_mode;
+    int createIntermediateImages = FALSE;
 
-  if(objects_nb == 0) {
+    if(objects_nb == 0) {
+        return succeeded;
+    }
+
+    visiblepixels = MY_ALLOC(int, objects_nb); //ALLOC
+
+    for (i=0; i<objects_nb; i++) {
+        visiblepixels[i] = 0;
+    }
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    width = viewport[2];
+    height= viewport[3];
+
+    // get the OpenGL image buffer:
+    image = MY_ALLOC(unsigned char, 3*width*height); //ALLOC
+    glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
+
+    // choose 1-byte alignment:
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+    //do not forget to set the backgroung to black:
+    g3d_set_win_bgcolor(win->vs, 0, 0, 0);
+
+    if(createIntermediateImages){
+        g3d_draw_win_back_buffer(win);
+        sprintf(nameBlack, "/%svisibilityview%i_black.ppm", path, crntcnt);
+        g3d_export_OpenGL_display(nameBlack);
+    }
+
+    //Choose how to display others objects and robs.
+    if(display_others_in_blue){
+        // Others rob and objects are displayed in blue. It will hide one entity even if the hiding rob or obj is not in the entities itself
+        _p3d_obj_display_mode = P3D_OBJ_UNLIT_BLUE_DISPLAY;
+        _p3d_rob_display_mode = P3D_ROB_UNLIT_BLUE_DISPLAY;
+    }
+    else {
+        // Others rob and objects are not displayed. Use it with only one entity. We can have visibility score as if entity was not hidden at all to process percentage visibility.
+        _p3d_obj_display_mode = P3D_OBJ_NO_DISPLAY;
+        _p3d_rob_display_mode = P3D_ROB_NO_DISPLAY;
+    }
+
+    for(i=0; i<XYZ_ENV->no; i++) {
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], _p3d_obj_display_mode);
+    }
+    for(i=0; i<XYZ_ENV->nr; i++) {
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], _p3d_rob_display_mode);
+    }
+
+
+    if(createIntermediateImages){
+        g3d_draw_win_back_buffer(win);
+        sprintf(nameBlue, "/%svisibilityview%i_blue.ppm", path, crntcnt);
+        g3d_export_OpenGL_display(nameBlue);
+    }
+
+
+    // display all the objects in a single image in the different colors of red
+    for(i=0; i<objects_nb; i++) {
+        color[0]+=(10.0/255.0);
+        if((objects[i]->type == HRI_AGENT_PART) || (objects[i]->type == HRI_OBJECT_PART))
+            p3d_set_obj_display_mode(objects[i]->partPt, P3D_OBJ_UNLIT_CUSTOM_COLOR_DISPLAY, color);
+        else
+            p3d_set_robot_display_mode(objects[i]->robotPt, P3D_ROB_UNLIT_CUSTOM_COLOR_DISPLAY, color);
+    }
+
+    g3d_draw_win_back_buffer(win); //only the objects should be drawn in red, everthing else is blue
+
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+    for(i=0; i<width*height; i++){
+        if(image[3*i]>0) {
+            //add test to avoid unending segmentation fault due to wrong image being used so that the resulting array index is bigger than the table size
+            pixel_value_to_array_index = (int)((image[3*i])/10)-1;
+            if((pixel_value_to_array_index<objects_nb) && (pixel_value_to_array_index>=0))
+                visiblepixels[pixel_value_to_array_index]++;
+            else if (pixel_value_to_array_index>=objects_nb){
+                numTooHighValuePixels ++;
+            }
+            else if (pixel_value_to_array_index<0){
+                numTooLowValuePixels ++;
+            }
+        }
+    }
+
+    // visiblepixels present the pixels that we see and not blocked by obstructions
+    for (i=0; i<objects_nb; i++) {
+        vis_results[i] = ((double)visiblepixels[i])/(width*height);
+        //if((objects[i]->type == HRI_AGENT_PART) || (objects[i]->type == HRI_OBJECT_PART))
+        //  printf("tested Object name: %s pixel count:%d, vis result: %f\n", objects[i]->partPt->name, visiblepixels[i], vis_results[i]);
+        //else
+        //  printf("tested Object name: %s pixel count:%d, vis result: %f\n", objects[i]->robotPt->name, visiblepixels[i], vis_results[i]);
+    }
+
+    MY_FREE(image, unsigned char, 3*width*height); //FREE
+    MY_FREE(visiblepixels, int, objects_nb); //FREE
+
+    // reset the display modes of everything
+    for(i=0; i<XYZ_ENV->no; i++){
+        p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
+    }
+    for(i=0; i<XYZ_ENV->nr; i++){
+        p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
+    }
+
+    if(numTooHighValuePixels > 0){
+        if(numTooHighValuePixels*100>width*height){
+            printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too high values. Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );
+            succeeded = FALSE;
+        }
+    }
+    if(numTooLowValuePixels > 0){
+        if(numTooLowValuePixels*100>width*height){
+            printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too low  values. Number of wrong pixels with too low value is %d.  (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );
+            succeeded = FALSE;
+        }
+    }
+
+    if(save || !succeeded) {
+        sprintf(name, "/%svisibilityview%i.ppm", path, crntcnt++);
+        g3d_export_OpenGL_display(name);
+    }
+
     return succeeded;
-  }
-
-  visiblepixels = MY_ALLOC(int, objects_nb); //ALLOC
-
-  for (i=0; i<objects_nb; i++) {
-    visiblepixels[i] = 0;
-  }
-
-  glGetIntegerv(GL_VIEWPORT, viewport);
-  width = viewport[2];
-  height= viewport[3];
-
-  // get the OpenGL image buffer:
-  image = MY_ALLOC(unsigned char, 3*width*height); //ALLOC
-  glReadBuffer(GL_BACK);  // use back buffer as we are in a double-buffered configuration
-
-  // choose 1-byte alignment:
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-  //do not forget to set the backgroung to black:
-  g3d_set_win_bgcolor(win->vs, 0, 0, 0);
-
-  if(createIntermediateImages){
-    g3d_draw_win_back_buffer(win); 
-    sprintf(nameBlack, "/%svisibilityview%i_black.ppm", path, crntcnt);
-    g3d_export_OpenGL_display(nameBlack);
-  }
-
-  //Choose how to display others objects and robs.
-  if(display_others_in_blue){
-    // Others rob and objects are displayed in blue. It will hide one entity even if the hiding rob or obj is not in the entities itself  
-    _p3d_obj_display_mode = P3D_OBJ_UNLIT_BLUE_DISPLAY;
-    _p3d_rob_display_mode = P3D_ROB_UNLIT_BLUE_DISPLAY;
-  }
-  else {
-    // Others rob and objects are not displayed. Use it with only one entity. We can have visibility score as if entity was not hidden at all to process percentage visibility.
-    _p3d_obj_display_mode = P3D_OBJ_NO_DISPLAY;
-    _p3d_rob_display_mode = P3D_ROB_NO_DISPLAY;
-  }
-
-  for(i=0; i<XYZ_ENV->no; i++) {
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], _p3d_obj_display_mode);
-  }
-  for(i=0; i<XYZ_ENV->nr; i++) {
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], _p3d_rob_display_mode); 
-  }
-
-
-  if(createIntermediateImages){
-    g3d_draw_win_back_buffer(win); 
-    sprintf(nameBlue, "/%svisibilityview%i_blue.ppm", path, crntcnt);
-    g3d_export_OpenGL_display(nameBlue);
-  }
-
-
-  // display all the objects in a single image in the different colors of red
-  for(i=0; i<objects_nb; i++) {
-    color[0]+=(10.0/255.0);
-    if((objects[i]->type == HRI_AGENT_PART) || (objects[i]->type == HRI_OBJECT_PART))
-      p3d_set_obj_display_mode(objects[i]->partPt, P3D_OBJ_UNLIT_CUSTOM_COLOR_DISPLAY, color);
-    else
-      p3d_set_robot_display_mode(objects[i]->robotPt, P3D_ROB_UNLIT_CUSTOM_COLOR_DISPLAY, color);
-  }
-
-  g3d_draw_win_back_buffer(win); //only the objects should be drawn in red, everthing else is blue
-
-  glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-  for(i=0; i<width*height; i++){
-    if(image[3*i]>0) {
-      //add test to avoid unending segmentation fault due to wrong image being used so that the resulting array index is bigger than the table size
-      pixel_value_to_array_index = (int)((image[3*i])/10)-1; 
-      if((pixel_value_to_array_index<objects_nb) && (pixel_value_to_array_index>=0))
-	visiblepixels[pixel_value_to_array_index]++;
-      else if (pixel_value_to_array_index>=objects_nb){
-	numTooHighValuePixels ++;
-      }
-      else if (pixel_value_to_array_index<0){
-	numTooLowValuePixels ++;  
-      }
-    }
-  }
-
-  // visiblepixels present the pixels that we see and not blocked by obstructions
-  for (i=0; i<objects_nb; i++) {
-    vis_results[i] = ((double)visiblepixels[i])/(width*height);
-    //if((objects[i]->type == HRI_AGENT_PART) || (objects[i]->type == HRI_OBJECT_PART))
-    //  printf("tested Object name: %s pixel count:%d, vis result: %f\n", objects[i]->partPt->name, visiblepixels[i], vis_results[i]);
-    //else
-    //  printf("tested Object name: %s pixel count:%d, vis result: %f\n", objects[i]->robotPt->name, visiblepixels[i], vis_results[i]);
-  }
-
-  MY_FREE(image, unsigned char, 3*width*height); //FREE
-  MY_FREE(visiblepixels, int, objects_nb); //FREE
-
-  // reset the display modes of everything
-  for(i=0; i<XYZ_ENV->no; i++){
-    p3d_set_obj_display_mode(XYZ_ENV->o[i], P3D_OBJ_DEFAULT_DISPLAY);
-  }
-  for(i=0; i<XYZ_ENV->nr; i++){
-    p3d_set_robot_display_mode(XYZ_ENV->robot[i], P3D_ROB_DEFAULT_DISPLAY);
-  }
-
-  if(numTooHighValuePixels > 0){
-    if(numTooHighValuePixels*100>width*height){
-      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too high values. Number of pixels with too high values is %d (you probably do not use the good image)\n", crntcnt , numTooHighValuePixels );	
-      succeeded = FALSE;
-    }
-  }
-  if(numTooLowValuePixels > 0){
-    if(numTooLowValuePixels*100>width*height){
-      printf("Wrong image for visibility calculation in BackBuffer ( view : %d ). More than 1 percent of pixels with too low  values. Number of wrong pixels with too low value is %d.  (probably opengl viewport bigger than screen size) \n", crntcnt , numTooLowValuePixels );	
-      succeeded = FALSE;
-    }
-  }
-
-  if(save || !succeeded) {
-    sprintf(name, "/%svisibilityview%i.ppm", path, crntcnt++);
-    g3d_export_OpenGL_display(name);
-  }
-
-  return succeeded;
 }
 
 
 
 /****************************************************************/
-/*! @ingroup VISIBILITY 
+/*! @ingroup VISIBILITY
  * \brief Converts a cartesian coordinate to a spherical one
  *
  * \param x,y,z point
@@ -903,13 +903,13 @@ int g3d_get_given_entities_pixelpresence_in_current_viewpoint(g3d_win* win, HRI_
 /****************************************************************/
 void p3d_cartesian2spherical(double x, double y, double z, double *rho, double *phi, double *theta)
 {
-  *rho   = DISTANCE3D(x,y,z,0,0,0);
-  *theta = atan2(y,x);
-  *phi   = atan2(z,DISTANCE2D(x,y,0,0));
+    *rho   = DISTANCE3D(x,y,z,0,0,0);
+    *theta = atan2(y,x);
+    *phi   = atan2(z,DISTANCE2D(x,y,0,0));
 }
 
 /****************************************************************/
-/*! @ingroup VISIBILITY 
+/*! @ingroup VISIBILITY
  * \brief Converts a cartesian coordinate to a spherical one with a given origin
  *
  * \param x,y,z point
@@ -923,10 +923,10 @@ void p3d_cartesian2spherical(double x, double y, double z,
                              double originx, double originy, double originz,
                              double *phi, double *theta)
 {
-  double distance = DISTANCE3D(x,y,z,originx,originy,originz);
+    double distance = DISTANCE3D(x,y,z,originx,originy,originz);
 
-  *phi = atan2( (y-originy),(x-originx) );
-  *theta = acos( (z-originz)/distance );
+    *phi = atan2( (y-originy),(x-originx) );
+    *theta = acos( (z-originz)/distance );
 }
 
 const int HRICS_HUMANj_NECK_PAN=  5;
@@ -934,189 +934,189 @@ const int HRICS_HUMANj_NECK_TILT= 6;
 const double HRICS_HRI_EYE_TOLERANCE_TILT=0.3;
 const double HRICS_HRI_EYE_TOLERANCE_PAN=0.3;
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 double hri_simple_is_point_visible_by_robot(p3d_vector3 point,p3d_rob* robotPt)
 {
-  {
-    double phi,theta;
-    double Dphi, Dtheta;
-    //	double Ccoord[6];
-    p3d_vector4 realcoord,newcoord;
-    p3d_matrix4 inv;
-    
-    realcoord[0] = point[0];
-    realcoord[1] = point[1];
-    realcoord[2] = point[2];
-    realcoord[3] = 1;
-    
-    // get the right frame
-    p3d_matrix4 newABS;
-    p3d_matrix4 rotation ={	{1,0,0,0},
-      {0,0,-1,0},
-      {0,1,0,0},
-      {0,0,0,1}};
-    //Matrix4d newAbsPos; = m_Human->getRobotStruct()->joints[HUMANj_NECK_TILT]->abs_pos
-    
-    p3d_mat4Mult(robotPt->joints[HRICS_HUMANj_NECK_TILT]->abs_pos,rotation,newABS);
-    
-    //	p3d_mat4ExtractPosReverseOrder(m_Human->getRobotStruct()->joints[6]->abs_pos,
-    //								   Ccoord, Ccoord+1, Ccoord+2,Ccoord+3, Ccoord+4, Ccoord+5);
-    
-    p3d_matInvertXform(newABS,inv);
-    
-    p3d_matvec4Mult(inv, realcoord, newcoord);
-    
-    //p3d_psp_cartesian2spherical(newcoord[0],newcoord[1],newcoord[2],
-    //								0,0,0,&phi,&theta);
-    
     {
-      double x =newcoord[0];
-      double y =newcoord[1];
-      double z =newcoord[2];
-      
-      double originx=0;
-      double originy=0;
-      double originz=0;
-      
-      double distance = DISTANCE3D(x,y,z,originx,originy,originz);
-      
-      phi = atan2( (y-originy),(x-originx) );
-      theta = acos( (z-originz)/distance );
+        double phi,theta;
+        double Dphi, Dtheta;
+        //	double Ccoord[6];
+        p3d_vector4 realcoord,newcoord;
+        p3d_matrix4 inv;
+
+        realcoord[0] = point[0];
+        realcoord[1] = point[1];
+        realcoord[2] = point[2];
+        realcoord[3] = 1;
+
+        // get the right frame
+        p3d_matrix4 newABS;
+        p3d_matrix4 rotation ={	{1,0,0,0},
+                                {0,0,-1,0},
+                                {0,1,0,0},
+                                {0,0,0,1}};
+        //Matrix4d newAbsPos; = m_Human->getRobotStruct()->joints[HUMANj_NECK_TILT]->abs_pos
+
+        p3d_mat4Mult(robotPt->joints[HRICS_HUMANj_NECK_TILT]->abs_pos,rotation,newABS);
+
+        //	p3d_mat4ExtractPosReverseOrder(m_Human->getRobotStruct()->joints[6]->abs_pos,
+        //								   Ccoord, Ccoord+1, Ccoord+2,Ccoord+3, Ccoord+4, Ccoord+5);
+
+        p3d_matInvertXform(newABS,inv);
+
+        p3d_matvec4Mult(inv, realcoord, newcoord);
+
+        //p3d_psp_cartesian2spherical(newcoord[0],newcoord[1],newcoord[2],
+        //								0,0,0,&phi,&theta);
+
+        {
+            double x =newcoord[0];
+            double y =newcoord[1];
+            double z =newcoord[2];
+
+            double originx=0;
+            double originy=0;
+            double originz=0;
+
+            double distance = DISTANCE3D(x,y,z,originx,originy,originz);
+
+            phi = atan2( (y-originy),(x-originx) );
+            theta = acos( (z-originz)/distance );
+        }
+
+        phi = ABS(phi);
+        theta = ABS(theta - M_PI_2);
+
+        if(phi < HRICS_HRI_EYE_TOLERANCE_PAN/2.)
+            Dphi = 0;
+        else
+            Dphi = phi - HRICS_HRI_EYE_TOLERANCE_PAN/2.;
+
+        if(theta < HRICS_HRI_EYE_TOLERANCE_TILT/2.)
+            Dtheta = 0;
+        else
+            Dtheta = theta - HRICS_HRI_EYE_TOLERANCE_TILT/2.;
+
+        return (Dtheta+Dphi)/(M_2PI-(HRICS_HRI_EYE_TOLERANCE_TILT/2.)-(HRICS_HRI_EYE_TOLERANCE_PAN/2.))/0.65;
+        //return Dphi/M_PI;
+        //return Dtheta/M_PI_2;
     }
-    
-    phi = ABS(phi);
-    theta = ABS(theta - M_PI_2);
-    
-    if(phi < HRICS_HRI_EYE_TOLERANCE_PAN/2.)
-      Dphi = 0;
-    else
-      Dphi = phi - HRICS_HRI_EYE_TOLERANCE_PAN/2.;
-    
-    if(theta < HRICS_HRI_EYE_TOLERANCE_TILT/2.)
-      Dtheta = 0;
-    else
-      Dtheta = theta - HRICS_HRI_EYE_TOLERANCE_TILT/2.;
-    
-    return (Dtheta+Dphi)/(M_2PI-(HRICS_HRI_EYE_TOLERANCE_TILT/2.)-(HRICS_HRI_EYE_TOLERANCE_PAN/2.))/0.65;
-    //return Dphi/M_PI;
-    //return Dtheta/M_PI_2;
-  } 
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_entity_visibility_placement(HRI_AGENT *agent,
-                                  HRI_ENTITY *ent,
-                                  bool hysteresis_filtering,
-                                  HRI_VISIBILITY_PLACEMENT current_state,
-                                  HRI_VISIBILITY_PLACEMENT *result, 
-                                  double *elevation, double *azimuth)
+                                    HRI_ENTITY *ent,
+                                    bool hysteresis_filtering,
+                                    HRI_VISIBILITY_PLACEMENT current_state,
+                                    HRI_VISIBILITY_PLACEMENT *result,
+                                    double *elevation, double *azimuth)
 
 {
 
-  if(ent==NULL || agent==NULL){
-    printf("%s: %d: hri_entity_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
+    if(ent==NULL || agent==NULL){
+        printf("%s: %d: hri_entity_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
 
-  p3d_BB * entBB;
-  if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
-    entBB = &ent->partPt->BB;
-  else
-    entBB = &ent->robotPt->BB;
+    p3d_BB * entBB;
+    if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
+        entBB = &ent->partPt->BB;
+    else
+        entBB = &ent->robotPt->BB;
 
-  double width = entBB->xmax - entBB->xmin;
-  double depth = entBB->ymax - entBB->ymin;
-  double height = entBB->zmax - entBB->zmin;
+    double width = entBB->xmax - entBB->xmin;
+    double depth = entBB->ymax - entBB->ymin;
+    double height = entBB->zmax - entBB->zmin;
 
-  p3d_vector4 objectCenter;
-  objectCenter[0] = width/2 + entBB->xmin;
-  objectCenter[1] = depth/2 + entBB->ymin;
-  objectCenter[2] = height/2 + entBB->zmin;
-  objectCenter[3] = 1.0;
+    p3d_vector4 objectCenter;
+    objectCenter[0] = width/2 + entBB->xmin;
+    objectCenter[1] = depth/2 + entBB->ymin;
+    objectCenter[2] = height/2 + entBB->zmin;
+    objectCenter[3] = 1.0;
 
-  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos,
-                        objectCenter,
-                        hysteresis_filtering, current_state, MAX(width, depth), height,
-                        DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
-                        DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
-                        result, elevation, azimuth);
-  return TRUE;
+    g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos,
+                                    objectCenter,
+                                    hysteresis_filtering, current_state, MAX(width, depth), height,
+                                    DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
+                                    DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
+                                    result, elevation, azimuth);
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_object_visibility_placement(HRI_AGENT *agent,
-                                  p3d_rob *object,
+                                    p3d_rob *object,
+                                    bool hysteresis_filtering,
+                                    HRI_VISIBILITY_PLACEMENT current_state,
+                                    HRI_VISIBILITY_PLACEMENT *result,
+                                    double *elevation, double *azimuth)
+{
+
+
+    if(object==NULL || agent==NULL){
+        printf("%s: %d: hri_object_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
+
+    double width = object->BB.xmax - object->BB.xmin;
+    double depth = object->BB.ymax - object->BB.ymin;
+    double height = object->BB.zmax - object->BB.zmin;
+
+    p3d_vector4 objectCenter;
+    objectCenter[0] = width/2 + object->BB.xmin;
+    objectCenter[1] = depth/2 + object->BB.ymin;
+    objectCenter[2] = height/2 + object->BB.zmin;
+    objectCenter[3] = 1.0;
+
+    g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos,
+                                    objectCenter,
+                                    hysteresis_filtering, current_state, MAX(width, depth), height,
+                                    DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
+                                    DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
+                                    result, elevation, azimuth);
+    return TRUE;
+}
+
+//! @ingroup VISIBILITY
+int hri_entity_pointing_placement(HRI_AGENT *agent,
+                                  HRI_ENTITY *ent,
                                   bool hysteresis_filtering,
                                   HRI_VISIBILITY_PLACEMENT current_state,
                                   HRI_VISIBILITY_PLACEMENT *result,
                                   double *elevation, double *azimuth)
 {
 
+    if(ent==NULL || agent==NULL){
+        printf("%s: %d: hri_entity_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
 
-  if(object==NULL || agent==NULL){
-    printf("%s: %d: hri_object_visibility_placement(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
+    p3d_BB * entBB;
+    if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
+        entBB = &ent->partPt->BB;
+    else
+        entBB = &ent->robotPt->BB;
 
-  double width = object->BB.xmax - object->BB.xmin;
-  double depth = object->BB.ymax - object->BB.ymin;
-  double height = object->BB.zmax - object->BB.zmin;
+    double width = entBB->xmax - entBB->xmin;
+    double depth = entBB->ymax - entBB->ymin;
+    double height = entBB->zmax - entBB->zmin;
 
-  p3d_vector4 objectCenter;
-  objectCenter[0] = width/2 + object->BB.xmin;
-  objectCenter[1] = depth/2 + object->BB.ymin;
-  objectCenter[2] = height/2 + object->BB.zmin;
-  objectCenter[3] = 1.0;
+    p3d_vector4 objectCenter;
+    objectCenter[0] = width/2 + entBB->xmin;
+    objectCenter[1] = depth/2 + entBB->ymin;
+    objectCenter[2] = height/2 + entBB->zmin;
+    objectCenter[3] = 1.0;
 
-  g3d_object_visibility_placement(agent->perspective->camjoint->abs_pos, 
-                        objectCenter,
-                        hysteresis_filtering, current_state, MAX(width, depth), height,
-                        DTOR(agent->perspective->fov),DTOR(agent->perspective->fov*0.75),
-                        DTOR(agent->perspective->foa),DTOR(agent->perspective->foa*0.75),
-                        result, elevation, azimuth);
-  return TRUE;
+    g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos,
+                                    objectCenter,
+                                    hysteresis_filtering, current_state, MAX(width, depth), height,
+                                    DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
+                                    0.0, 0.0, // ignore FoA
+                                    result, elevation, azimuth);
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-int hri_entity_pointing_placement(HRI_AGENT *agent,
-                                  HRI_ENTITY *ent,
-                                  bool hysteresis_filtering,
-                                  HRI_VISIBILITY_PLACEMENT current_state,
-                                  HRI_VISIBILITY_PLACEMENT *result, 
-                                  double *elevation, double *azimuth)
-{
-  
-  if(ent==NULL || agent==NULL){
-    printf("%s: %d: hri_entity_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
-
-  p3d_BB * entBB;
-  if((ent->type == HRI_OBJECT_PART) || (ent->type == HRI_AGENT_PART) )
-    entBB = &ent->partPt->BB;
-  else
-    entBB = &ent->robotPt->BB;
-
-  double width = entBB->xmax - entBB->xmin;
-  double depth = entBB->ymax - entBB->ymin;
-  double height = entBB->zmax - entBB->zmin;
-
-  p3d_vector4 objectCenter;
-  objectCenter[0] = width/2 + entBB->xmin;
-  objectCenter[1] = depth/2 + entBB->ymin;
-  objectCenter[2] = height/2 + entBB->zmin;
-  objectCenter[3] = 1.0;
-  
-  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos, 
-                        objectCenter,
-                        hysteresis_filtering, current_state, MAX(width, depth), height,
-                        DTOR(agent->perspective->point_tolerance),DTOR(agent->perspective->point_tolerance),
-                        0.0, 0.0, // ignore FoA
-                        result, elevation, azimuth);
-  return TRUE;
-}
-
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_object_pointing_placement(HRI_AGENT *agent,
                                   p3d_rob *object,
                                   bool hysteresis_filtering,
@@ -1125,40 +1125,40 @@ int hri_object_pointing_placement(HRI_AGENT *agent,
                                   double *elevation, double *azimuth)
 {
 
-  if(object==NULL || agent==NULL){
-    printf("%s: %d: hri_object_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
+    if(object==NULL || agent==NULL){
+        printf("%s: %d: hri_object_pointing_placement(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
 
-  double width = object->BB.xmax - object->BB.xmin;
-  double depth = object->BB.ymax - object->BB.ymin;
-  double height = object->BB.zmax - object->BB.zmin;
+    double width = object->BB.xmax - object->BB.xmin;
+    double depth = object->BB.ymax - object->BB.ymin;
+    double height = object->BB.zmax - object->BB.zmin;
 
-  p3d_vector4 objectCenter;
-  objectCenter[0] = width/2 + object->BB.xmin;
-  objectCenter[1] = depth/2 + object->BB.ymin;
-  objectCenter[2] = height/2 + object->BB.zmin;
-  objectCenter[3] = 1.0;
+    p3d_vector4 objectCenter;
+    objectCenter[0] = width/2 + object->BB.xmin;
+    objectCenter[1] = depth/2 + object->BB.ymin;
+    objectCenter[2] = height/2 + object->BB.zmin;
+    objectCenter[3] = 1.0;
 
-  g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos,
-                        objectCenter,
-                        hysteresis_filtering, current_state, MAX(width, depth), height,
-                        DTOR(agent->perspective->point_tolerance), DTOR(agent->perspective->point_tolerance),
-                        0.0, 0.0, // ignore FoA
-                        result, elevation, azimuth);
-  return TRUE;
+    g3d_object_visibility_placement(agent->perspective->pointjoint->abs_pos,
+                                    objectCenter,
+                                    hysteresis_filtering, current_state, MAX(width, depth), height,
+                                    DTOR(agent->perspective->point_tolerance), DTOR(agent->perspective->point_tolerance),
+                                    0.0, 0.0, // ignore FoA
+                                    result, elevation, azimuth);
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 /**
- * Computes if an object is in the field of view/field of attention of a 
+ * Computes if an object is in the field of view/field of attention of a
  * camera.
  *
  * This method supports a simple filtering technique called hysteresis
  * filtering.
  *
  * Hysteresis filtering:
- * 
+ *
  *   \      FoV       /     o1
  *    \              /       .  l
  *     \            /         `.
@@ -1187,7 +1187,7 @@ int hri_object_pointing_placement(HRI_AGENT *agent,
  *
  *
  * \param[in] hysteresis_filtering Enables hysteresis filtering.
- * \param[in] current_state Current visibility placement of the object. Only 
+ * \param[in] current_state Current visibility placement of the object. Only
  * used with hysteresis filtering.
  * \param[in] object_width characteristic length of the object in meters. Only used with
  * hysteresis filtering.
@@ -1196,55 +1196,55 @@ int hri_object_pointing_placement(HRI_AGENT *agent,
  * field of view or out of them.
  *
  */
-int g3d_object_visibility_placement(p3d_matrix4 camera_frame, 
-                                    p3d_vector4 objectCenter, 
+int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
+                                    p3d_vector4 objectCenter,
                                     bool hysteresis_filtering, // Enable hysteresis filtering?
                                     HRI_VISIBILITY_PLACEMENT current_state, // if yes, what is the current state of the object? seen? pointed at?
                                     double width, double height, // characterisic length of the object.
-                                    double Hfov, double Vfov, 
-                                    double Hfoa, double Vfoa, 
-                                    HRI_VISIBILITY_PLACEMENT *result, 
+                                    double Hfov, double Vfov,
+                                    double Hfoa, double Vfoa,
+                                    HRI_VISIBILITY_PLACEMENT *result,
                                     double *phi_result, double *theta_result)
 {
-  p3d_vector4 objectCenterCamFr;
-  p3d_matrix4 invM;
-  double rho,phi,theta;
-  double hysteresis_h_angle = 0.0; // horizontal hysteresis
-  double hysteresis_v_angle = 0.0; // vertical hysteresis
+    p3d_vector4 objectCenterCamFr;
+    p3d_matrix4 invM;
+    double rho,phi,theta;
+    double hysteresis_h_angle = 0.0; // horizontal hysteresis
+    double hysteresis_v_angle = 0.0; // vertical hysteresis
 
 
-  p3d_matInvertXform(camera_frame,invM);
-  p3d_matvec4Mult(invM, objectCenter, objectCenterCamFr);
+    p3d_matInvertXform(camera_frame,invM);
+    p3d_matvec4Mult(invM, objectCenter, objectCenterCamFr);
 
-  p3d_cartesian2spherical(objectCenterCamFr[0],objectCenterCamFr[1],objectCenterCamFr[2],
-                          &rho,&phi,&theta);
+    p3d_cartesian2spherical(objectCenterCamFr[0],objectCenterCamFr[1],objectCenterCamFr[2],
+                            &rho,&phi,&theta);
 
-  // To prevent instability when the visibility/pointing cone is close 
-  // to the object, we add a 'geometric' hysteresis: the human must go 
-  // beyond the object's centre to start seeing/pointing it, and it 
-  // must move further away from the center to stop seeing/pointing it.
-  // This aims to get a more stable visibility/pointed status.
-  // TODO: Charateristic width of the object currently set to 10 cm (0.1m)
-  if (hysteresis_filtering) {
-      hysteresis_h_angle = ABS(atan(width / rho)); // radians
-      hysteresis_v_angle = ABS(atan(height / rho)); // radians
+    // To prevent instability when the visibility/pointing cone is close
+    // to the object, we add a 'geometric' hysteresis: the human must go
+    // beyond the object's centre to start seeing/pointing it, and it
+    // must move further away from the center to stop seeing/pointing it.
+    // This aims to get a more stable visibility/pointed status.
+    // TODO: Charateristic width of the object currently set to 10 cm (0.1m)
+    if (hysteresis_filtering) {
+        hysteresis_h_angle = ABS(atan(width / rho)); // radians
+        hysteresis_v_angle = ABS(atan(height / rho)); // radians
 
-      //printf("Distance:%f, Elevation: %f, Azimuth: %f, Vert. Hysteresis: %f, Horiz. Hysteresis: %f\n",rho,RTOD(phi),RTOD(theta), RTOD(hysteresis_v_angle), RTOD(hysteresis_h_angle));
-  }
-  else {
-      // hysteresis_angles are 0.0
-      current_state = HRI_UK_VIS_PLACE; // set state to unknown
-  }
+        //printf("Distance:%f, Elevation: %f, Azimuth: %f, Vert. Hysteresis: %f, Horiz. Hysteresis: %f\n",rho,RTOD(phi),RTOD(theta), RTOD(hysteresis_v_angle), RTOD(hysteresis_h_angle));
+    }
+    else {
+        // hysteresis_angles are 0.0
+        current_state = HRI_UK_VIS_PLACE; // set state to unknown
+    }
 
 
-  *phi_result = phi; // Elevation
-  *theta_result = theta; // Azimuth
+    *phi_result = phi; // Elevation
+    *theta_result = theta; // Azimuth
 
-  switch (current_state) {
-    //First case: object in field of attention
+    switch (current_state) {
+        //First case: object in field of attention
     case HRI_FOA:
 
-        if (ABS(theta) - hysteresis_h_angle > Hfoa/2 && 
+        if (ABS(theta) - hysteresis_h_angle > Hfoa/2 &&
             ABS(phi) - hysteresis_v_angle > Vfoa/2) {
             // out of FOA -> FOV
             *result = HRI_FOV;
@@ -1255,10 +1255,10 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
         }
         break;
 
-    //Second case: object in field of view
+        //Second case: object in field of view
     case HRI_FOV:
 
-        if (ABS(theta) + hysteresis_h_angle < Hfoa/2 && 
+        if (ABS(theta) + hysteresis_h_angle < Hfoa/2 &&
             ABS(phi) + hysteresis_v_angle < Vfoa/2) {
             // FoV -> FoA
             *result = HRI_FOA;
@@ -1276,10 +1276,10 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
         }
         break;
 
-    //Else: we do not see yet the object (or hysteresis filtering is off)
+        //Else: we do not see yet the object (or hysteresis filtering is off)
     default:
 
-        if (ABS(theta) + hysteresis_h_angle < Hfov/2 && 
+        if (ABS(theta) + hysteresis_h_angle < Hfov/2 &&
             ABS(phi) + hysteresis_v_angle < Vfov/2) {
             // enters in FoV
             *result = HRI_FOV;
@@ -1289,231 +1289,231 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
             *result = HRI_OOF;
         }
 
-        break; 
+        break;
 
-  }
+    }
 
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 void g3d_draw_all_agents_fovs(HRI_AGENTS *agents)
 {
-  int i;
+    int i;
 
-  if(agents != NULL){
-    for (i=0; i<agents->all_agents_no; i++) {
-      if(agents->all_agents[i]->perspective->enable_vision_draw)
-        g3d_draw_agent_fov(agents->all_agents[i]);
-      if(agents->all_agents[i]->perspective->enable_pointing_draw)
-        g3d_draw_agent_pointing(agents->all_agents[i]);
+    if(agents != NULL){
+        for (i=0; i<agents->all_agents_no; i++) {
+            if(agents->all_agents[i]->perspective->enable_vision_draw)
+                g3d_draw_agent_fov(agents->all_agents[i]);
+            if(agents->all_agents[i]->perspective->enable_pointing_draw)
+                g3d_draw_agent_pointing(agents->all_agents[i]);
+        }
     }
-  }
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int g3d_draw_agent_pointing(HRI_AGENT *agent)
 {
-  GLdouble BlueColor[4] =    { 0.0, 0.0, 0.5, 0.7 };
-  GLdouble BlueColorT[4] =   { 0.0, 0.0, 0.5, 0.0 };
+    GLdouble BlueColor[4] =    { 0.0, 0.0, 0.5, 0.7 };
+    GLdouble BlueColorT[4] =   { 0.0, 0.0, 0.5, 0.0 };
 
-  if(agent!=NULL && agent->perspective->enable_pointing_draw){
+    if(agent!=NULL && agent->perspective->enable_pointing_draw){
 
-    g3d_draw_visibility_by_frame(agent->perspective->pointjoint->abs_pos,
-                                 DTOR(agent->perspective->point_tolerance), DTOR(agent->perspective->point_tolerance),
-                                 2, BlueColor, BlueColorT);
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+        g3d_draw_visibility_by_frame(agent->perspective->pointjoint->abs_pos,
+                                     DTOR(agent->perspective->point_tolerance), DTOR(agent->perspective->point_tolerance),
+                                     2, BlueColor, BlueColorT);
+        return TRUE;
+    }
+    else {
+        return FALSE;
+    }
 
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int g3d_draw_agent_fov(HRI_AGENT *agent)
 {
-  GLdouble GreenColor[4] =   { 0.0, 0.5, 0.0, 0.7 };
-  GLdouble GreenColorT[4] =   { 0.0, 0.5, 0.0, 0.0 };
-  GLdouble GreyColor[4] =   { 0.5, 0.5, 0.5, 0.5 };
-  GLdouble GreyColorT[4] =   { 0.5, 0.5, 0.5, 0.0 };
+    GLdouble GreenColor[4] =   { 0.0, 0.5, 0.0, 0.7 };
+    GLdouble GreenColorT[4] =   { 0.0, 0.5, 0.0, 0.0 };
+    GLdouble GreyColor[4] =   { 0.5, 0.5, 0.5, 0.5 };
+    GLdouble GreyColorT[4] =   { 0.5, 0.5, 0.5, 0.0 };
 
-  if(agent!=NULL && agent->perspective->enable_vision_draw){
+    if(agent!=NULL && agent->perspective->enable_vision_draw){
 
-    g3d_draw_visibility_by_frame(agent->perspective->camjoint->abs_pos,
-                                 DTOR(agent->perspective->foa),
-                                 DTOR(agent->perspective->foa*0.75),
-                                 1, GreenColor, GreenColorT);
+        g3d_draw_visibility_by_frame(agent->perspective->camjoint->abs_pos,
+                                     DTOR(agent->perspective->foa),
+                                     DTOR(agent->perspective->foa*0.75),
+                                     1, GreenColor, GreenColorT);
 
-    g3d_draw_visibility_by_frame(agent->perspective->camjoint->abs_pos,
-                                 DTOR(agent->perspective->fov),
-                                 DTOR(agent->perspective->fov*0.75),
-                                 1, GreyColor, GreyColorT);
+        g3d_draw_visibility_by_frame(agent->perspective->camjoint->abs_pos,
+                                     DTOR(agent->perspective->fov),
+                                     DTOR(agent->perspective->fov*0.75),
+                                     1, GreyColor, GreyColorT);
 
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+        return TRUE;
+    }
+    else {
+        return FALSE;
+    }
 
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int g3d_draw_visibility_by_frame(p3d_matrix4 camera_frame, double Hfov, double Vfov, double max_dist, GLdouble source_color[], GLdouble  dest_color[])
 {
-  double x_source, y_source, z_source;
-  p3d_vector4 left_up, left_down, right_up, right_down;
-  p3d_vector4 left_up_abs, left_down_abs, right_up_abs, right_down_abs;
+    double x_source, y_source, z_source;
+    p3d_vector4 left_up, left_down, right_up, right_down;
+    p3d_vector4 left_up_abs, left_down_abs, right_up_abs, right_down_abs;
 
-  x_source = camera_frame[0][3];
-  y_source = camera_frame[1][3];
-  z_source = camera_frame[2][3];
+    x_source = camera_frame[0][3];
+    y_source = camera_frame[1][3];
+    z_source = camera_frame[2][3];
 
-  left_up[0] = max_dist;
-  left_up[1] = atan(Hfov/2)*max_dist;
-  left_up[2] = atan(Vfov/2)*max_dist;
-  left_up[3] = 1;
+    left_up[0] = max_dist;
+    left_up[1] = atan(Hfov/2)*max_dist;
+    left_up[2] = atan(Vfov/2)*max_dist;
+    left_up[3] = 1;
 
-  left_down[0] = max_dist;
-  left_down[1] = atan(Hfov/2)*max_dist;
-  left_down[2] = -atan(Vfov/2)*max_dist;
-  left_down[3] = 1;
+    left_down[0] = max_dist;
+    left_down[1] = atan(Hfov/2)*max_dist;
+    left_down[2] = -atan(Vfov/2)*max_dist;
+    left_down[3] = 1;
 
-  right_up[0] = max_dist;
-  right_up[1] = -atan(Hfov/2)*max_dist;
-  right_up[2] = atan(Vfov/2)*max_dist;
-  right_up[3] = 1;
+    right_up[0] = max_dist;
+    right_up[1] = -atan(Hfov/2)*max_dist;
+    right_up[2] = atan(Vfov/2)*max_dist;
+    right_up[3] = 1;
 
-  right_down[0] = max_dist;
-  right_down[1] = -atan(Hfov/2)*max_dist;
-  right_down[2] = -atan(Vfov/2)*max_dist;
-  right_down[3] = 1;
+    right_down[0] = max_dist;
+    right_down[1] = -atan(Hfov/2)*max_dist;
+    right_down[2] = -atan(Vfov/2)*max_dist;
+    right_down[3] = 1;
 
-  p3d_matvec4Mult(camera_frame, left_up, left_up_abs);
-  p3d_matvec4Mult(camera_frame, left_down, left_down_abs);
-  p3d_matvec4Mult(camera_frame, right_up, right_up_abs);
-  p3d_matvec4Mult(camera_frame, right_down, right_down_abs);
+    p3d_matvec4Mult(camera_frame, left_up, left_up_abs);
+    p3d_matvec4Mult(camera_frame, left_down, left_down_abs);
+    p3d_matvec4Mult(camera_frame, right_up, right_up_abs);
+    p3d_matvec4Mult(camera_frame, right_down, right_down_abs);
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  //Left
-  glBegin(GL_QUADS);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glColor4dv(dest_color);
-  glVertex3f(left_up_abs[0],left_up_abs[1],left_up_abs[2]);
-  glColor4dv(dest_color);
-  glVertex3f(left_down_abs[0],left_down_abs[1],left_down_abs[2]);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glEnd();
+    //Left
+    glBegin(GL_QUADS);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glColor4dv(dest_color);
+    glVertex3f(left_up_abs[0],left_up_abs[1],left_up_abs[2]);
+    glColor4dv(dest_color);
+    glVertex3f(left_down_abs[0],left_down_abs[1],left_down_abs[2]);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glEnd();
 
-  //Right
-  glBegin(GL_QUADS);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glColor4dv(dest_color);
-  glVertex3f(right_up_abs[0],right_up_abs[1],right_up_abs[2]);
-  glColor4dv(dest_color);
-  glVertex3f(right_down_abs[0],right_down_abs[1],right_down_abs[2]);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glEnd();
+    //Right
+    glBegin(GL_QUADS);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glColor4dv(dest_color);
+    glVertex3f(right_up_abs[0],right_up_abs[1],right_up_abs[2]);
+    glColor4dv(dest_color);
+    glVertex3f(right_down_abs[0],right_down_abs[1],right_down_abs[2]);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glEnd();
 
-  //Up
-  glBegin(GL_QUADS);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glColor4dv(dest_color);
-  glVertex3f(right_up_abs[0],right_up_abs[1],right_up_abs[2]);
-  glColor4dv(dest_color);
-  glVertex3f(left_up_abs[0],left_up_abs[1],left_up_abs[2]);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glEnd();
+    //Up
+    glBegin(GL_QUADS);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glColor4dv(dest_color);
+    glVertex3f(right_up_abs[0],right_up_abs[1],right_up_abs[2]);
+    glColor4dv(dest_color);
+    glVertex3f(left_up_abs[0],left_up_abs[1],left_up_abs[2]);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glEnd();
 
-  //Down
-  glBegin(GL_QUADS);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glColor4dv(dest_color);
-  glVertex3f(left_down_abs[0],left_down_abs[1],left_down_abs[2]);
-  glColor4dv(dest_color);
-  glVertex3f(right_down_abs[0],right_down_abs[1],right_down_abs[2]);
-  glColor4dv(source_color);
-  glVertex3f(x_source,y_source,z_source);
-  glEnd();
+    //Down
+    glBegin(GL_QUADS);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glColor4dv(dest_color);
+    glVertex3f(left_down_abs[0],left_down_abs[1],left_down_abs[2]);
+    glColor4dv(dest_color);
+    glVertex3f(right_down_abs[0],right_down_abs[1],right_down_abs[2]);
+    glColor4dv(source_color);
+    glVertex3f(x_source,y_source,z_source);
+    glEnd();
 
-  glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
 
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_is_object_pointed(HRI_AGENT * agent, p3d_rob *object, int threshold, int save)
 {
-  GLint viewport[4];
-  g3d_states st;
-  g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
-  double result;
+    GLint viewport[4];
+    g3d_states st;
+    g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
+    double result;
 
-  if(object==NULL || agent==NULL){
-    printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
-  //Change the size of the viewport if you want speed
-  if(!save){
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
-  }
+    if(object==NULL || agent==NULL){
+        printf("%s: %d: g3d_is_object_visible_from_viewpoint(): input object is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
+    }
+    //Change the size of the viewport if you want speed
+    if(!save){
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
+    }
 
-  g3d_save_win_camera(win->vs);
-  g3d_save_state(win, &st);
+    g3d_save_win_camera(win->vs);
+    g3d_save_state(win, &st);
 
-  // only keep what is necessary:
-  win->vs.fov            = agent->perspective->point_tolerance;
-  win->vs.displayFrame   = FALSE;
-  win->vs.displayJoints  = FALSE;
-  win->vs.displayShadows = FALSE;
-  win->vs.displayWalls   = FALSE;
-  win->vs.displayFloor   = FALSE;
-  win->vs.displayTiles   = FALSE;
-  win->vs.cullingEnabled =  1;
-  win->vs.enableLogo     =  0;
-  //do not forget to set the backgroung to black:
-  g3d_set_win_bgcolor(win->vs, 0, 0, 0);
+    // only keep what is necessary:
+    win->vs.fov            = agent->perspective->point_tolerance;
+    win->vs.displayFrame   = FALSE;
+    win->vs.displayJoints  = FALSE;
+    win->vs.displayShadows = FALSE;
+    win->vs.displayWalls   = FALSE;
+    win->vs.displayFloor   = FALSE;
+    win->vs.displayTiles   = FALSE;
+    win->vs.cullingEnabled =  1;
+    win->vs.enableLogo     =  0;
+    //do not forget to set the backgroung to black:
+    g3d_set_win_bgcolor(win->vs, 0, 0, 0);
 
-  // move the camera to the desired pose and apply the new projection matrix:
-  g3d_set_camera_parameters_from_frame(agent->perspective->pointjoint->abs_pos, win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode);
+    // move the camera to the desired pose and apply the new projection matrix:
+    g3d_set_camera_parameters_from_frame(agent->perspective->pointjoint->abs_pos, win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode);
 
-  //everything is ready now.
-  g3d_is_object_visible_from_current_viewpoint(win, object,&result,save,(char*)"");
+    //everything is ready now.
+    g3d_is_object_visible_from_current_viewpoint(win, object,&result,save,(char*)"");
 
-  //restore viewport
-  if(!save){
-    glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-  }
-  g3d_load_state(win, &st);
+    //restore viewport
+    if(!save){
+        glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+    }
+    g3d_load_state(win, &st);
 
-  g3d_restore_win_camera(win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
+    g3d_restore_win_camera(win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
 
-  g3d_draw_win(win);
+    g3d_draw_win(win);
 
-  if(100*result>=threshold)
-    return TRUE;
-  else
-    return FALSE;
+    if(100*result>=threshold)
+        return TRUE;
+    else
+        return FALSE;
 }
 
-//! @ingroup VISIBILITY 
-//! Occlusion test using GPU ARB extensions 
-//! It's not functional but it's left here to keep valuable code 
+//! @ingroup VISIBILITY
+//! Occlusion test using GPU ARB extensions
+//! It's not functional but it's left here to keep valuable code
 int g3d_is_object_visible_from_current_viewpoint2(g3d_win* win, p3d_rob *object, double *result, int save, char *path)
 {
-/*  int i;
+    /*  int i;
 
   GLuint queries = -1;
   GLuint sampleCount;
@@ -1585,210 +1585,210 @@ int g3d_is_object_visible_from_current_viewpoint2(g3d_win* win, p3d_rob *object,
 
  */
 
-  return TRUE;
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
+//! @ingroup VISIBILITY
 int hri_compute_agent_sees(HRI_AGENT * agent, int threshold, int save, int draw_at_end)
 {
-  GLint viewport[4];
-  int i;
-  g3d_states st;
-  g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
-  p3d_env *env = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
-  double elevation, azimuth;
-  p3d_rob **test_obj_list;
-  int obj_idx = 0;
-  ENUM_HRI_VISIBILITY_PLACEMENT placement_res;
-  double *vis_res;
-  int saved_sees_display_mode;
-  int point,fov,visobj;
+    GLint viewport[4];
+    int i;
+    g3d_states st;
+    g3d_win *win= g3d_get_win_by_name((char*) "Move3D");
+    p3d_env *env = (p3d_env *) p3d_get_desc_curid(P3D_ENV);
+    double elevation, azimuth;
+    p3d_rob **test_obj_list;
+    int obj_idx = 0;
+    ENUM_HRI_VISIBILITY_PLACEMENT placement_res;
+    double *vis_res;
+    int saved_sees_display_mode;
+    int point,fov,visobj;
 
-  if(agent==NULL){
-    printf("%s: %d: input agent is NULL.\n",__FILE__,__LINE__);
-    return FALSE;
-  }
-  saved_sees_display_mode = agent->perspective->enable_visible_objects_draw;
-  agent->perspective->enable_visible_objects_draw = FALSE;
-  //Change the size of the viewport if you want speed
-  if(!save){
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
-  }
-
-  g3d_save_win_camera(win->vs);
-  g3d_save_state(win, &st);
-
-  point = agent->perspective->enable_pointing_draw;
-  fov = agent->perspective->enable_vision_draw;
-  visobj = agent->perspective->enable_visible_objects_draw;
-
-  // only keep what is necessary:
-  win->vs.fov            = agent->perspective->fov;
-  win->vs.displayFrame   = FALSE;
-  win->vs.displayJoints  = FALSE;
-  win->vs.displayShadows = FALSE;
-  win->vs.displayWalls   = FALSE;
-  win->vs.displayFloor   = FALSE;
-  win->vs.displayTiles   = FALSE;
-  win->vs.cullingEnabled =  1;
-  win->vs.enableLogo     =  0;
-  agent->perspective->enable_pointing_draw = FALSE;
-  agent->perspective->enable_vision_draw = FALSE;
-  agent->perspective->enable_visible_objects_draw = FALSE;
-
-  g3d_no_shader();
-
-  //do not forget to set the backgroung to black:
-  g3d_set_win_bgcolor(win->vs, 0, 0, 0);
-
-  // move the camera to the desired pose and apply the new projection matrix:
-  g3d_set_camera_parameters_from_frame(agent->perspective->camjoint->abs_pos, win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode);
-
-  // everything is ready now.
-  // 1- Select the objects that are in fov
-
-  test_obj_list = MY_ALLOC(p3d_rob*,env->nr);
-
-  for(i=0; i<env->nr; i++) {
-    hri_object_visibility_placement(agent, 
-                                    env->robot[i], 
-                                    true, agent->knowledge->entities[i].is_placed_from_visibility, // do hysteresis filtering
-                                    &placement_res, 
-                                    &elevation, &azimuth);
-    switch (placement_res) {
-      case HRI_FOA:
-        agent->perspective->currently_sees.vispl[i] = HRI_FOA;
-        test_obj_list[obj_idx] = env->robot[i];
-        obj_idx++;
-        break;
-      case HRI_FOV:
-        agent->perspective->currently_sees.vispl[i] = HRI_FOV;
-        test_obj_list[obj_idx] = env->robot[i];
-        obj_idx++;
-        break;
-      default:
-        agent->perspective->currently_sees.vispl[i] = HRI_OOF;
-        agent->perspective->currently_sees.vis[i] = HRI_INVISIBLE;
-        break;
+    if(agent==NULL){
+        printf("%s: %d: input agent is NULL.\n",__FILE__,__LINE__);
+        return FALSE;
     }
-  }
-
-  // 2- Fetch their visibility
-
-  vis_res = MY_ALLOC(double,obj_idx);
-
-  g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(win, test_obj_list, obj_idx, vis_res, save, (char*)"/Users/easisbot/Work/BioMove3D/screenshots/");
-
-  //restore viewport
-  if(!save){
-    glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
-  }
-  g3d_load_state(win, &st);
-
-  agent->perspective->enable_pointing_draw = point;
-  agent->perspective->enable_vision_draw = fov;
-  agent->perspective->enable_visible_objects_draw = visobj;
-
-  if (win->vs.enableShaders) {
-    g3d_use_shader();
-  }
-
-  g3d_restore_win_camera(win->vs);
-  g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
-
-  if(draw_at_end)
-    g3d_draw_win(win);
-
-  for(i=0; i<obj_idx; i++) {
-    if(100*vis_res[i]>=threshold){
-      agent->perspective->currently_sees.vis[test_obj_list[i]->num] = HRI_VISIBLE;
-      //printf("%s is VISIBLE\n",test_obj_list[i]->name);
+    saved_sees_display_mode = agent->perspective->enable_visible_objects_draw;
+    agent->perspective->enable_visible_objects_draw = FALSE;
+    //Change the size of the viewport if you want speed
+    if(!save){
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        glViewport(0,0,(GLint)(viewport[2]/3),(GLint)(viewport[3]/3));
     }
-    else {
-      agent->perspective->currently_sees.vis[test_obj_list[i]->num] = HRI_INVISIBLE;
-      //printf("%s is INVISIBLE\n",test_obj_list[i]->name);
+
+    g3d_save_win_camera(win->vs);
+    g3d_save_state(win, &st);
+
+    point = agent->perspective->enable_pointing_draw;
+    fov = agent->perspective->enable_vision_draw;
+    visobj = agent->perspective->enable_visible_objects_draw;
+
+    // only keep what is necessary:
+    win->vs.fov            = agent->perspective->fov;
+    win->vs.displayFrame   = FALSE;
+    win->vs.displayJoints  = FALSE;
+    win->vs.displayShadows = FALSE;
+    win->vs.displayWalls   = FALSE;
+    win->vs.displayFloor   = FALSE;
+    win->vs.displayTiles   = FALSE;
+    win->vs.cullingEnabled =  1;
+    win->vs.enableLogo     =  0;
+    agent->perspective->enable_pointing_draw = FALSE;
+    agent->perspective->enable_vision_draw = FALSE;
+    agent->perspective->enable_visible_objects_draw = FALSE;
+
+    g3d_no_shader();
+
+    //do not forget to set the backgroung to black:A
+    g3d_set_win_bgcolor(win->vs, 0, 0, 0);
+
+    // move the camera to the desired pose and apply the new projection matrix:
+    g3d_set_camera_parameters_from_frame(agent->perspective->camjoint->abs_pos, win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode);
+
+    // everything is ready now.
+    // 1- Select the objects that are in fov
+
+    test_obj_list = MY_ALLOC(p3d_rob*,env->nr);
+
+    for(i=0; i<env->nr; i++) {
+        hri_object_visibility_placement(agent,
+                                        env->robot[i],
+                                        true, agent->knowledge->entities[i].is_placed_from_visibility, // do hysteresis filtering
+                                        &placement_res,
+                                        &elevation, &azimuth);
+        switch (placement_res) {
+        case HRI_FOA:
+            agent->perspective->currently_sees.vispl[i] = HRI_FOA;
+            test_obj_list[obj_idx] = env->robot[i];
+            obj_idx++;
+            break;
+        case HRI_FOV:
+            agent->perspective->currently_sees.vispl[i] = HRI_FOV;
+            test_obj_list[obj_idx] = env->robot[i];
+            obj_idx++;
+            break;
+        default:
+            agent->perspective->currently_sees.vispl[i] = HRI_OOF;
+            agent->perspective->currently_sees.vis[i] = HRI_INVISIBLE;
+            break;
+        }
     }
-  }
 
-  agent->perspective->enable_visible_objects_draw = saved_sees_display_mode;
+    // 2- Fetch their visibility
 
-  return TRUE;
+    vis_res = MY_ALLOC(double,obj_idx);
+
+    g3d_visibility_for_given_objects_in_current_viewpoint_pixelpercentage(win, test_obj_list, obj_idx, vis_res, save, (char*)"/Users/easisbot/Work/BioMove3D/screenshots/");
+
+    //restore viewport
+    if(!save){
+        glViewport(0,0,(GLint)viewport[2],(GLint)viewport[3]);
+    }
+    g3d_load_state(win, &st);
+
+    agent->perspective->enable_pointing_draw = point;
+    agent->perspective->enable_vision_draw = fov;
+    agent->perspective->enable_visible_objects_draw = visobj;
+
+    if (win->vs.enableShaders) {
+        g3d_use_shader();
+    }
+
+    g3d_restore_win_camera(win->vs);
+    g3d_set_projection_matrix(win->vs.projection_mode); // do this after restoring the camera fov
+
+    if(draw_at_end)
+        g3d_draw_win(win);
+
+    for(i=0; i<obj_idx; i++) {
+        if(100*vis_res[i]>=threshold){
+            agent->perspective->currently_sees.vis[test_obj_list[i]->num] = HRI_VISIBLE;
+            //printf("%s is VISIBLE\n",test_obj_list[i]->name);
+        }
+        else {
+            agent->perspective->currently_sees.vis[test_obj_list[i]->num] = HRI_INVISIBLE;
+            //printf("%s is INVISIBLE\n",test_obj_list[i]->name);
+        }
+    }
+
+    agent->perspective->enable_visible_objects_draw = saved_sees_display_mode;
+
+    return TRUE;
 }
 
-//! @ingroup VISIBILITY 
-//! This function turns the head of the agent towards a given direction (direction is in spherical coord and is relative to the body) 
+//! @ingroup VISIBILITY
+//! This function turns the head of the agent towards a given direction (direction is in spherical coord and is relative to the body)
 int hri_turn_agent_head_direction(HRI_AGENT *agent, double elevation, double azimuth)
 {
-  p3d_rob * robot = NULL;
-  p3d_jnt *panJnt = NULL, *tiltJnt = NULL;
-  configPt agent_q;
+    p3d_rob * robot = NULL;
+    p3d_jnt *panJnt = NULL, *tiltJnt = NULL;
+    configPt agent_q;
 
-  // MOVE THE AGENT TO LOOK AT THE TARGET
-  // Moving the head is done by moving pan and tilt joints only
-  // For more compilated structures a better solution should be implemented
-  robot  = agent->robotPt;
-  panJnt  = robot->joints[agent->perspective->pan_jnt_idx];
-  tiltJnt = robot->joints[agent->perspective->tilt_jnt_idx];
+    // MOVE THE AGENT TO LOOK AT THE TARGET
+    // Moving the head is done by moving pan and tilt joints only
+    // For more compilated structures a better solution should be implemented
+    robot  = agent->robotPt;
+    panJnt  = robot->joints[agent->perspective->pan_jnt_idx];
+    tiltJnt = robot->joints[agent->perspective->tilt_jnt_idx];
 
-  if( (robot==NULL) || (panJnt==NULL) || (tiltJnt==NULL) ) {
-    printf("In %s:%d, agent not correctly initialized\n", __FILE__, __LINE__);
-    return FALSE;
-  }
+    if( (robot==NULL) || (panJnt==NULL) || (tiltJnt==NULL) ) {
+        printf("In %s:%d, agent not correctly initialized\n", __FILE__, __LINE__);
+        return FALSE;
+    }
 
-  agent_q = MY_ALLOC(double, robot->nb_dof); /* ALLOC */
+    agent_q = MY_ALLOC(double, robot->nb_dof); /* ALLOC */
 
-  p3d_get_robot_config_into(robot, &agent_q);
+    p3d_get_robot_config_into(robot, &agent_q);
 
-  /* TURN PAN */
-  azimuth = azimuth + agent_q[panJnt->index_dof]; // Relative to absolute angle
+    /* TURN PAN */
+    azimuth = azimuth + agent_q[panJnt->index_dof]; // Relative to absolute angle
 
-  if(panJnt->dof_data[0].vmin > azimuth) {
-    if(panJnt->dof_data[0].vmax < azimuth - M_2PI) {
-      if(ABS(panJnt->dof_data[0].vmin-azimuth) < ABS(panJnt->dof_data[0].vmax-azimuth))
-        agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmin;
-      else
-        agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmax;
+    if(panJnt->dof_data[0].vmin > azimuth) {
+        if(panJnt->dof_data[0].vmax < azimuth - M_2PI) {
+            if(ABS(panJnt->dof_data[0].vmin-azimuth) < ABS(panJnt->dof_data[0].vmax-azimuth))
+                agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmin;
+            else
+                agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmax;
+        }
+        else {
+            agent_q[panJnt->index_dof] = azimuth - M_2PI;
+        }
     }
     else {
-      agent_q[panJnt->index_dof] = azimuth - M_2PI;
+        if(panJnt->dof_data[0].vmax < azimuth) {
+            if(panJnt->dof_data[0].vmin > azimuth - M_2PI) {
+                if(ABS(panJnt->dof_data[0].vmin-azimuth) < ABS(panJnt->dof_data[0].vmax-azimuth))
+                    agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmin;
+                else
+                    agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmax;
+            }
+            else {
+                agent_q[panJnt->index_dof] = azimuth- M_2PI;
+            }
+        }
+        else {
+            agent_q[panJnt->index_dof] = azimuth;
+        }
     }
-  }
-  else {
-    if(panJnt->dof_data[0].vmax < azimuth) {
-      if(panJnt->dof_data[0].vmin > azimuth - M_2PI) {
-        if(ABS(panJnt->dof_data[0].vmin-azimuth) < ABS(panJnt->dof_data[0].vmax-azimuth))
-          agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmin;
+
+    /* TURN TILT */
+    elevation = elevation + agent_q[tiltJnt->index_dof]; // Relative to absolute angle
+
+    if(tiltJnt->dof_data[0].vmin > elevation) {
+        agent_q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmin;
+    }
+    else {
+        if(tiltJnt->dof_data[0].vmax < elevation)
+            agent_q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmax;
         else
-          agent_q[panJnt->index_dof] = panJnt->dof_data[0].vmax;
-      }
-      else {
-        agent_q[panJnt->index_dof] = azimuth- M_2PI;
-      }
+            agent_q[tiltJnt->index_dof] = elevation;
     }
-    else {
-      agent_q[panJnt->index_dof] = azimuth;
-    }
-  }
 
-  /* TURN TILT */
-  elevation = elevation + agent_q[tiltJnt->index_dof]; // Relative to absolute angle
+    p3d_set_and_update_this_robot_conf(robot, agent_q);
 
-  if(tiltJnt->dof_data[0].vmin > elevation) {
-    agent_q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmin;
-  }
-  else {
-    if(tiltJnt->dof_data[0].vmax < elevation)
-      agent_q[tiltJnt->index_dof] = tiltJnt->dof_data[0].vmax;
-    else
-      agent_q[tiltJnt->index_dof] = elevation;
-  }
+    MY_FREE(agent_q, double, robot->nb_dof); /* FREE */
 
-  p3d_set_and_update_this_robot_conf(robot, agent_q);
-
-  MY_FREE(agent_q, double, robot->nb_dof); /* FREE */
-
-  return TRUE;
+    return TRUE;
 }
 
