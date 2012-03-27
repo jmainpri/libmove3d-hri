@@ -223,76 +223,121 @@ typedef enum ENUM_HRI_SPATIAL_RELATION {
 
 //! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
-  HRI_ENTITY * entPt;
+    HRI_ENTITY * entPt;
+    
+    configPt entityPositionForAgent;  // to save entity position in case it is different from main agent position. It is created when agent leave the scene and deleted as soon as agent has same position as robot. Also used for source agent to store its position while other agent diverging position are set as the one in the model.
+    bool hasEntityPosition;  /// true if entityPositionForAgent is instantiated.
+    bool isEntityPositionInModel; /// true if this position is currently the one in model
+    /* bool hasDifferentEntityPosition; */  /// true if different from main agent.
+    bool hasEntityPositionKnowledge; /// true if agent knows position. (It could be the same one as robot, a different one known by robot (hasEntityPosition true and hasDifferentEntityPosition true) or unknown to robot.
+    //! @ingroup VISIBILITY
+    /**
+     * entityPositionForAgent is filled 
+     *
+     * Divergent Belief Management.
+     * A Robot has belief where object is
+     *  a Human has belief where object isknows where object is 
+     *   1 Belief same as robot
+     *   
+     *   2 Belief is different
+     *  b Human has no belief where object is.
+     */
 
-  configPt entityPositionForAgent;  // to save entity position in case it is different from main agent position. 
-  bool hasDifferentBeliefOnEntity;  /// true if different from main agent.
-  bool isCurrentPositionForEntityInModel; /// true if this position is currently the one in model
-  bool hasPositionOnEntity; /// true if agent has a position for this entity
+    long update_date;
 
-  long update_date;
+    int disappeared_isexported; /* bool to know wether disappear information was exported for this agent */  
+    int presenceValueExported;
+    int presence_isexported;
 
-  int disappeared_isexported; /* bool to know wether disappear information was exported for this agent */  
-  int presenceValueExported;
-  int presence_isexported;
+    HRI_MOTION motion;
+    int motion_ischanged;
+    int motion_isexported;
 
-  HRI_MOTION motion;
-  int motion_ischanged;
-  int motion_isexported;
+    HRI_VISIBILITY visibility;
+    int visibility_ischanged;
+    int visibility_isexported;
 
-  HRI_VISIBILITY visibility;
-  int visibility_ischanged;
-  int visibility_isexported;
+    ///Divergent Belief Management
+    HRI_VISIBILITY* visibilityBy;
+    int* visibilityBy_ischanged;
+    int* visibilityBy_isexported;
 
-  HRI_REACHABILITY reachability;
-  int reachability_ischanged;
-  int reachability_isexported;
+    HRI_REACHABILITY reachability;
+    int reachability_ischanged;
+    int reachability_isexported;
 
-  HRI_TRUE_FALSE_UK_V is_looked_at;
-  int is_looked_at_ischanged;
-  int is_looked_at_isexported;
+    ///Divergent Belief Management
+    HRI_REACHABILITY* reachabilityBy;
+    int* reachabilityBy_ischanged;
+    int* reachabilityBy_isexported;
 
-  HRI_TRUE_FALSE_UK_V isSeen;
-  int isSeenischanged;
-  int isSeenisexported;
+    HRI_TRUE_FALSE_UK_V is_looked_at;
+    int is_looked_at_ischanged;
+    int is_looked_at_isexported;
 
-  HRI_TRUE_FALSE_UK_V is_pointed_at;
-  int is_pointed_at_ischanged;
-  int is_pointed_at_isexported;
+    ///Divergent Belief Management
+    HRI_TRUE_FALSE_UK_V* is_looked_atBy;
+    int* is_looked_atBy_ischanged;
+    int* is_looked_atBy_isexported;
 
-  HRI_VISIBILITY_PLACEMENT is_placed_from_visibility; /* oof, fov, ... */
-  int visibility_placement_ischanged;
-  int visibility_placement_isexported;
+    HRI_TRUE_FALSE_UK_V isSeen;
+    int isSeenischanged;
+    int isSeenisexported;
 
-  HRI_SPATIAL_RELATION is_located_from_agent; /* Front, right, .... */
-  int spatial_relation_ischanged;
-  int spatial_relation_isexported;
-  HRI_SPATIAL_RELATION is_left_right_from_agent;
-  HRI_SPATIAL_RELATION is_front_behind_from_agent;
-  HRI_SPATIAL_RELATION is_far_near_from_agent;
+    ///Divergent Belief Management
+    HRI_TRUE_FALSE_UK_V* isSeenBy;
+    int* isSeenByischanged;
+    int* isSeenByisexported;
+
+    HRI_TRUE_FALSE_UK_V is_pointed_at;
+    int is_pointed_at_ischanged;
+    int is_pointed_at_isexported;
+
+    ///Divergent Belief Management
+    HRI_TRUE_FALSE_UK_V* is_pointed_atBy;
+    int* is_pointed_atBy_ischanged;
+    int* is_pointed_atBy_isexported;
+
+    HRI_VISIBILITY_PLACEMENT is_placed_from_visibility; /* oof, fov, ... */
+    int visibility_placement_ischanged;
+    int visibility_placement_isexported;
+
+    HRI_VISIBILITY_PLACEMENT* is_placed_from_visibilityBy; /* oof, fov, ... */
+    int* visibility_placementBy_ischanged;
+    int* visibility_placementBy_isexported;
+
+    HRI_SPATIAL_RELATION is_located_from_agent; /* Front, right, .... */
+    int spatial_relation_ischanged;
+    int spatial_relation_isexported;
+    HRI_SPATIAL_RELATION is_left_right_from_agent;
+    HRI_SPATIAL_RELATION is_front_behind_from_agent;
+    HRI_SPATIAL_RELATION is_far_near_from_agent;
 
 
-  HRI_PLACEMENT_RELATION * is_placed; /* on, in, ... */
-  HRI_PLACEMENT_RELATION * is_placed_old; /* To limit number of messages send to ontology */
-  int * placement_relation_ischanged;
-  int * placement_relation_isexported;
-  int is_placed_nb;  /* length is HRI_ENTITIES->all_entities_nb */
+    HRI_PLACEMENT_RELATION * is_placed; /* on, in, ... */
+    HRI_PLACEMENT_RELATION * is_placed_old; /* To limit number of messages send to ontology */
+    int * placement_relation_ischanged;
+    int * placement_relation_isexported;
+    int is_placed_nb;  /* length is HRI_ENTITIES->all_entities_nb */
 
 } HRI_KNOWLEDGE_ON_ENTITY;
 
 //! @ingroup KNOWLEDGE
 //! Each agent has a knowledge structure. It presents the agent's knowledge on the geometry of the world 
 typedef struct STRUCT_HRI_KNOWLEDGE {
-  /* The spatial knowledge on the state of things from the perspective of the agent */
-  /* Normally all indexes should be synchronized with entities structure */
+    /* The spatial knowledge on the state of things from the perspective of the agent */
+    /* Normally all indexes should be synchronized with entities structure */
 
-  /* int * looks_at; /\* indexes of entities in entity structure *\/ */
-  /* int looks_at_nb; */
-  /* int * points_at; /\* indexes of entities in entity structure *\/ */
-  /* int points_at_nb; */
+    /* int * looks_at; /\* indexes of entities in entity structure *\/ */
+    /* int looks_at_nb; */
+    /* int * points_at; /\* indexes of entities in entity structure *\/ */
+    /* int points_at_nb; */
 
-  HRI_KNOWLEDGE_ON_ENTITY * entities;
-  int entities_nb;
+    HRI_KNOWLEDGE_ON_ENTITY * entities;
+    int entities_nb;
+    int numDivergentPositions; /// number
+    int numUnknownPositions;  /// number of object
+   bool needToSaveObjPositions; // true if current object positions for this agent need to be saved. (Divergent Belief Management)
 } HRI_KNOWLEDGE;
 
 
