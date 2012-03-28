@@ -291,6 +291,9 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     for(i=0; i<knowledge->entities_nb; i++) {
 
         knowledge->entities[i].entPt = entities->entities[i];
+	knowledge->entities[i].hasEntityPosition = false;
+	knowledge->entities[i].isEntityPositionInModel = false;
+	knowledge->entities[i].hasEntityPositionKnowledge = true; 
 
         knowledge->entities[i].disappeared_isexported = TRUE;
         knowledge->entities[i].presenceValueExported = FALSE;
@@ -1301,11 +1304,11 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
 
 int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIES * ents,int disappearedEntityIndex)
 {
-    int a_i, e_i, e_j, ge_j;
+    int a_i, a_j,e_i, e_j, ge_j;
     HRI_ENTITY * ent, ** present_ents;
     int * present_ents_global_idxs;
     int present_ents_nb;
-    HRI_AGENT * agent;
+    HRI_AGENT * agent,*agent2;
     HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
 
 
@@ -1317,8 +1320,8 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
     for(a_i=0; a_i<agents->all_agents_no; a_i++) {
         agent = agents->all_agents[a_i];
 
-        if(agent->is_present == FALSE)
-            continue;
+        // if(agent->is_present == FALSE)
+        //     continue;
 
         kn_on_ent = &agent->knowledge->entities[disappearedEntityIndex];
         //visibility
@@ -1346,7 +1349,51 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
         kn_on_ent->reachability_ischanged = TRUE;
         kn_on_ent->reachability_isexported = FALSE;
 
-        kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
+	///
+	if(ents->manageDivergentBeliefs){
+	    for(a_j=0; a_j<agents->all_agents_no; a_j++) {
+		agent2 = agents->all_agents[a_j];
+
+		///We delete divergent position if any.
+		///We assume that present agent has some knowledge on position.
+		if(kn_on_ent->hasEntityPosition){
+		    MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[e_i]->robotPt->nb_dof);
+		    kn_on_ent->hasEntityPosition = false;
+		    agent->knowledge->numDivergentPositions--;
+		}
+		if(agent2->is_present == TRUE)
+		    kn_on_ent->hasEntityPositionKnowledge = true;
+		else
+		    kn_on_ent->hasEntityPositionKnowledge = true;
+
+		    
+		kn_on_ent->is_placed_from_visibilityBy[a_j] = HRI_UK_VIS_PLACE;
+		kn_on_ent->visibility_placementBy_ischanged[a_j] = FALSE;
+		kn_on_ent->visibility_placementBy_isexported[a_j] = FALSE;
+
+		kn_on_ent->visibilityBy[a_j] = HRI_UK_VIS;
+		kn_on_ent->visibilityBy_ischanged[a_j] = FALSE;
+		kn_on_ent->visibilityBy_isexported[a_j] = FALSE;
+
+		kn_on_ent->reachabilityBy[a_j] = HRI_UK_REACHABILITY;
+		kn_on_ent->reachabilityBy_ischanged[a_j] = FALSE;
+		kn_on_ent->reachabilityBy_isexported[a_j] = FALSE;
+
+		kn_on_ent->is_looked_atBy[a_j] = HRI_UK_V;
+		kn_on_ent->is_looked_atBy_ischanged[a_j] = FALSE;
+		kn_on_ent->is_looked_atBy_isexported[a_j] = FALSE;
+
+		kn_on_ent->isSeenBy[a_j] = HRI_UK_V;
+		kn_on_ent->isSeenByischanged[a_j] = FALSE;
+		kn_on_ent->isSeenByisexported[a_j] = FALSE;
+
+		kn_on_ent->is_pointed_atBy[a_j] = HRI_UK_V;
+		kn_on_ent->is_pointed_atBy_ischanged[a_j] = FALSE;
+		kn_on_ent->is_pointed_atBy_isexported[a_j] = FALSE;
+	    }
+	}
+	    
+	kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
         kn_on_ent->is_front_behind_from_agent = HRI_UK_RELATION;
         kn_on_ent->is_left_right_from_agent = HRI_UK_RELATION;
         kn_on_ent->is_far_near_from_agent = HRI_UK_RELATION;
@@ -1394,6 +1441,131 @@ int hri_delete_all_facts_for_disappeared_entity(HRI_AGENTS * agents, HRI_ENTITIE
         MY_FREE(present_ents_global_idxs, int, ents->entities_nb); // FREE
     }
 }
+
+/// To specifically delete facts of one agent ( not source agent ) because it has no position knowledge anymore.
+/// It means we have divergent belief management.
+int DeleteAllFactsOfAgentForThisEntity(HRI_AGENTS * agents,int agentIndex, HRI_ENTITIES * ents,int disappearedEntityIndex)
+{
+    int a_i, a_j,e_i, e_j, ge_j;
+    HRI_ENTITY * ent, ** present_ents;
+    int * present_ents_global_idxs;
+    int present_ents_nb;
+    HRI_AGENT * agent,*agent2;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+
+
+    if(agents == NULL || ents == NULL) {
+        printf("Not Initialized\n");
+        return FALSE;
+    }
+
+    agent = agents->all_agents[agentIndex];
+
+    // if(agent->is_present == FALSE)
+    //     continue;
+
+    kn_on_ent = &agent->knowledge->entities[disappearedEntityIndex];
+    //We do not delete visibility,reachability,isSeen,Lookat ispointat as they actually belongs to source agent model.
+
+    kn_on_ent->motion = HRI_UK_MOTION;
+    kn_on_ent->motion_ischanged = TRUE;
+    kn_on_ent->motion_isexported = FALSE;
+
+    ///We must be 
+    if(ents->manageDivergentBeliefs){
+	for(a_j=0; a_j<agents->all_agents_no; a_j++) {
+	    agent2 = agents->all_agents[a_j];
+
+	    ///We delete divergent position if any.
+	    ///We assume that present agent has some knowledge on position.
+	    if(kn_on_ent->hasEntityPosition){
+		MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[e_i]->robotPt->nb_dof);
+		kn_on_ent->hasEntityPosition = false;
+		agent->knowledge->numDivergentPositions--;
+	    }
+	    if(agent2->is_present == TRUE)
+		kn_on_ent->hasEntityPositionKnowledge = true;
+	    else
+		kn_on_ent->hasEntityPositionKnowledge = true;
+
+		    
+	    kn_on_ent->is_placed_from_visibilityBy[a_j] = HRI_UK_VIS_PLACE;
+	    kn_on_ent->visibility_placementBy_ischanged[a_j] = FALSE;
+	    kn_on_ent->visibility_placementBy_isexported[a_j] = FALSE;
+
+	    kn_on_ent->visibilityBy[a_j] = HRI_UK_VIS;
+	    kn_on_ent->visibilityBy_ischanged[a_j] = FALSE;
+	    kn_on_ent->visibilityBy_isexported[a_j] = FALSE;
+
+	    kn_on_ent->reachabilityBy[a_j] = HRI_UK_REACHABILITY;
+	    kn_on_ent->reachabilityBy_ischanged[a_j] = FALSE;
+	    kn_on_ent->reachabilityBy_isexported[a_j] = FALSE;
+
+	    kn_on_ent->is_looked_atBy[a_j] = HRI_UK_V;
+	    kn_on_ent->is_looked_atBy_ischanged[a_j] = FALSE;
+	    kn_on_ent->is_looked_atBy_isexported[a_j] = FALSE;
+
+	    kn_on_ent->isSeenBy[a_j] = HRI_UK_V;
+	    kn_on_ent->isSeenByischanged[a_j] = FALSE;
+	    kn_on_ent->isSeenByisexported[a_j] = FALSE;
+
+	    kn_on_ent->is_pointed_atBy[a_j] = HRI_UK_V;
+	    kn_on_ent->is_pointed_atBy_ischanged[a_j] = FALSE;
+	    kn_on_ent->is_pointed_atBy_isexported[a_j] = FALSE;
+	}
+    }
+    else
+        printf("DeleteAllFactsOfAgentForThisEntity function should be used only when divergentBelief management is on.\n");	
+	    
+    kn_on_ent->is_located_from_agent = HRI_UK_RELATION;
+    kn_on_ent->is_front_behind_from_agent = HRI_UK_RELATION;
+    kn_on_ent->is_left_right_from_agent = HRI_UK_RELATION;
+    kn_on_ent->is_far_near_from_agent = HRI_UK_RELATION;
+    kn_on_ent->spatial_relation_ischanged = TRUE;
+    kn_on_ent->spatial_relation_isexported = FALSE;
+
+    // PLACEMENT RELATION
+    // Pick entities that exist
+    present_ents_nb = 0;
+    present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
+    present_ents_global_idxs = MY_ALLOC(int, ents->entities_nb); // ALLOC
+    for(e_i=0; e_i<ents->entities_nb; e_i++) {
+	// If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of view
+	// TODO: Or does it?
+	if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
+	    if( agent == agents->all_agents[ents->entities[e_i]->agent_idx] )
+		continue;
+	}
+	if(ents->entities[e_i]->is_present) {
+	    present_ents[present_ents_nb] = ents->entities[e_i];
+	    present_ents_global_idxs[present_ents_nb] = e_i;
+	    present_ents_nb++;
+	}
+    }
+    // PLACEMENT RELATION
+    for(e_j=0; e_j<present_ents_nb; e_j++) {
+	ge_j = present_ents_global_idxs[e_j];
+	// do not compute placement relations that involve an agent or an agent part
+	/* if( ((ent->type == HRI_AGENT_PART) || (ent->type == HRI_ISAGENT)) || !ent->can_disappear_and_move || ((ents->entities[ge_j]->type == HRI_AGENT_PART) || (ents->entities[ge_j]->type == HRI_ISAGENT)) ) { */
+	/*   continue; */
+	/* } */
+
+	// We want to know wether objects are on furniture, on placemat or inside a container
+	// Wa also want to know on which furnitures are placemat
+	if( ((ents->entities[disappearedEntityIndex]->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ents->entities[disappearedEntityIndex]->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
+
+	    if( e_j != disappearedEntityIndex) {
+		kn_on_ent->is_placed[ge_j] = HRI_UK_PLR;
+		kn_on_ent->placement_relation_ischanged[ge_j] = TRUE;
+		kn_on_ent->placement_relation_isexported[ge_j] = FALSE;
+	    }
+	}
+    }
+    MY_FREE(present_ents, HRI_ENTITY*, ents->entities_nb); // FREE
+    MY_FREE(present_ents_global_idxs, int, ents->entities_nb); // FREE
+}
+
+
 
 ///Divergent Belief Management. Save geometric position of manipulable objects for some agent. 
 int SaveObjectsCurrentPositionForAgent(HRI_AGENT* agent, HRI_ENTITIES * ents){
@@ -1858,13 +2030,15 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				}
 			    				    
 
-				/// If agent should see entities but doesn't see it then it knows it doesn't have position knowledge for this object.
-				if((a_k == a_i) && (a_i != agents->source_agent_idx) && (kn_on_ent->visibilityBy[a_k] ==  HRI_VISIBLE)){
+				/// If agent has divergent position and should see entities for its position but doesn't see it then it knows it doesn't have position knowledge for this object.
+				if((a_k == a_i) && (a_i != agents->source_agent_idx) && kn_on_ent->hasEntityPosition && (kn_on_ent->visibilityBy[a_k] ==  HRI_VISIBLE)){
 				    MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[e_i]->robotPt->nb_dof);
 				    kn_on_ent->hasEntityPosition = false;
 				    agent->knowledge->numDivergentPositions--;
 				    kn_on_ent->hasEntityPositionKnowledge = false;
 				    agent->knowledge->numUnknownPositions++;
+				    /// Delete All Facts for this entity in this agent model.
+				    DeleteAllFactsOfAgentForThisEntity(agents,a_i,ents,e_i);
 				}				
 			    }
 			}
@@ -1878,6 +2052,10 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
             ent = ents->entities[ge_i];
             kn_on_ent = &agent->knowledge->entities[ge_i];
+
+	    /// Do not compute facts if agent doen't have knowledge on this robot position.
+	    if(!kn_on_ent->hasEntityPositionKnowledge)
+		continue;
 
             //printf("Testing: %s with %s\n", agent->robotPt->name, ent->robotPt->name);
 
@@ -2043,7 +2221,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
                     if( e_j != e_i) {
 
-                        if(ent->disappeared || ents->entities[ge_j]->disappeared)
+                        if(ent->disappeared || ents->entities[ge_j]->disappeared || !agent->knowledge->entities[ge_i].hasEntityPositionKnowledge)
                             placement_relation_result = HRI_UK_PLR;
                         else
                             placement_relation_result = hri_placement_relation(ent, ents->entities[ge_j]);
