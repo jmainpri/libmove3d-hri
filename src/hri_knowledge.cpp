@@ -1664,8 +1664,10 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
 	    else if(!kn_on_ent->hasEntityPositionKnowledge){
 		sourceAgentKn_on_ent = &agents->all_agents[agents->source_agent_idx]->knowledge->entities[e_i];
 		/// Is object visible in robot model?
-		if(sourceAgentKn_on_ent->visibilityBy[agentIndex] == HRI_VISIBLE)
+		if(sourceAgentKn_on_ent->visibilityBy[agentIndex] == HRI_VISIBLE){
 		    kn_on_ent->hasEntityPositionKnowledge = true;
+		    agent->knowledge->numUnknownPositions--;
+		}
 	    }	
 	}
     }
@@ -2278,4 +2280,61 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
 
 
+/// Draw small spheres to show divergent positions.
+void hri_draw_divergent_positions()
+{
+    int a_i,e_i;
+    int nbDivergentPosition;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+    double x,y,z,r,opacity;
+    GLdouble color[4];
+    HRI_AGENT* agent;
+
+    if((GLOBAL_AGENTS == NULL) || (GLOBAL_ENTITIES == NULL)){
+	return;
+    }
+    if(!GLOBAL_ENTITIES->manageDivergentBeliefs){
+	return;
+    }
+    
+
+    for(a_i=0; a_i<GLOBAL_AGENTS->all_agents_no; a_i++) {
+	//We want to be sure that facts for the main (perceiving) agent are computed first 
+
+	/// not for source agent.
+	if(a_i == GLOBAL_AGENTS->source_agent_idx)
+	    continue;
+
+	agent = GLOBAL_AGENTS->all_agents[a_i];
+
+	/// only if agent is present.
+	if(agent->is_present == FALSE)
+	    continue;
+
+	nbDivergentPosition = GLOBAL_AGENTS->all_agents[a_i]->knowledge->numDivergentPositions;
+
+	for(e_i=0; e_i<GLOBAL_ENTITIES->entities_nb; e_i++) { 
+	    if(nbDivergentPosition == 0)
+		break;
+	    if(GLOBAL_ENTITIES->entities[e_i]->is_present && (GLOBAL_ENTITIES->entities[e_i]->subtype == HRI_MOVABLE_OBJECT)){
+		kn_on_ent = &(GLOBAL_AGENTS->all_agents[a_i]->knowledge->entities[e_i]);
+		if(kn_on_ent->hasEntityPosition){
+		    nbDivergentPosition--;
+		    
+		    x = kn_on_ent->entityPositionForAgent[6];
+		    y = kn_on_ent->entityPositionForAgent[7];
+		    z = kn_on_ent->entityPositionForAgent[8];
+		    opacity = 1.0;
+		    r = 0.1;
+		    color[0] = 0.0; color[1]= 0.0; color[2]= 1.0; color[3]= opacity;
+		    glEnable(GL_BLEND);
+		    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		    g3d_set_color(Any,color);
+		    g3d_draw_solid_sphere(x,y,z,r,20);		    
+		    glDisable(GL_BLEND);///g3d_drawSphere(x,y,z,r);
+		}
+	    }      
+	}
+    }
+}
 

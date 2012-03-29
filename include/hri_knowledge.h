@@ -340,7 +340,8 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
    bool needToSaveObjPositions; // true if current object positions for this agent need to be saved. (Divergent Belief Management)
 } HRI_KNOWLEDGE;
 
-
+/// Draw small spheres to show divergent positions.
+void hri_draw_divergent_positions();
 
 
 #endif

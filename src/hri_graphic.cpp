@@ -67,7 +67,8 @@ void g3d_hri_main()
     hri_draw_kinect_state(G3D_WIN->vs, 0.90, 5, 0.07); 
     hri_draw_mindist();
     hri_draw_action_monitoring_spheres();
-    
+    hri_draw_divergent_positions();
+
     if(false)
     {
       // Display a string with text
