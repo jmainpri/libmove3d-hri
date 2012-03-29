@@ -1950,10 +1950,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 	    //a_i != agents->source_agent_idx){
 	    continue;
 	}
-	else{
-
-	    }
-	}
 
         // Pick entities that exist
         present_ents_nb = 0;
@@ -2271,10 +2267,11 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                     }
                 }
             }
-        }
+	}
 	//// entity positions should be the one of main agent.
 	if(ents->manageDivergentBeliefs)
 	    SetMainAgentEntityPositionInModel(agents,ents);
+    }
 
     // all placement state transition events have been managed
     for(e_i=0; e_i<present_ents_nb; e_i++) {
