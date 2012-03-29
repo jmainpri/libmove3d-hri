@@ -1866,9 +1866,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 {
     int a_i, a_j,a_k, e_i, e_j, ge_i, ge_j;
     double elevation, azimuth;
-    HRI_ENTITY * ent, ** present_ents;
-    int * present_ents_global_idxs;
-    int present_ents_nb;
+    HRI_ENTITY * ent, ** present_ents, ** present_entsAgent2;
+    int * present_ents_global_idxs,* present_ents_global_idxsAgent2;
+    int present_ents_nb,present_ents_nbAgent2;
     HRI_AGENT * agent,* agent2,* sourceAgent;
     HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
     ENUM_HRI_VISIBILITY_PLACEMENT res;
@@ -1925,6 +1925,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     vis_result = MY_ALLOC(HRI_VISIBILITY, ents->entities_nb); // ALLOC
     present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
     present_ents_global_idxs = MY_ALLOC(int, ents->entities_nb); // ALLOC
+    present_entsAgent2 = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
+    present_ents_global_idxsAgent2 = MY_ALLOC(int, ents->entities_nb); // ALLOC
     sourceAgent=agents->all_agents[agents->source_agent_idx];
 
     for(a_j=0; a_j<agents->all_agents_no; a_j++) {
@@ -1953,12 +1955,6 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
         // Pick entities that exist
         present_ents_nb = 0;
         for(e_i=0; e_i<ents->entities_nb; e_i++) {
-            // If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of view
-            // TODO: Or does it?
-            if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
-                if( agent == agents->all_agents[ents->entities[e_i]->agent_idx] )
-                    continue;
-            }
             if(ents->entities[e_i]->is_present) {
                 present_ents[present_ents_nb] = ents->entities[e_i];
                 present_ents_global_idxs[present_ents_nb] = e_i;
@@ -1990,20 +1986,36 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 		    /// We consider all agents only if divergent belief management is on
 		    if(a_k == a_i || ents->manageDivergentBeliefs){
 			/// We compute visibility once for robot and then only recompute for other agents who have some diferent positions.
+			// Pick entities that exist and are not agent parts of this agent.
+			present_ents_nbAgent2 = 0;
+			for(e_i=0; e_i<ents->entities_nb; e_i++) {
+			    // If the entity is a part of the current agent, we skip it since it doesn't make sense to compute it from his own point of 
+			    if( (ents->entities[e_i]->type == HRI_AGENT_PART) || (ents->entities[e_i]->type == HRI_ISAGENT) ) {
+				if( agent2 == agents->all_agents[ents->entities[e_i]->agent_idx] )
+				    continue;
+			    }
+			    if(ents->entities[e_i]->is_present) {
+				present_entsAgent2[present_ents_nb] = ents->entities[e_i];
+				present_ents_global_idxsAgent2[present_ents_nb] = e_i;
+				present_ents_nbAgent2++;
+			    }
+			}
+
+
 			if(!ents->manageDivergentBeliefs || (a_i == agents->source_agent_idx) || (agent->knowledge->numDivergentPositions>0))
-			    g3d_compute_visibility_for_given_entities(present_ents, agent2, vis_result, present_ents_nb);
+			    g3d_compute_visibility_for_given_entities(present_entsAgent2, agent2, vis_result, present_ents_nbAgent2);
 			else{
 			    ///No recomputation needed. Wecopy values from main robot
-			    for(e_j=0; e_j<present_ents_nb; e_j++) {
-				ge_j = present_ents_global_idxs[e_j];
+			    for(e_j=0; e_j<present_ents_nbAgent2; e_j++) {
+				ge_j = present_ents_global_idxsAgent2[e_j];
 				kn_on_ent = &sourceAgent->knowledge->entities[ge_j];
 				vis_result[e_j] = kn_on_ent->visibilityBy[a_k];
 			    }
 			}
 			///Populate simple structure
 			if(a_k == a_i){
-			    for(e_j=0; e_j<present_ents_nb; e_j++) {
-				ge_j = present_ents_global_idxs[e_j];
+			    for(e_j=0; e_j<present_ents_nbAgent2; e_j++) {
+				ge_j = present_ents_global_idxsAgent2[e_j];
 				kn_on_ent = &agent->knowledge->entities[ge_j];
 				if ( kn_on_ent->visibility  ==  vis_result[e_j]) {
 				    if ( kn_on_ent->visibility_ischanged)
@@ -2019,8 +2031,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 			
 			///Populate divergent belief structure
 			if(ents->manageDivergentBeliefs){
-			    for(e_j=0; e_j<present_ents_nb; e_j++) {
-				ge_j = present_ents_global_idxs[e_j];
+			    for(e_j=0; e_j<present_ents_nbAgent2; e_j++) {
+				ge_j = present_ents_global_idxsAgent2[e_j];
 				kn_on_ent = &agent->knowledge->entities[ge_j];
 				if ( kn_on_ent->visibilityBy[a_k]  ==  vis_result[e_j]) {
 				    if ( kn_on_ent->visibilityBy_ischanged[a_k])
@@ -2077,7 +2089,14 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
 	    for(a_k=0; a_k<agents->all_agents_no; a_k++) {
 		agent2 = agents->all_agents[a_k];
+
 		if(agent2->is_present == TRUE){
+		    ///We consider this entity for this agent except if it is a part of this agent.
+		    if( (ent->type == HRI_AGENT_PART) || (ent->type == HRI_ISAGENT) ) {
+			if( agent2 == agents->all_agents[ent->agent_idx] )
+			    continue;
+		    }
+
 		    /// We consider all agents only if divergent belief management is on
 		    if(a_k == a_i || ents->manageDivergentBeliefs){
 
@@ -2265,7 +2284,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     MY_FREE(vis_result, HRI_VISIBILITY, ents->entities_nb); // FREE
     MY_FREE(present_ents, HRI_ENTITY*, ents->entities_nb); // FREE
     MY_FREE(present_ents_global_idxs, int, ents->entities_nb); // FREE
-
+    MY_FREE(present_entsAgent2, HRI_ENTITY*, ents->entities_nb); // FREE
+    MY_FREE(present_ents_global_idxsAgent2, int, ents->entities_nb); // FREE
 
     // Events in the Wolrd have been managed.
     if(ents->eventsInTheWorld)
