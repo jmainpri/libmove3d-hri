@@ -1931,11 +1931,14 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
     for(a_j=0; a_j<agents->all_agents_no; a_j++) {
 	//We want to be sure that facts for the main (perceiving) agent are computed first 
+
 	if(a_j == 0)
 	    a_i = agents->source_agent_idx;
-	if(a_j == agents->source_agent_idx)
+	else if(a_j == agents->source_agent_idx)
 	    a_i = 0;    
-
+	else
+	    a_i = a_j;
+	    
 	agent = agents->all_agents[a_i];
     
 	if(agent->is_present == FALSE){
@@ -1995,8 +1998,8 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				    continue;
 			    }
 			    if(ents->entities[e_i]->is_present) {
-				present_entsAgent2[present_ents_nb] = ents->entities[e_i];
-				present_ents_global_idxsAgent2[present_ents_nb] = e_i;
+				present_entsAgent2[present_ents_nbAgent2] = ents->entities[e_i];
+				present_ents_global_idxsAgent2[present_ents_nbAgent2] = e_i;
 				present_ents_nbAgent2++;
 			    }
 			}
