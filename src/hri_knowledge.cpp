@@ -1242,41 +1242,39 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
                     }
                 }
             }
-
-            //Is Moving Management
-            if(ents->entities[e_i]->is_present && !ents->entities[e_i]->disappeared){
-                if((ents->entities[e_i]->last_ismoving_iter>0) && (ents->entities[e_i]->filtered_motion != HRI_MOVING)){
-                    //START MOVING
-                    ents->entities[e_i]->filtered_motion = HRI_MOVING;
-                    ents->eventsInTheWorld = TRUE;
-                    ents->entities[e_i]->is_pl_state_transition_new = TRUE;
-                    ents->entities[e_i]->pl_state_transition = HRI_START_MOVING;
-                    printf("%s START MOVING\n",ents->entities[e_i]->name);
-                }
-                else if ((ents->entities[e_i]->last_ismoving_iter == 0 ) && (ents->entities[e_i]->filtered_motion != HRI_STATIC)){
-                    //STOP MOVING
-                    ents->entities[e_i]->filtered_motion = HRI_STATIC;
-                    ents->eventsInTheWorld = TRUE;
-                    ents->entities[e_i]->is_pl_state_transition_new = TRUE;
-                    ents->entities[e_i]->pl_state_transition = HRI_STOP_MOVING;
-                    printf("%s STOP MOVING\n",ents->entities[e_i]->name);
-                }
-                else if ((ents->entities[e_i]->last_ismoving_iter == 0 ) && (ents->entities[e_i]->filtered_motion == HRI_STATIC)){
-                    //Static, Nothing to do
-                }
-                else if ((ents->entities[e_i]->last_ismoving_iter > 0 ) && (ents->entities[e_i]->filtered_motion == HRI_MOVING)){
-                    ///while moving we consider it as events in the world (world is not static ) but no placement state transition.
-                    ents->eventsInTheWorld = TRUE;
-                    printf("%s IS MOVING\n",ents->entities[e_i]->name);
-                }
-                else
-                    printf("Impossible motion state %s for entity %d\n",ents->entities[e_i]->name,ents->entities[e_i]->filtered_motion);
-                // increment last is moving seen
-                if(ents->entities[e_i]->last_ismoving_iter>0)
-                    ents->entities[e_i]->last_ismoving_iter--;
-            }
-
-        }
+	}
+	//Is Moving Management
+	if(ents->entities[e_i]->is_present && !ents->entities[e_i]->disappeared){
+	    if((ents->entities[e_i]->last_ismoving_iter>0) && (ents->entities[e_i]->filtered_motion != HRI_MOVING)){
+		//START MOVING
+		ents->entities[e_i]->filtered_motion = HRI_MOVING;
+		ents->eventsInTheWorld = TRUE;
+		ents->entities[e_i]->is_pl_state_transition_new = TRUE;
+		ents->entities[e_i]->pl_state_transition = HRI_START_MOVING;
+		printf("%s START MOVING\n",ents->entities[e_i]->name);
+	    }
+	    else if ((ents->entities[e_i]->last_ismoving_iter == 0 ) && (ents->entities[e_i]->filtered_motion != HRI_STATIC)){
+		//STOP MOVING
+		ents->entities[e_i]->filtered_motion = HRI_STATIC;
+		ents->eventsInTheWorld = TRUE;
+		ents->entities[e_i]->is_pl_state_transition_new = TRUE;
+		ents->entities[e_i]->pl_state_transition = HRI_STOP_MOVING;
+		printf("%s STOP MOVING\n",ents->entities[e_i]->name);
+	    }
+	    else if ((ents->entities[e_i]->last_ismoving_iter == 0 ) && (ents->entities[e_i]->filtered_motion == HRI_STATIC)){
+		//Static, Nothing to do
+	    }
+	    else if ((ents->entities[e_i]->last_ismoving_iter > 0 ) && (ents->entities[e_i]->filtered_motion == HRI_MOVING)){
+		///while moving we consider it as events in the world (world is not static ) but no placement state transition.
+		ents->eventsInTheWorld = TRUE;
+		printf("%s IS MOVING\n",ents->entities[e_i]->name);
+	    }
+	    else
+		printf("Impossible motion state %s for entity %d\n",ents->entities[e_i]->name,ents->entities[e_i]->filtered_motion);
+	    // increment last is moving seen
+	    if(ents->entities[e_i]->last_ismoving_iter>0)
+		ents->entities[e_i]->last_ismoving_iter--;
+	}        
     }
 
     // Computing all Situation assessment after each event Appear, Start Moving, Stop Moving and disappear can be costly and delay reading the state of the world ( object, human, robot ) as these events can be quite often folowed shortly one by another. Heavy computations should be done only once the world is detected as "static". We wait four step without an event. This Four should be replaced by a constant.
