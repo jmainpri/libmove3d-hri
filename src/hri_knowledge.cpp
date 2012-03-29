@@ -59,6 +59,7 @@ HRI_ENTITIES * hri_create_entities()
     entities->printVisibilityImages = FALSE;
     entities->printSARecomputeStatus = FALSE;
     entities->needToUpdateParameters = FALSE;
+    entities->manageDivergentBeliefs = false;
     entities->numParameterToUpdate = 0;
     entities->hackedReachabilityDistance = 0.8;
     entities->maxUnexplainedUndetectionIter = 7;
