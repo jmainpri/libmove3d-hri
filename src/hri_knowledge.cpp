@@ -1578,6 +1578,7 @@ int SaveObjectsCurrentPositionForAgent(HRI_AGENT* agent, HRI_ENTITIES * ents){
 		kn_on_ent->entityPositionForAgent = MY_ALLOC(double, ents->entities[e_i]->robotPt->nb_dof); /* ALLOC */
 		p3d_get_robot_config_into(ents->entities[e_i]->robotPt, &kn_on_ent->entityPositionForAgent);
 		kn_on_ent->hasEntityPosition = true;  
+		printf("Create Agent %s hasEntityPosition for %s. Agent disappear\n" ,agent->robotPt->name,ents->entities[e_i]->name);
 		agent->knowledge->numDivergentPositions++;
 	    }
 	}
@@ -1634,6 +1635,7 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
 	if(ents->entities[e_i]->is_present && (ents->entities[e_i]->subtype == HRI_MOVABLE_OBJECT)){
 	    kn_on_ent = &(agents->all_agents[agentIndex]->knowledge->entities[e_i]);
 	    if(kn_on_ent->hasEntityPosition){
+		printf("Agent %s hasEntityPosition for %s\n" ,agents->all_agents[agentIndex]->robotPt->name,ents->entities[e_i]->name);
 		sourceAgentKn_on_ent = &agents->all_agents[agents->source_agent_idx]->knowledge->entities[e_i];
 		
 		/// Is object visible in robot model?
@@ -1657,7 +1659,8 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
 		if(deleteDivergentPosition){
 		    MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[e_i]->robotPt->nb_dof);
 		    kn_on_ent->hasEntityPosition = false;
-		    agent->knowledge->numDivergentPositions--;
+		    agent->knowledge->numDivergentPositions--;	
+		    printf("Delete Agent %s hasEntityPosition for %s. See New or position very close\n" ,agents->all_agents[agentIndex]->robotPt->name,ents->entities[e_i]->name);	
 		}       	
 	    }
 	    else if(!kn_on_ent->hasEntityPositionKnowledge){
@@ -1666,6 +1669,7 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
 		if(sourceAgentKn_on_ent->visibilityBy[agentIndex] == HRI_VISIBLE){
 		    kn_on_ent->hasEntityPositionKnowledge = true;
 		    agent->knowledge->numUnknownPositions--;
+		    printf("Delete Agent %s unknown EntityPosition for %s. See new\n" ,agents->all_agents[agentIndex]->robotPt->name,ents->entities[e_i]->name);
 		}
 	    }	
 	}
@@ -1960,10 +1964,14 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
         }
 
 	///
-	if(ents->manageDivergentBeliefs){
+	if(ents->manageDivergentBeliefs && (a_i != agents->source_agent_idx)){
+
 	    //Assess existing divergent positions . (Is agent position different from robot? Does agent see new position)
-	    if(agent->knowledge->numDivergentPositions>0 || agent->knowledge->numUnknownPositions>0)
-		CompareCurrentAgentEntityPositionsWithRobotOnes(agents,a_i, ents,0.05);
+	    //Do it only when recomputate
+	    if(ents->needSituationAssessmentUpdate && (ents->isWorldStatic || forceRecomputation)){
+		if(agent->knowledge->numDivergentPositions>0 || agent->knowledge->numUnknownPositions>0)
+		    CompareCurrentAgentEntityPositionsWithRobotOnes(agents,a_i, ents,0.05);
+	    }
 
 	    ///Use divergent positions if any
 	    if(agent->knowledge->numDivergentPositions>0)
@@ -2051,6 +2059,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				    agent->knowledge->numUnknownPositions++;
 				    /// Delete All Facts for this entity in this agent model.
 				    DeleteAllFactsOfAgentForThisEntity(agents,a_i,ents,e_i);
+				    printf("Delete Agent %s hasEntityPosition for %s. Doesn't see old but should\n" ,agent->robotPt->name,ents->entities[e_i]->name);
 				}				
 			    }
 			}
@@ -2267,7 +2276,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
             }
 	}
 	//// entity positions should be the one of main agent.
-	if(ents->manageDivergentBeliefs)
+	if(ents->manageDivergentBeliefs  && (a_i != agents->source_agent_idx))
 	    SetMainAgentEntityPositionInModel(agents,ents);
     }
 
