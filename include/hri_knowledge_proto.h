@@ -21,4 +21,6 @@ extern int hri_initialize_all_agents_knowledge(HRI_ENTITIES * entities, HRI_AGEN
 extern void hri_display_agent_knowledge(HRI_AGENT * agent);
 extern void hri_display_entities(HRI_ENTITIES * ents);
 
-
+extern int hri_add_agent_entity_distance_management(HRI_AGENT * agent, int agentPartIndex,int entityIndex);
+extern int hri_delete_agent_entity_distance_management(HRI_AGENT * agent, int agentPartIndex,int entityIndex);
+extern int hri_delete_agent_entity_divergent_position(HRI_AGENT * agent,int entityIndex);

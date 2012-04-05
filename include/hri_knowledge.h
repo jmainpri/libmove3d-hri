@@ -144,6 +144,8 @@ typedef struct STRUCT_HRI_ENTITIES {
   int maxUnexplainedUndetectionIter; /// object is considered to have disappear if it is undetected a numer of time equual to this parameter without any reason.
   double isOnThreshold; /// max allowed threshold between min "isOn candidate" object height value and max furniture height value.
   int specialSupportEntityIndex; //
+    
+    double averageDistanceScoreExportThreshold; /// minimum threshold to export average motion score threshold. 
 } HRI_ENTITIES;
 
 //! @ingroup KNOWLEDGE
@@ -243,6 +245,12 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
      *  b Human has no belief where object is.
      */
 
+    /// Agent Entity Distance & Speed Info use to describe motion between agent body or hands and entities.
+    HRI_DISTANCE_AND_SPEED_INFO * distanceAndSpeedInfoArray;
+    int manageDistanceAndSpeedInfoArraySize; /// number of Agent parts considered
+    int * manageDistanceAndSpeedInfoArrayAgentPartIndex; /// agent part type for each arry element.type -1 for body and hand index (0 -> max hand index) for hands.
+
+
     long update_date;
 
     int disappeared_isexported; /* bool to know wether disappear information was exported for this agent */  
@@ -339,6 +347,21 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
     int numUnknownPositions;  /// number of object
    bool needToSaveObjPositions; // true if current object positions for this agent need to be saved. (Divergent Belief Management)
 } HRI_KNOWLEDGE;
+
+
+/// Structure use to study distance and speed between one entity and agent part
+/// It is used to get table agent move to or object agent want to grasp.
+typedef struct HRI_DISTANCE_AND_SPEED_INFO {
+    double distOld;
+    double distNew;
+    double timeOld;
+    double timeNew;
+    int numTimeStep;
+    double speed;
+    double averageDistanceScore;
+    double averageDistanceScoreOld;
+} HRI_DISTANCE_AND_SPEED_INFO;
+
 
 /// Draw small spheres to show divergent positions.
 void hri_draw_divergent_positions();

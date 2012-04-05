@@ -65,6 +65,7 @@ HRI_ENTITIES * hri_create_entities()
     entities->maxUnexplainedUndetectionIter = 7;
     entities->isOnThreshold = 0.05;
     entities->specialSupportEntityIndex = -1;
+    entities->averageDistanceScoreExportThreshold = 1000.0;
 
     for(i=0; i<env->nr; i++) {
         if(!strcasestr(env->robot[i]->name,"GRIPPER") && !strcasestr(env->robot[i]->name,"VISBALL") && !strcasestr(env->robot[i]->name,"SAHandRight")) {
@@ -134,7 +135,9 @@ HRI_ENTITIES * hri_create_entities()
                     strcasestr(objectrealname,"HEAD")    ||  strcasestr(objectrealname,"CAMERA") || strcasestr(objectrealname,"Gkuka6") || strcasestr(objectrealname,"Grarm7")) ) {
                     entities->entities = MY_REALLOC(entities->entities, HRI_ENTITY*, ent_i, ent_i+1);
                     entities->entities[ent_i] = MY_ALLOC(HRI_ENTITY,1);
-                    strcpy(entities->entities[ent_i]->name, objectrealname);
+                    ///strcpy(entities->entities[ent_i]->name, objectrealname);
+		    ///To avoid the same name for agent that have the same part name.
+                    strcpy(entities->entities[ent_i]->name, env->robot[i]->o[j]->name);
                     entities->entities[ent_i]->can_disappear_and_move = FALSE;
                     entities->entities[ent_i]->is_present = FALSE;
                     entities->entities[ent_i]->disappeared = FALSE;
@@ -295,9 +298,15 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
     for(i=0; i<knowledge->entities_nb; i++) {
 
         knowledge->entities[i].entPt = entities->entities[i];
+
+	knowledge->entities[i].entityPositionForAgent = NULL;
 	knowledge->entities[i].hasEntityPosition = false;
 	knowledge->entities[i].isEntityPositionInModel = false;
 	knowledge->entities[i].hasEntityPositionKnowledge = true; 
+
+	knowledge->entities[i].distanceAndSpeedInfoArray = NULL;
+	knowledge->entities[i].manageDistanceAndSpeedInfoArraySize = 0;
+	knowledge->entities[i].manageDistanceAndSpeedInfoArrayAgentPartIndex = NULL;
 
         knowledge->entities[i].disappeared_isexported = TRUE;
         knowledge->entities[i].presenceValueExported = FALSE;
@@ -1062,6 +1071,235 @@ int hri_assess_perception_inferrence_conflict(HRI_ENTITY *firstEntity, HRI_ENTIT
     return TRUE;
 }
 
+double compute2BBCentersDistance(p3d_BB *bb1,p3d_BB *bb2){
+    double bb1X;
+    double bb1Y;
+    double bb1Z;
+    double bb2X;
+    double bb2Y;
+    double bb2Z;
+    bb1X = (bb1.xmax - bb1.xmin)/2;
+    bb1Y = (bb1.ymax - bb1.ymin)/2;
+    bb1Z = (bb1.zmax - bb1.zmin)/2;
+
+    bb2X = (bb2.xmax - bb2.xmin)/2;
+    bb2Y = (bb2.ymax - bb2.ymin)/2;
+    bb2Z = (bb2.zmax - bb2.zmin)/2;
+    return DISTANCE3D(bb1X,bb1Y,bb1Z,bb2X,bb2Y,bb2Z);
+}
+/// Agent Entity Distance
+int hriComputeAgentEntityDistanceManagement(HRI_AGENT * agent, int entityIndex){    
+    
+    HRI_KNOWLEDGE * kn;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+    bool isAgentPartAlreadyManaged = false;
+    int i,curArraySize;
+    HRI_DISTANCE_AND_SPEED_INFO * distSpeedInfo;
+    p3d_BB *bb1, *bb2;
+    double distance,distanceOldOld,timeOldOld,speedOld;
+
+    if(agent == NULL || agent->knowledge == NULL) {
+        printf("AGENT not initialized for hriComputeAgentEntityDistanceManagement\n");
+        return -1;
+    }
+    kn = agent->knowledge;    
+    if(entityIndex >= kn->entities_nb){
+	printf("entity index too big %d for hriComputeAgentEntityDistanceManagement\n",entityIndex);
+        return -1;
+    }
+
+    kn_on_ent = &agent->knowledge->entities[entityIndex];
+    curArraySize = kn_on_ent->manageDistanceAndSpeedInfoArraySize;
+
+        //Compute max BB middle width for object or agent part that give the inferred position
+    if((kn_on_ent->entPt == HRI_OBJECT_PART) || (kn_on_ent->entPt == HRI_AGENT_PART) ) 
+	bb1 = kn_on_ent->entPt->partPt->BB;
+    else 
+	bb1 = kn_on_ent->entPt->robotPt->BB;
+
+    for (i=0; i<curArraySize; i++) {
+	///Main agent
+	if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == -1)
+	    bb2 = agent->robotPt->BB;       
+	else if((kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] > -1) && (kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] < agent->hand_nb))
+	    bb2 = agent->hand[i]->entPt->partPt->BB;
+	else
+	    printf("unmanaged hand index %d for agent part entity distance computation \n",i);
+	
+	distance = compute2BBCentersDistance(bb1,bb2);
+	distSpeedInfo = &kn_on_ent->distanceAndSpeedInfoArray[i];
+
+	///If already at least one measurement we save last one.
+	if( distSpeedInfo->numTimeStep > 0){
+	    distanceOldOld = distSpeedInfo->distOld;
+	    timeOldOld = distSpeedInfo->timeOld;
+	    distSpeedInfo->distOld=distSpeedInfo->distNew;
+	    distSpeedInfo->timeOld=distSpeedInfo->timeNew;
+	}
+	distSpeedInfo->distNew = distance;
+	distSpeedInfo->timeNew = time(0);
+	if( distSpeedInfo->numTimeStep == 2){
+	    speedOld = distSpeedInfo->speed;
+	    distSpeedInfo->speed = (distSpeedInfo->distNew - distSpeedInfo->distOld)/(distSpeedInfo->timeNew - distSpeedInfo->timeOld);
+	    distSpeedInfo->averageDistanceScoreOld=distSpeedInfo->averageDistanceScore;
+	    distSpeedInfo->averageDistanceScore= distSpeedInfo->averageDistanceScore*0.66 - distSpeedInfo->speed/distSpeedInfo->distNew;
+	}
+	else
+	    distSpeedInfo->numTimeStep++;	
+    }	     
+}
+
+
+int hri_add_agent_entity_distance_management(HRI_AGENT * agent, int agentPartIndex, int entityIndex){    
+    
+    HRI_KNOWLEDGE * kn;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+    bool isAgentPartAlreadyManaged = false;
+    int i,curArraySize;
+    HRI_DISTANCE_AND_SPEED_INFO * distSpeedInfo;
+
+    if(agent == NULL || agent->knowledge == NULL) {
+        printf("AGENT not initialized for hri_add_agent_entity_distance_management\n");
+        return -1;
+    }
+    kn = agent->knowledge;    
+    if(entityIndex >= kn->entities_nb){
+	printf("entity index too big %d for hri_add_agent_entity_distance_management\n",entityIndex);
+        return -1;
+    }
+    
+    /// index is -1 for agent body and hand index if >=0
+    if((agentPartIndex < -1) || (agentPartIndex >= agent->hand_nb)){
+	printf("unmanaged agent part index %d for hri_add_agent_entity_distance_management\n",entityIndex);
+	return -1;
+    }
+
+    kn_on_ent = &agent->knowledge->entities[entityIndex];
+    curArraySize = kn_on_ent->manageDistanceAndSpeedInfoArraySize;
+
+    if(curArraySize>0){
+	// is this agentPart already managed?
+	for (i=0; i<curArraySize; i++) {
+	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == agentPartIndex){
+		isAgentPartAlreadyManaged = true;
+		break;
+	    }
+	}	 
+    }
+
+    if(!isAgentPartAlreadyManaged){
+	kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex = MY_REALLOC(kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex,int,curArraySize,curArraySize+1);
+	kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[curArraySize] = agentPartIndex;
+
+	kn_on_ent->distanceAndSpeedInfoArray = MY_REALLOC(kn_on_ent->distanceAndSpeedInfoArray,HRI_DISTANCE_AND_SPEED_INFO,curArraySize,curArraySize+1);
+
+	distSpeedInfo = &kn_on_ent->distanceAndSpeedInfoArray[curArraySize];
+
+	distSpeedInfo->distOld=0;
+	distSpeedInfo->distNew=0;
+	distSpeedInfo->timeOld=0;
+	distSpeedInfo->timeNew=0;
+	distSpeedInfo->numTimeStep=0;
+	distSpeedInfo->speed=0;
+	distSpeedInfo->averageDistanceScore=0;
+	distSpeedInfo->averageDistanceScoreOld=0;
+    }
+
+    else{
+	printf("agent part index %d already managed for hri_add_agent_entity_distance_management\n",entityIndex);
+	return -1;
+    }
+}
+
+int hri_delete_agent_entity_distance_management(HRI_AGENT * agent,int agentPartIndex,int entityIndex){
+    
+    HRI_KNOWLEDGE * kn;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+    bool isAgentPartManaged = false;
+    int i,toDeleteIndex,curArraySize,* ptLastIntArrayValue;
+    HRI_DISTANCE_AND_SPEED_INFO * distSpeedInfo1;
+    HRI_DISTANCE_AND_SPEED_INFO * distSpeedInfo2;
+
+    if(agent == NULL || agent->knowledge == NULL) {
+        printf("AGENT not initialized for hri_delete_agent_entity_distance_management\n");
+        return -1;
+    }
+    kn = agent->knowledge;    
+    if(entityIndex >= kn->entities_nb){
+	printf("entity index too big %d for hri_delete_agent_entity_distance_management\n",entityIndex);
+        return -1;
+    }
+    
+    /// index is -1 for agent body and hand index if >=0
+    if((agentPartIndex < -1) || (agentPartIndex >= agent->hand_nb)){
+	printf("unmanaged agent part index %d for hri_delete_agent_entity_distance_management\n",entityIndex);
+	return -1;
+    }
+
+    kn_on_ent = &agent->knowledge->entities[entityIndex];
+    curArraySize = kn_on_ent->manageDistanceAndSpeedInfoArraySize;
+
+    if(curArraySize>0){
+	// is this agentPart already managed?
+	for (i=0; i<curArraySize; i++) {
+	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == agentPartIndex){
+		toDeleteIndex = i;
+		isAgentPartManaged = true;
+		break;
+	    }
+	}	 
+    }
+
+    if(isAgentPartManaged){
+	///We copy one step to the left
+	for (i=toDeleteIndex; i<curArraySize-1; i++) {
+	    kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] = kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i+1];
+	    distSpeedInfo1 = &kn_on_ent->distanceAndSpeedInfoArray[i];
+	    distSpeedInfo2 = &kn_on_ent->distanceAndSpeedInfoArray[i+1];
+	    distSpeedInfo1->distOld=distSpeedInfo2->distOld;
+	    distSpeedInfo1->distNew=distSpeedInfo2->distSecond;
+	    distSpeedInfo1->timeOld=distSpeedInfo2->timeOld;
+	    distSpeedInfo1->timeNew=distSpeedInfo2->timeNew;
+	    distSpeedInfo1->numTimeStep=distSpeedInfo2->numTimeStep;
+	    distSpeedInfo1->speed=distSpeedInfo2->speed;
+	    distSpeedInfo1->averageDistanceScore=distSpeedInfo2->averageDistanceScore;
+	    distSpeedInfo1->averageDistanceScoreOld=distSpeedInfo2->averageDistanceScoreOld;
+
+	}
+	///MyFree
+	distSpeedInfo1 = &kn_on_ent->distanceAndSpeedInfoArray[curArraySize-1];
+	MY_FREE(distSpeedInfo1,HRI_DISTANCE_AND_SPEED_INFO,1);
+	ptLastIntArrayValue = &kn_on_ent->distanceAndSpeedInfoArrayAgentPartIndex[curArraySize-1];
+	MY_FREE(ptLastIntArrayValue,int,1);
+    }
+
+    else{
+	printf("agent part index %d not already managed for hri_delete_agent_entity_distance_management\n",entityIndex);
+	return -1;
+    }
+
+}
+
+int hri_delete_agent_entity_divergent_position(HRI_AGENT * agent,int entityIndex){
+    HRI_KNOWLEDGE * kn;
+    HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
+
+    if(agent == NULL || agent->knowledge == NULL) {
+        printf("AGENT not initialized for hri_delete_agent_entity_divergent_position\n");
+        return -1;
+    }
+    kn = agent->knowledge;    
+    if(entityIndex >= kn->entities_nb){
+	printf("entity index too big %d for hri_delete_agent_entity_divergent_position\n",entityIndex);
+        return -1;
+    }
+    kn_on_ent = &agent->knowledge->entities[entityIndex];
+    if(kn_on_ent->hasEntityPosition){
+	MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[entityIndex]->robotPt->nb_dof);
+	kn_on_ent->hasEntityPosition = false;
+	agent->knowledge->numDivergentPositions--;
+    }
+}
 
 void hri_display_entities(HRI_ENTITIES * ents)
 {
@@ -2082,6 +2320,10 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
             ent = ents->entities[ge_i];
             kn_on_ent = &agent->knowledge->entities[ge_i];
+
+	    ///Agent entity distance management computation
+	    if(kn_on_ent->manageDistanceAndSpeedInfoArraySize >0)
+		hriComputeAgentEntityDistanceManagement(agent,ge_i);
 
 	    /// Do not compute facts if agent doen't have knowledge on this robot position.
 	    if(!kn_on_ent->hasEntityPositionKnowledge)
