@@ -223,6 +223,20 @@ typedef enum ENUM_HRI_SPATIAL_RELATION {
   HRI_NEAR = 23
 } HRI_SPATIAL_RELATION;
 
+
+/// Structure use to study distance and speed between one entity and agent part
+/// It is used to get table agent move to or object agent want to grasp.
+typedef struct STRUCT_HRI_DISTANCE_AND_SPEED_INFO {
+    double distOld;
+    double distNew;
+    double timeOld;
+    double timeNew;
+    int numTimeStep;
+    double speed;
+    double averageDistanceScore;
+    double averageDistanceScoreOld;
+} HRI_DISTANCE_AND_SPEED_INFO;
+
 //! @ingroup KNOWLEDGE
 typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
     HRI_ENTITY * entPt;
@@ -348,19 +362,6 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
    bool needToSaveObjPositions; // true if current object positions for this agent need to be saved. (Divergent Belief Management)
 } HRI_KNOWLEDGE;
 
-
-/// Structure use to study distance and speed between one entity and agent part
-/// It is used to get table agent move to or object agent want to grasp.
-typedef struct HRI_DISTANCE_AND_SPEED_INFO {
-    double distOld;
-    double distNew;
-    double timeOld;
-    double timeNew;
-    int numTimeStep;
-    double speed;
-    double averageDistanceScore;
-    double averageDistanceScoreOld;
-} HRI_DISTANCE_AND_SPEED_INFO;
 
 
 /// Draw small spheres to show divergent positions.

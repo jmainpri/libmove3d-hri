@@ -1078,13 +1078,13 @@ double compute2BBCentersDistance(p3d_BB *bb1,p3d_BB *bb2){
     double bb2X;
     double bb2Y;
     double bb2Z;
-    bb1X = (bb1.xmax - bb1.xmin)/2;
-    bb1Y = (bb1.ymax - bb1.ymin)/2;
-    bb1Z = (bb1.zmax - bb1.zmin)/2;
+    bb1X = (bb1->xmax - bb1->xmin)/2;
+    bb1Y = (bb1->ymax - bb1->ymin)/2;
+    bb1Z = (bb1->zmax - bb1->zmin)/2;
 
-    bb2X = (bb2.xmax - bb2.xmin)/2;
-    bb2Y = (bb2.ymax - bb2.ymin)/2;
-    bb2Z = (bb2.zmax - bb2.zmin)/2;
+    bb2X = (bb2->xmax - bb2->xmin)/2;
+    bb2Y = (bb2->ymax - bb2->ymin)/2;
+    bb2Z = (bb2->zmax - bb2->zmin)/2;
     return DISTANCE3D(bb1X,bb1Y,bb1Z,bb2X,bb2Y,bb2Z);
 }
 /// Agent Entity Distance
@@ -1112,17 +1112,17 @@ int hriComputeAgentEntityDistanceManagement(HRI_AGENT * agent, int entityIndex){
     curArraySize = kn_on_ent->manageDistanceAndSpeedInfoArraySize;
 
         //Compute max BB middle width for object or agent part that give the inferred position
-    if((kn_on_ent->entPt == HRI_OBJECT_PART) || (kn_on_ent->entPt == HRI_AGENT_PART) ) 
-	bb1 = kn_on_ent->entPt->partPt->BB;
+    if((kn_on_ent->entPt->type == HRI_OBJECT_PART) || (kn_on_ent->entPt->type == HRI_AGENT_PART) ) 
+	bb1 = &kn_on_ent->entPt->partPt->BB;
     else 
-	bb1 = kn_on_ent->entPt->robotPt->BB;
+	bb1 = &kn_on_ent->entPt->robotPt->BB;
 
     for (i=0; i<curArraySize; i++) {
 	///Main agent
-	if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == -1)
-	    bb2 = agent->robotPt->BB;       
-	else if((kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] > -1) && (kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] < agent->hand_nb))
-	    bb2 = agent->hand[i]->entPt->partPt->BB;
+	if(kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] == -1)
+	    bb2 = &agent->robotPt->BB;       
+	else if((kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] > -1) && (kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] < agent->hand_nb))
+	    bb2 = &agent->hand[i]->partPt->BB;
 	else
 	    printf("unmanaged hand index %d for agent part entity distance computation \n",i);
 	
@@ -1180,7 +1180,7 @@ int hri_add_agent_entity_distance_management(HRI_AGENT * agent, int agentPartInd
     if(curArraySize>0){
 	// is this agentPart already managed?
 	for (i=0; i<curArraySize; i++) {
-	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == agentPartIndex){
+	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] == agentPartIndex){
 		isAgentPartAlreadyManaged = true;
 		break;
 	    }
@@ -1242,7 +1242,7 @@ int hri_delete_agent_entity_distance_management(HRI_AGENT * agent,int agentPartI
     if(curArraySize>0){
 	// is this agentPart already managed?
 	for (i=0; i<curArraySize; i++) {
-	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayType[i] == agentPartIndex){
+	    if(kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[i] == agentPartIndex){
 		toDeleteIndex = i;
 		isAgentPartManaged = true;
 		break;
@@ -1257,7 +1257,7 @@ int hri_delete_agent_entity_distance_management(HRI_AGENT * agent,int agentPartI
 	    distSpeedInfo1 = &kn_on_ent->distanceAndSpeedInfoArray[i];
 	    distSpeedInfo2 = &kn_on_ent->distanceAndSpeedInfoArray[i+1];
 	    distSpeedInfo1->distOld=distSpeedInfo2->distOld;
-	    distSpeedInfo1->distNew=distSpeedInfo2->distSecond;
+	    distSpeedInfo1->distNew=distSpeedInfo2->distNew;
 	    distSpeedInfo1->timeOld=distSpeedInfo2->timeOld;
 	    distSpeedInfo1->timeNew=distSpeedInfo2->timeNew;
 	    distSpeedInfo1->numTimeStep=distSpeedInfo2->numTimeStep;
@@ -1269,7 +1269,7 @@ int hri_delete_agent_entity_distance_management(HRI_AGENT * agent,int agentPartI
 	///MyFree
 	distSpeedInfo1 = &kn_on_ent->distanceAndSpeedInfoArray[curArraySize-1];
 	MY_FREE(distSpeedInfo1,HRI_DISTANCE_AND_SPEED_INFO,1);
-	ptLastIntArrayValue = &kn_on_ent->distanceAndSpeedInfoArrayAgentPartIndex[curArraySize-1];
+	ptLastIntArrayValue = &kn_on_ent->manageDistanceAndSpeedInfoArrayAgentPartIndex[curArraySize-1];
 	MY_FREE(ptLastIntArrayValue,int,1);
     }
 
@@ -1295,7 +1295,7 @@ int hri_delete_agent_entity_divergent_position(HRI_AGENT * agent,int entityIndex
     }
     kn_on_ent = &agent->knowledge->entities[entityIndex];
     if(kn_on_ent->hasEntityPosition){
-	MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[entityIndex]->robotPt->nb_dof);
+	MY_FREE(kn_on_ent->entityPositionForAgent, double, kn_on_ent->entPt->robotPt->nb_dof);
 	kn_on_ent->hasEntityPosition = false;
 	agent->knowledge->numDivergentPositions--;
     }
