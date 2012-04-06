@@ -246,6 +246,8 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
     bool isEntityPositionInModel; /// true if this position is currently the one in model
     /* bool hasDifferentEntityPosition; */  /// true if different from main agent.
     bool hasEntityPositionKnowledge; /// true if agent knows position. (It could be the same one as robot, a different one known by robot (hasEntityPosition true and hasDifferentEntityPosition true) or unknown to robot.
+    bool hasEntityPositionKnowledgeExportedValue; 
+    double lastEntPosX,lastEntPosY,lastEntPosZ; ///X,Y,Z value of enity last known position.
     //! @ingroup VISIBILITY
     /**
      * entityPositionForAgent is filled 
@@ -360,6 +362,7 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
     int numDivergentPositions; /// number
     int numUnknownPositions;  /// number of object
    bool needToSaveObjPositions; // true if current object positions for this agent need to be saved. (Divergent Belief Management)
+    bool needToCheckEntitiesPositionKnowledge;  /// true if agent position knowledge need to be checked once agent appears.  
 } HRI_KNOWLEDGE;
 
 
