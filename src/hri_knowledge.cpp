@@ -2299,13 +2299,13 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
 				/// If agent has divergent position and should see entities for its position but doesn't see it then it knows it doesn't have position knowledge for this object.
 				if((a_k == a_i) && (a_i != agents->source_agent_idx) && kn_on_ent->hasEntityPosition && (kn_on_ent->visibilityBy[a_k] ==  HRI_VISIBLE)){
-				    MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[e_i]->robotPt->nb_dof);
+				    MY_FREE(kn_on_ent->entityPositionForAgent, double, ents->entities[ge_j]->robotPt->nb_dof);
 				    kn_on_ent->hasEntityPosition = false;
 				    agent->knowledge->numDivergentPositions--;
 				    kn_on_ent->hasEntityPositionKnowledge = false;
 				    agent->knowledge->numUnknownPositions++;
 				    /// Delete All Facts for this entity in this agent model.
-				    DeleteAllFactsOfAgentForThisEntity(agents,a_i,ents,e_j);
+				    DeleteAllFactsOfAgentForThisEntity(agents,a_i,ents,ge_j);
 				    printf("Delete Agent %s hasEntityPosition for %s. Doesn't see old but should\n" ,agent->robotPt->name,ents->entities[e_i]->name);
 				}				
 			    }
