@@ -1894,6 +1894,7 @@ int SetCurrentAgentEntityPositionsInModel(HRI_AGENTS * agents,int agentIndex, HR
     }
 }
 
+/// If agent has no saved position and object position is not explicitely considered as unknown for a movable object, it means this object was never encountered while the agent was here and it should be considered as having an unknown position.
 int CheckAgentPositionKnowledge(HRI_AGENTS * agents, int agentIndex, HRI_ENTITIES * ents){
     int e_i;
     HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent;
@@ -1902,7 +1903,7 @@ int CheckAgentPositionKnowledge(HRI_AGENTS * agents, int agentIndex, HRI_ENTITIE
     for(e_i=0; e_i<ents->entities_nb; e_i++) { 
 	if(ents->entities[e_i]->is_present && (ents->entities[e_i]->subtype == HRI_MOVABLE_OBJECT)){
 	    kn_on_ent = &(agent->knowledge->entities[e_i]);
-	    if(kn_on_ent->hasEntityPositionKnowledge && kn_on_ent->hasEntityPositionKnowledge){
+	    if(!kn_on_ent->hasEntityPosition && kn_on_ent->hasEntityPositionKnowledge){
 		kn_on_ent->hasEntityPositionKnowledge = false;
 		agent->knowledge->numUnknownPositions++;
 		kn_on_ent->lastEntPosX = kn_on_ent->entPt->robotPt->joints[1]->abs_pos[0][3];
@@ -1914,6 +1915,8 @@ int CheckAgentPositionKnowledge(HRI_AGENTS * agents, int agentIndex, HRI_ENTITIE
 }
 
 //Compare existing divergent positions with robot one . (Is agent position different from robot? Does agent see new position) 
+/// !!!! We assume current position in the model is source robot one.
+/// !!!! We assume visibility in source robot model are uptodate.
 int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int agentIndex, HRI_ENTITIES * ents,double distThreshold){
     int e_i;
     HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent,*sourceAgentKn_on_ent;
@@ -1921,11 +1924,11 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
     double dist;
     HRI_AGENT * agent;
     agent = agents->all_agents[agentIndex];
-    deleteDivergentPosition = false;
 
     for(e_i=0; e_i<ents->entities_nb; e_i++) { 
 	if(ents->entities[e_i]->is_present && (ents->entities[e_i]->subtype == HRI_MOVABLE_OBJECT)){
 	    kn_on_ent = &(agents->all_agents[agentIndex]->knowledge->entities[e_i]);
+	    deleteDivergentPosition = false;
 	    if(kn_on_ent->hasEntityPosition){
 		printf("Agent %s hasEntityPosition for %s\n" ,agents->all_agents[agentIndex]->robotPt->name,ents->entities[e_i]->name);
 		sourceAgentKn_on_ent = &agents->all_agents[agents->source_agent_idx]->knowledge->entities[e_i];
@@ -1936,12 +1939,14 @@ int CompareCurrentAgentEntityPositionsWithRobotOnes(HRI_AGENTS * agents, int age
 		    deleteDivergentPosition = true;
 		}
 	    
-		/// Is divergent object position different enough from
+		/// Is divergent object position different enough from perceiving robot.
+		/// !!!! We assume perceiving/source robot position is the one in 3d model.
+		/// IE : we have not yet set divergent position in model to compute divergent facts.
 		if(!deleteDivergentPosition){
 		    dist = DISTANCE3D(
-				      sourceAgentKn_on_ent->entityPositionForAgent[6],
-				      sourceAgentKn_on_ent->entityPositionForAgent[7],
-				      sourceAgentKn_on_ent->entityPositionForAgent[8],
+				      kn_on_ent->entPt->robotPt->joints[1]->abs_pos[0][3],
+				      kn_on_ent->entPt->robotPt->joints[1]->abs_pos[1][3],
+				      kn_on_ent->entPt->robotPt->joints[1]->abs_pos[2][3],
 				      kn_on_ent->entityPositionForAgent[6],
 				      kn_on_ent->entityPositionForAgent[7],
 				      kn_on_ent->entityPositionForAgent[8]
@@ -2222,7 +2227,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
     // Print to inform about recomputation status.
     if(ents->printSARecomputeStatus)
-        printf("needSituationAssessmentUpdate : %d ; EventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ; ; ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
+        printf("needSituationAssessmentUpdate : %d ; EventsInTheWorld : %d; lastEventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ; ; ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->lastEventsInTheWorldStep,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
 
     vis_result = MY_ALLOC(HRI_VISIBILITY, ents->entities_nb); // ALLOC
     present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
