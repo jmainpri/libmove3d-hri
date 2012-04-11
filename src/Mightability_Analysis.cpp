@@ -27,7 +27,7 @@
 #include <move3d-gui.h>
 #include <GL/glut.h>    /* Header File For The GLUT Library */
 
-
+#include <../lightPlanner/proto/lightPlannerApi.h>
 
 #include "hri_bitmap/hri_bitmap_util.h"
 #include "hri_bitmap/hri_bitmap_draw.h"
@@ -130,6 +130,7 @@ int BT_AFFORDANCE_VISIBILITY=1;//For the bitmap which is used for calculating vi
 
 extern HRI_TASK_TYPE CURRENT_HRI_MANIPULATION_TASK;
 extern candidate_poins_for_task *CANDIDATE_POINTS_FOR_CURRENT_TASK;
+static ManipulationPlanner *manipulation= NULL;
 // extern candidate_poins_for_task candidate_points_to_put;
 // extern candidate_poins_for_task candidate_points_to_show;
 // extern candidate_poins_for_task candidate_points_to_hide;
@@ -404,6 +405,17 @@ extern int NUM_VALID_GRASPABLE_OBJ;
   
   extern MY_GRAPH object_flow_graph;
   
+  int ENABLE_PUT_INTO_POINTS_ANALYSIS=1;
+  
+  int SHOW_CONTAINER_ORIENTED_PUTINTO_POINTS=0;
+     
+  std::vector <object_putinto_points> Obj_Put_Into_Pts; 
+const char* Container_Names[] = {"PINK_TRASHBIN", "TRASHBIN"};
+
+std::vector<std::string> container_names(Container_Names, Container_Names+sizeof(Container_Names)/sizeof(char*));
+
+agent_effort_configs Ag_Obj_Ab_mini_effort_states[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV]; //Will be used to store the agents configs corresponding to minimum effort for visibility and reachability of objects
+
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -411,7 +423,7 @@ std::list<gpGrasp> grasps_for_object;
 int execute_Mightability_Map_functions()
 {
    
-printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", Affordances_Found);
+////printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", Affordances_Found);
 ////test_inside(( p3d_rob* ) p3d_get_robot_by_name ( "TRASHBIN" ), ( p3d_rob* ) p3d_get_robot_by_name ( "GREY_TAPE" ));
 
   if(Affordances_Found==1)
@@ -753,6 +765,16 @@ printf(" Inside execute_Mightability_Map_functions(), Affordances_Found=%d\n", A
 
     ////////pqp_print_colliding_pair();
   
+  if(ENABLE_PUT_INTO_POINTS_ANALYSIS==1)
+  {
+  if(SHOW_CONTAINER_ORIENTED_PUTINTO_POINTS==1)
+   {
+  show_put_into_points();
+   }
+  
+  update_put_into_points();
+  }
+  
     return 1;
 }
 
@@ -769,6 +791,7 @@ int show_taskabilities(show_taskability_params &curr_params )
     if(curr_params.show_all_manipulability_graph==1)
     {
       show_all_manipulability_graph();
+      show_all_put_into_ability_graph();
     }
   
    if(curr_params.show_taskability_node==1)
@@ -5221,6 +5244,9 @@ int Create_and_init_Mightability_Maps(char *around_object)
   init_active_arms_for_HRI_tasks();
   
   init_Ag_Obj_Ab_mini_effort_states();
+  
+  init_Container_Oriented_put_into_points();
+  
   
   CALCULATE_AFFORDANCE=1;
 
@@ -15217,6 +15243,14 @@ int update_robots_and_objects_status()
                   at_least_one_object_has_moved=1;
 		  printf(" >>**>> Robot = %s has moved.\n",r->name);
 		  
+		  if(check_obj_is_container(r->name)==1)
+		  {
+		    int indx=get_index_for_obj_in_putintolist(r_ctr);
+		    if(indx>=0)
+		    {
+		      Obj_Put_Into_Pts.at(indx).need_updation=1;
+		    }
+		  }
 		  /*
 		    robots_status_for_Mightability_Maps[r_ctr].prev_x=robots_status_for_Mightability_Maps[r_ctr].curr_x;
 		    robots_status_for_Mightability_Maps[r_ctr].prev_y=robots_status_for_Mightability_Maps[r_ctr].curr_y;
@@ -24850,6 +24884,9 @@ int set_accepted_effort_level_for_HRI_task(HRI_task_agent_effort_level desired_l
     {
     
       printf(" >>***>> HRI task WARNING: Reach is set to be relevant for the agent %d but for the current effort level %d, the number of associated mightability analysis types is %d. This create abnormal result in finding candidate points for the tasks.\n", effort_for_agent, maxi_reach_accept, Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types);
+      printf(" So, returning without setting the acceptable states \n");
+      return 0;
+      
     }
     
    for(int i=0;i<Analysis_type_Effort_level[effort_for_agent][ability][maxi_reach_accept].num_analysis_types;i++)
@@ -25579,7 +25616,7 @@ glMultMatrixf(matGL);
    
 }
 
-agent_effort_configs Ag_Obj_Ab_mini_effort_states[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV]; //Will be used to store the agents configs corresponding to minimum effort for visibility and reachability of objects
+
 
 int init_Ag_Obj_Ab_mini_effort_states()
 {
@@ -26077,12 +26114,14 @@ int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, int for_o
 {
   printf("Inside show_Ag_Ab_Obj_least_effort_states() \n");
   
+  int cur_SHOW_LEAST_EFFORTS=SHOW_LEAST_EFFORTS;
   int cur_SHOW_TASKABILITIES=SHOW_TASKABILITIES;
   
   int curr_UPDATE_MIGHTABILITY_MAP_INFO=UPDATE_MIGHTABILITY_MAP_INFO;
   
   UPDATE_MIGHTABILITY_MAP_INFO=0;
   SHOW_TASKABILITIES=0;
+  SHOW_LEAST_EFFORTS=0;
   
   G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
   p3d_rob* curr_rob=XYZ_ENV->cur_robot;
@@ -26110,6 +26149,7 @@ int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, int for_o
    g3d_draw_robot(envPt_MM->robot[indices_of_MA_agents[for_agent]]->num, window, 0);
    
    ////g3d_draw_allwin_active();
+   
    if(for_ability==REACH_ABILITY)
    {
    for_hands.clear();
@@ -26156,7 +26196,395 @@ int show_Ag_Ab_Obj_least_effort_states(int for_agent, int for_ability, int for_o
          SHOW_TASKABILITIES=cur_SHOW_TASKABILITIES;
   
   UPDATE_MIGHTABILITY_MAP_INFO=curr_UPDATE_MIGHTABILITY_MAP_INFO;
+  SHOW_LEAST_EFFORTS=cur_SHOW_LEAST_EFFORTS;
+  return 1;
+  
   
 }
 
+//Caldulating object's putinto points
+
+int get_index_for_obj_in_putintolist(int container_index)
+{
+  for(int i=0; i<Obj_Put_Into_Pts.size();i++)
+  {
+    if(Obj_Put_Into_Pts.at(i).object_index==container_index)
+    {
+      return i;
+    }
+  }
+  
+  return -1;
+  
+}
+
+int find_putinto_points_for_object(int container_index)
+{
+  object_putinto_points cur_element;
+  
+  int container_indx_in_list= get_index_for_obj_in_putintolist(container_index);
+  if(container_indx_in_list>=0)//already existing in the list, so just remove the existing list of points
+  {
+    Obj_Put_Into_Pts.at(container_indx_in_list).points.clear();
+  }
+  else
+  {
+    cur_element.object_index=container_index;
+    cur_element.need_updation=0;
+    cur_element.points.clear();
+    
+    Obj_Put_Into_Pts.push_back(cur_element);
+    container_indx_in_list= get_index_for_obj_in_putintolist(container_index);
+  }
+  
+  
+  p3d_rob *container=envPt_MM->robot[container_index];
+  
+  
+  if(container==NULL)
+  {
+   printf(" NULL argument for container\n");
+   return 0;
+  }
+  
+  bool inside;
+  double distance;
+  int i, j, k, nbPoints, result;
+  p3d_vector3 p;
+  p3d_vector3 *points= NULL;
+  p3d_matrix4 T;
+  p3d_polyhedre *polyContainer= NULL, *poly= NULL;
+  std::vector<double> point(3);
+  gpConvexHull3D chull;
+
+  polyContainer= container->o[0]->pol[0]->poly;
+  
+
+  nbPoints= 0;
+  for(i=0; i <container->o[0]->np; ++i)
+  {  nbPoints+= container->o[0]->pol[i]->poly->nb_points; }
+  points= (p3d_vector3 *) malloc(nbPoints*sizeof(p3d_vector3));
+
+  k= 0;
+  for(i=0; i <container->o[0]->np; ++i)
+  {  
+    p3d_matMultXform(container->o[0]->jnt->abs_pos, container->o[0]->pol[i]->pos_rel_jnt, T);
+
+    for(j=0; j<container->o[0]->pol[i]->poly->nb_points; ++j)
+    {
+      p3d_vectCopy(container->o[0]->pol[i]->poly->the_points[j], p);
+      p3d_xformPoint(T, p, points[k]);
+      k++;
+    }
+  }
+
+
+  chull.setPoints(points, nbPoints);
+  chull.compute(true, 0.0, false);
+//   chull.draw();
+
+ 
+  
+          double increment=3.0/4.0*grid_around_HRP2.GRID_SET->pace;
+	  double top_z=container->BB.zmax;
+	  int cell_top_z=(top_z- grid_around_HRP2.GRID_SET->realz)/grid_around_HRP2.GRID_SET->pace;
+     
+	  double BB_x;
+	  double BB_y;
+
+	  point_co_ordi pt;
+	  
+	  //for(BB_x=container->BB.xmin;BB_x<container->BB.xmax;BB_x+=increment)
+	//	{
+		  
+	//	}
+		
+	  ///////if(cell_top_z>=0&&cell_top_z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz)
+	  ///////  { 
+	      for(BB_x=container->BB.xmin;BB_x<container->BB.xmax;BB_x+=increment)
+		{
+		////////  int cell_x=(BB_x- grid_around_HRP2.GRID_SET->realx)/grid_around_HRP2.GRID_SET->pace;  
+
+		////////  if(cell_x>=0&&cell_x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx)
+		////////    {
+		      for(BB_y=container->BB.ymin;BB_y<container->BB.ymax;BB_y+=increment)
+			{
+      
+		///////	  int cell_y=(BB_y- grid_around_HRP2.GRID_SET->realy)/grid_around_HRP2.GRID_SET->pace;  
+ 
+		///////	  if(cell_y>=0&&cell_y<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny)
+		///////	    {
+
+		////////	      if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_top_z].val>=0&&grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_top_z-1].val>=0)//No obstacle
+		////////		{
+				    point[0]= BB_x;
+				    point[1]= BB_y;
+				    point[2]= top_z-2.0*increment;
+				    
+				    chull.isPointInside(point, inside, distance);
+				    if(!inside)
+				    {
+				      printf(" put into point is not valid \n"); 
+				      
+				      
+				    }
+				    else
+				    {
+				      pt.x=BB_x;
+				      pt.y=BB_y;
+				      pt.z=top_z;
+				      Obj_Put_Into_Pts.at(container_indx_in_list).points.push_back(pt);
+				    }
+				////////}
+			   /////// }
+			}
+		   //////// }
+		}
+	    ////////}
+}
+
+int show_put_into_points()
+{
+ for(int i=0; i<Obj_Put_Into_Pts.size(); i++)
+ {
+   for(int j=0; j<Obj_Put_Into_Pts.at(i).points.size();j++)
+   {
+      g3d_drawDisc(Obj_Put_Into_Pts.at(i).points.at(j).x, Obj_Put_Into_Pts.at(i).points.at(j).y, Obj_Put_Into_Pts.at(i).points.at(j).z, 0.02, Red, NULL);
+
+   }
+ }
+}
+
+
+int init_Container_Oriented_put_into_points()
+{
+  
+  for(int i=0;i<container_names.size();i++)
+  {
+    find_putinto_points_for_object(get_index_of_robot_by_name((char*)container_names.at(i).c_str()));
+    
+  }
+}
+
+int check_obj_is_container(char *obj_name)
+{
+  for(int i=0;i<container_names.size();i++)
+  {
+    if(strcasestr(container_names.at(i).c_str(),obj_name))
+    {
+    
+      return 1;
+      
+    }
+    
+  }
+  return 0;
+  
+}
+
+int update_put_into_points()
+{
+  for(int i=0;i<container_names.size();i++)
+  {
+    if(Obj_Put_Into_Pts.at(i).need_updation==1)
+    {
+    find_putinto_points_for_object(Obj_Put_Into_Pts.at(i).object_index);
+    Obj_Put_Into_Pts.at(i).need_updation=0;
+    }
+  }
+  ////find_putinto_points_for_object(get_index_of_robot_by_name("PINK_TRASHBIN"));
+  
+}
+
+int find_agent_container_putinto_points(int agent_type, int container_obj_indx, int agent_cur_effort[2], candidate_poins_for_task *resultant_candidate_point)
+{
+  int container_indx_in_list= get_index_for_obj_in_putintolist(container_obj_indx);
+  
+  int cell_x, cell_y, cell_z;
+  
+  
+  int curr_vis_analysis_state;
+  int curr_reach_analysis_state;
+  
+  int point_ok=0;
+  
+  for(int i=0; i<Obj_Put_Into_Pts.at(container_indx_in_list).points.size();i++)
+  {
+    
+   cell_x=(Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).x- grid_around_HRP2.GRID_SET->realx)/grid_around_HRP2.GRID_SET->pace;
+    
+   if(cell_x>=0&&cell_x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx)
+   {
+     
+    cell_y=(Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).y- grid_around_HRP2.GRID_SET->realy)/grid_around_HRP2.GRID_SET->pace;
+    
+    if(cell_y>=0&&cell_y<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny)
+    {	
+       cell_z=(Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).z- grid_around_HRP2.GRID_SET->realz)/grid_around_HRP2.GRID_SET->pace;
+       
+       cell_z+=2;//To test reachability at some height
+     
+     if(cell_z>=0&&cell_z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz)
+     {	
+      
+        point_ok=0;
+       
+      for(int j=0;j<Analysis_type_Effort_level[agent_type][REACH_ABILITY][agent_cur_effort[REACH_ABILITY]].num_analysis_types;j++)
+      {
+     curr_reach_analysis_state=Analysis_type_Effort_level[agent_type][REACH_ABILITY][agent_cur_effort[REACH_ABILITY]].analysis_types[j];
+     
+     for(int k=0;k<agents_for_MA_obj.for_agent[agent_type].no_of_arms;k++)
+       {
+	if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.reachable[agent_type][curr_reach_analysis_state][k]==1)
+	{
+	  for(int l=0;l<Analysis_type_Effort_level[agent_type][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].num_analysis_types;l++)
+	  {
+	  curr_vis_analysis_state=Analysis_type_Effort_level[agent_type][VIS_ABILITY][agent_cur_effort[VIS_ABILITY]].analysis_types[l];
+	
+	  if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.visible[agent_type][curr_vis_analysis_state]==1)
+	   {
+	     resultant_candidate_point->point[resultant_candidate_point->no_points].x=Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).x;
+	      resultant_candidate_point->point[resultant_candidate_point->no_points].y=Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).y;	  
+	      resultant_candidate_point->point[resultant_candidate_point->no_points].z=Obj_Put_Into_Pts.at(container_indx_in_list).points.at(i).z;
+	    
+	      resultant_candidate_point->no_points++;
+  	      
+              point_ok=1;
+	      break;
+	   }
+	   
+	  }
+	}
+	
+	if(point_ok==1)
+	  break;
+       }
+			 
+       if(point_ok==1)
+	  break;
+      }
+      
+      
+     
+       
+     }
+       
+    }
+  }
+  }
+  
+                      
+}
+
+int get_reachable_config(int for_agent, p3d_rob* agent_Pt,p3d_rob* obj_Pt,configPt ag_curr_config, configPt &ag_res_config, int *by_hand)
+{
+  
+  
+  MA_agents_hand_joints_names for_shoulder;
+  
+  point_co_ordi shoulder_pos[2];
+  for_shoulder=RSHOULDER;
+  
+    
+    
+    point_co_ordi obj_pos;
+  
+  
+  obj_pos.x = obj_Pt->joints[1]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    obj_pos.y = obj_Pt->joints[1]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    obj_pos.z = obj_Pt->joints[1]->abs_pos[2][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    
+    double curr_pitch_ang=ag_curr_config[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch];
+    double act_pitch_ang=curr_pitch_ang;
+    
+    double maxi_lean_forward=M_PI/2.0;
+    int lean_forward=1;
+    double obj_dist[2];
+    int at_least_reachable_by_one_hand=0;
+    int jnt_indx;
+    
+	      while(1)
+              {
+		
+		for_shoulder=RSHOULDER;
+		jnt_indx=agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[for_shoulder];
+		shoulder_pos[for_shoulder].x = agent_Pt->joints[jnt_indx]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    shoulder_pos[for_shoulder].y = agent_Pt->joints[jnt_indx]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    shoulder_pos[for_shoulder].z = agent_Pt->joints[jnt_indx]->abs_pos[2][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    
+   
+    
+	        obj_dist[for_shoulder]=sqrt((shoulder_pos[for_shoulder].x-obj_pos.x)*(shoulder_pos[for_shoulder].x-obj_pos.x)+(shoulder_pos[for_shoulder].y-obj_pos.y)*(shoulder_pos[for_shoulder].y-obj_pos.y)+(shoulder_pos[for_shoulder].z-obj_pos.z)*(shoulder_pos[for_shoulder].z-obj_pos.z));	
+		
+		if(obj_dist[for_shoulder]<=0.8)//TODO: Sync with arm length of find_reachable_sphere_surface function
+                {
+		  by_hand[for_shoulder]=1;
+		  at_least_reachable_by_one_hand=1;
+		}
+		else
+		{
+		  by_hand[for_shoulder]=0;
+		}
+		
+		 for_shoulder=LSHOULDER;
+		 jnt_indx=agents_for_MA_obj.for_agent[for_agent].hand_params.joint_indices[for_shoulder];
+     shoulder_pos[for_shoulder].x =agent_Pt->joints[jnt_indx]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    shoulder_pos[for_shoulder].y = agent_Pt->joints[jnt_indx]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    shoulder_pos[for_shoulder].z = agent_Pt->joints[jnt_indx]->abs_pos[2][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+    
+	        obj_dist[for_shoulder]=sqrt((shoulder_pos[for_shoulder].x-obj_pos.x)*(shoulder_pos[for_shoulder].x-obj_pos.x)+(shoulder_pos[for_shoulder].y-obj_pos.y)*(shoulder_pos[for_shoulder].y-obj_pos.y)+(shoulder_pos[for_shoulder].z-obj_pos.z)*(shoulder_pos[for_shoulder].z-obj_pos.z));	
+		
+		if(obj_dist[for_shoulder]<=0.8)//TODO: Sync with arm length of find_reachable_sphere_surface function
+                {
+		  by_hand[for_shoulder]=1;
+		  at_least_reachable_by_one_hand=1;
+		}
+		else
+		{
+		  by_hand[for_shoulder]=0;
+		}
+		
+		if(at_least_reachable_by_one_hand==0)
+		{
+		curr_pitch_ang+=0.25;
+		if(curr_pitch_ang<=maxi_lean_forward)
+		 {
+		   ag_curr_config[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=curr_pitch_ang; 
+            p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_config);
+	     g3d_draw_allwin_active();
+		  //break;
+		 }
+		 else
+		 {
+		   break;
+		 }
+		}
+		else
+		{
+		 
+		  break;
+		}
+            
+	      }
+	      
+// 	       configPt ag_tmp_config = MY_ALLOC(double,agent_Pt->nb_dof); 
+//             p3d_get_robot_config_into(agent_Pt,&ag_tmp_config);
+// 	    ag_res_config=ag_tmp_config;
+if(at_least_reachable_by_one_hand==1)
+{
+            ag_res_config= MY_ALLOC(double,agent_Pt->nb_dof); 
+            p3d_get_robot_config_into(agent_Pt,&ag_res_config);
+}	    
+	    
+	    ag_curr_config[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=act_pitch_ang; 
+            p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_config);
+	     g3d_draw_allwin_active();
+	      
+// 	      ag_curr_pos[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=curr_pitch_ang; 
+//             p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);
+// 	     g3d_draw_allwin_active();
+	     
+	      return at_least_reachable_by_one_hand;
+  
+}
 

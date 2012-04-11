@@ -8,6 +8,7 @@
 
 #include "../lightPlanner/proto/ManipulationPlanner.hpp"
 #include "../lightPlanner/proto/ManipulationUtils.hpp"
+#include <boost/graph/graph_concepts.hpp>
 
 extern int find_affordance();
 extern int show_affordance();
@@ -207,7 +208,7 @@ extern int JIDO_find_solution_to_take_new2(char *obj_to_manipulate, HRI_TASK_TYP
 extern int JIDO_find_solution_to_take_new3(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
 extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, int filter_contact_polygon_inside_support, traj_for_HRI_task &res_trajs);
-extern int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list);
+extern int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list, std::vector<int> &ON_object_indices);
 extern int print_this_string_list(std::vector<std::string> &str_list);
 extern int get_clean_the_table_plan(char *Table_name);
 extern int update_effort_levels_for_HRI_Tasks(HRI_task_desc &curr_task, int effort_for, int desired_reach_effort, int desired_vis_effort);//effort_for=1 means for target agent, 2 means for performing agent
@@ -246,6 +247,17 @@ extern int init_and_allocate_OOM_data_field();
 extern int init_Agent_State_configs_data();
 extern int check_config_for_cell_already_pushed(int cell_x, int cell_y, int cell_z, int for_agent, int for_ability, int for_state, int for_hand, configPt ptr);//for_hand is not used in case of VIS_ABILITY
 extern int find_current_hri_goal_solution();
-
+extern int find_putinto_points_for_object(int container_index);
+extern int show_put_into_points();
+extern int update_put_into_points();
+extern int init_Container_Oriented_put_into_points();
+extern int check_obj_is_container(char *obj_name);
+extern int get_index_for_obj_in_putintolist(int container_index);
+extern int find_agent_container_putinto_points(int agent_type, int container_obj_indx, int agent_cur_effort[2], candidate_poins_for_task *resultant_candidate_point);
+extern int find_put_into_ability_graph();
+extern int show_all_put_into_ability_graph();
+extern int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ);
+extern int get_shortest_path_for_this_pair(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ);
+extern int get_reachable_config(int for_agent, p3d_rob* agent_Pt,p3d_rob* obj_Pt,configPt ag_curr_config, configPt &ag_res_config, int *by_hand);
 #endif /* __CEXTRACT__ */
 

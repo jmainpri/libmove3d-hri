@@ -61,6 +61,7 @@ typedef struct HRI_task_desc
  HRI_TASK_TYPE task_type;
  
  std::string for_object;
+ std::string for_container;//Used for put into tasks
 
  HRI_TASK_AGENT by_agent;
  HRI_TASK_AGENT for_agent;
@@ -169,7 +170,7 @@ typedef struct graph_edge
 {
  double performing_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
  double target_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
- int no_candidate; //to store no. of points or grasps depending upon Taskability or Manipulability graph
+ int no_candidate; //to store no. of points or grasps depending upon Taskability, Manipulability graph or Put Into Ability graph
  int edge_task_type;
  
  int agent_role_for_edge; //1 for performing agent, 2 for target agent

@@ -53,6 +53,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <QtCore/qtextstream.h>
 
 
 using namespace std;
@@ -151,6 +152,14 @@ extern int PR2_CURRENT_POSTURE;
 std::vector<taskability_node> manipulability_graph;
 std::map<std::string, int > manipulability_node_DESC_ID_map;
 
+std::vector<taskability_node> put_into_ability_graph;
+std::map<std::string, int > put_into_ability_node_DESC_ID_map;
+
+extern std::vector <object_putinto_points> Obj_Put_Into_Pts; 
+
+extern std::vector<std::string> container_names;
+
+
 // // typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, graph_vertex, graph_edge > MY_GRAPH;
 // // typedef boost::graph_traits<MY_GRAPH>::vertex_descriptor MY_VERTEX_DESC;
 // // typedef boost::graph_traits<MY_GRAPH>::edge_descriptor MY_EDGE_DESC;
@@ -162,6 +171,10 @@ MY_GRAPH object_flow_graph;
 
 int done_object_flow_graph_init=0;
 
+extern agent_effort_configs Ag_Obj_Ab_mini_effort_states[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV]; //Will be used to store the agents configs corresponding to minimum effort for visibility and reachability of objects
+
+extern int STOP_AGENT_STATE_ANALYSIS;//Will be used by spark to set/reset
+extern agents_info_for_ASA agents_for_ASA[MAXI_NUM_OF_AGENT_FOR_HRI_TASK];
 //TODO : Put below in HRI_tasks_Proto.h
 
 int get_ranking_based_on_view_point(p3d_matrix4 view_frame,point_co_ordi point,p3d_rob *object, p3d_rob *human, std::list<gpPlacement> &placementList);
@@ -3604,6 +3617,7 @@ if(PLAN_IN_CARTESIAN == 1)
    double visibility, confCost;
 
    p3d_get_freeflyer_pose ( object, Tplacement0 );
+   
    p3d_get_freeflyer_pose2 ( object, &x, &y, &z, &rx, &ry, &rz );
 
    traj_for_HRI_sub_task traj_sub_task;
@@ -6746,7 +6760,7 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
     
     int find_solution_curr_res=0;
     int cur_vis_effort=MA_NO_VIS_EFFORT;
-    int cur_reach_effort=MA_NO_REACH_EFFORT;
+    int cur_reach_effort=MA_ARM_EFFORT;
     int maxi_vis_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
     int maxi_reach_effort_trans_available=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
     
@@ -7250,7 +7264,7 @@ performing_agent_rank=0;//Slave
 
 }
 
-int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list)
+int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list, std::vector<int> &ON_object_indices )
 {
   int support_indx=get_index_of_robot_by_name(supporting_obj_name);
   if(support_indx<0)
@@ -7261,6 +7275,7 @@ int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string
   int nr=envPt_MM->nr;
   
   ON_object_list.clear();
+  ON_object_indices.clear();
   
   for(int i=0; i<nr; i++)
   {
@@ -7270,7 +7285,7 @@ int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string
     {
       ////printf(" Obj %s is on the support %s \n",envPt_MM->robot[i]->name,envPt_MM->robot[supp_index]->name);
       ON_object_list.push_back(envPt_MM->robot[i]->name);
-      
+      ON_object_indices.push_back(i);
     }
   }
 }
@@ -7293,43 +7308,21 @@ int get_clean_the_table_plan(char *Table_name)
   std::vector<std::string> ON_object_list;
   std::vector<int> ON_object_indices;
   
-  get_object_list_on_object(Table_name, ON_object_list);
+  get_object_list_on_object(Table_name, ON_object_list, ON_object_indices);
   printf(" Objects on the %s are: \n", Table_name);
   print_this_string_list(ON_object_list);
    
-  ON_object_indices.clear();
   
-  for(int i=0;i<ON_object_list.size();i++)
-  {
-    int obj_indx= get_index_of_robot_by_name((char*)ON_object_list.at(i).c_str());
-    
-    if(obj_indx<0)
-    {
-   printf(" >>> HRI TASK Planner WARNING: Object %s could not be found, so will be ignored \n",ON_object_list.at(i).c_str());
-    }
-    else
-    {
-      ON_object_indices.push_back(obj_indx);
-    }
-  }
+   MY_VERTEX_DESC src, targ;
+       HRI_task_desc curr_task;
+       int valid_src_targ;
+       
+       
+  std::vector<MY_VERTEX_DESC> p(num_vertices(object_flow_graph), boost::graph_traits<MY_GRAPH>::null_vertex());//the predecessor array
+  std::vector<double> d(num_vertices(object_flow_graph));//The weight array 
   
-   int rob_type;
-#ifdef PR2_EXISTS_FOR_MA
-  rob_type=PR2_MA;
-#endif
-
-#ifdef JIDO_EXISTS_FOR_MA
-  rob_type=JIDO_MA;
-#endif
-  
-  find_manipulability_graph();
-    printf(" \n ==== After finding manipulability graph ==== \n");
-    
-  find_taskability_graph();
-  
-  printf(" \n ***** After finding taskability graph ***** \n");
-  
-  for(int i=0;i<ON_object_list.size();i++)
+       
+  for(int i=0;i<ON_object_indices.size();i++)
   {
   int cur_obj_indx=ON_object_indices.at(i);
   
@@ -7337,7 +7330,7 @@ int get_clean_the_table_plan(char *Table_name)
   
   int valid_manipulable_obj=0;
   for(int manip_obj_ctr=0;manip_obj_ctr<NUM_VALID_GRASPABLE_OBJ;manip_obj_ctr++)
-  {
+   {
     valid_manipulable_obj=0;
    if(strcasestr(envPt_MM->robot[cur_obj_indx]->name,MANIPULABLE_OBJECTS[manip_obj_ctr]))
       {
@@ -7346,7 +7339,7 @@ int get_clean_the_table_plan(char *Table_name)
 	break;
       }
       
-  }
+   }
   
   if(valid_manipulable_obj==0)
   {
@@ -7355,60 +7348,553 @@ int get_clean_the_table_plan(char *Table_name)
 	continue;
       
   }
-  ////int nr_ctr=1;
-  /*
-  //JUST to print all the visible and reachable states for debug
-  for(int j=0;j<agents_for_MA_obj.for_agent[rob_type].maxi_num_vis_states;j++)
-		{
-		    if(object_MM.object[cur_obj_indx].geo_MM.visible[rob_type][j]>0)
-		    {
-		      //printf(" Drawing disc\n"); 
-		      printf(" It is visible by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[rob_type]]->name);
-		      
-		    }
-		 
-		}
-		
-	      for(int j=0;j<agents_for_MA_obj.for_agent[rob_type].maxi_num_reach_states;j++)
-		{
-		for(int k=0;k<agents_for_MA_obj.for_agent[rob_type].no_of_arms;k++)
-		  {
-		  
-		     if(object_MM.object[cur_obj_indx].geo_MM.reachable[rob_type][j][k]>0)
-		    {
-		      //printf(" Drawing disc\n"); 
-		      ////g3d_drawDisc(cell_x_world, cell_y_world, cell_z_world, radius, curr_flags_show_Mightability_Maps.show_reachability[rob_type][j][k], NULL);
-		      printf(" It is reachable by %d state of %s \n", j, envPt_MM->robot[indices_of_MA_agents[rob_type]]->name);
-		      break;
-		   
-		    }
-		   
-		  }
-		}
-		//End for vis and reach print for debug
-		*/
-		
-		
-	     for(int ag_type=0;ag_type<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;ag_type++)
-	      {
-               std::vector<taskability_node>::iterator it; 
 
-              int ctr=0;
-              for(it=manipulability_graph.begin();it!=manipulability_graph.end();it++)
-               {
-               
-                if(it->performing_agent==ag_type)
-		{
-		  if(it->target_object==cur_obj_indx)
-		  {
-		    printf(" Agent %s can manipulate the object %s \n", envPt_MM->robot[indices_of_MA_agents[ag_type]]->name, envPt_MM->robot[cur_obj_indx]->name);
-		    printf("     Performing ag effort: (vis: %d, reach: %d), \n",    it->performing_ag_effort[VIS_ABILITY],it->performing_ag_effort[REACH_ABILITY]);
-		  }
-		}
-               }
+       curr_task.task_type=PUT_INTO_OBJECT;
+       curr_task.for_container="PINK_TRASHBIN";
+       curr_task.for_object=envPt_MM->robot[cur_obj_indx]->name;
+       
+       valid_src_targ=get_src_targ_vertex_pair_for_task(curr_task, object_flow_graph, src, targ);
+       
+       if(valid_src_targ==1)
+       {
+       printf(" Finding dijkstra_shortest_paths \n");
+       dijkstra_shortest_paths(object_flow_graph, src, boost::predecessor_map(&p[0]).distance_map(&d[0]).weight_map(get(&graph_edge::weight_for_graph_search, object_flow_graph))); 
+       //dijkstra_shortest_paths(object_flow_graph, s, predecessor_map(&p[0]).distance_map(&d[0]));
+       printf(" Finished finding dijkstra_shortest_paths \n");
+       
+       get_shortest_path_for_this_pair(object_flow_graph, p, d, src, targ);
+       }
+       
+  }
+}
+   
+
+
+int find_agent_object_affordance_displacement(HRI_task_desc curr_task, int obj_index, taskability_node &res_node )
+{
+  int MA_update_info=UPDATE_MIGHTABILITY_MAP_INFO;
+  UPDATE_MIGHTABILITY_MAP_INFO=0;
+  int ASA_status=STOP_AGENT_STATE_ANALYSIS;
+  STOP_AGENT_STATE_ANALYSIS=1;
+  
+  int task=curr_task.task_type;
+  ////int obj_index=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+  int performing_agent=curr_task.by_agent;
+  int agent_posture;
+  int agent_is_human=0;
+  int agent_supported=0;
+   if(performing_agent==HUMAN1_MA)
+  {
+    agent_posture=HUMAN1_CURRENT_STATE_MM;
+    agent_is_human=1;
+    agent_supported=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  if(performing_agent==HUMAN2_MA)
+  {
+    agent_posture=HUMAN2_CURRENT_STATE_MM;
+    agent_is_human=1;
+        agent_supported=1;
+
+  }
+#endif
+ 
+#ifdef PR2_EXISTS_FOR_MA
+  if(performing_agent==PR2_MA)
+  {
+    agent_posture=PR2_ARBITRARY_MA;
+    agent_is_human=0;
+        agent_supported=1;
+
+  }
+#endif
+
+int valid_placement_found=0;
+int at_least_one_valid_placement_found=0;
+
+p3d_rob * agent_Pt=envPt_MM->robot[indices_of_MA_agents[performing_agent]];
+p3d_rob * obj_Pt=envPt_MM->robot[get_index_of_robot_by_name((char*)curr_task.for_object.c_str())];
+p3d_rob * hum_bar_pt=envPt_MM->robot[get_index_of_robot_by_name((char*)"HUMAN_BAR")];
+
+p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
+
+ ////if(task==TAKE_OBJECT||task==GRASP_PICK_OBJECT)
+ //// {
+   
+    
+    int xs=0, ys=0; 
+    int x1,y1;
+    
+    double x_pos, y_pos, z_pos;
+    double curr_x, curr_y;
+    
+    configPt ag_actual_pos = MY_ALLOC(double,agent_Pt->nb_dof); 
+    p3d_get_robot_config_into(agent_Pt,&ag_actual_pos);
+    
+    z_pos=0.6;//To avoid collision with floor as the origin of object is at middle //ag_actual_pos[8];
+    
+    if(agent_is_human==1)
+    {
+    virtually_update_human_state_new(agent_Pt,HRI_STANDING);// Standing
+    }
+    
+//     configPt ag_curr_pos = MY_ALLOC(double,agent_Pt->nb_dof); /* Allocation of temporary robot configuration */
+//     p3d_get_robot_config_into(agent_Pt,&ag_curr_pos);
+    
+    
+    configPt obj_curr_pos = MY_ALLOC(double,obj_Pt->nb_dof); /* Allocation of temporary robot configuration */
+    p3d_get_robot_config_into(obj_Pt,&obj_curr_pos);
+     int for_object_indx=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+
+    curr_x=obj_curr_pos[6];
+    curr_y=obj_curr_pos[7];
+    
+    configPt hum_bar_pos = MY_ALLOC(double,hum_bar_pt->nb_dof); /* Allocation of temporary robot configuration */
+    p3d_get_robot_config_into(hum_bar_pt,&hum_bar_pos);
+    
+    double max_dist=1.1;//Assuming with lean forward an agent can maximally this much m reach from a fixed position
+    double sample_dist=0.15;//grid_around_HRP2.GRID_SET->pace;
+    int maxi_dist_num_cells=max_dist/sample_dist;
+
+     int collision_occured=0;
+      int kcd_with_report=0;
+     int res;
+     
+     double ag_obj_rel_ang=0;
+     int reachable_by_hand[MAXI_NUM_OF_HANDS_OF_AGENT];
+     
+    for (int d = 2; d<maxi_dist_num_cells; d++)//Init d=1 if don't want to skip the first ring of cells from the centre
+    {
+	for (int i = 0; i < d + 1; i++)
+	{
+	  
+	  valid_placement_found=0;
+	  
+	    x1 = xs - d + i;
+	    y1 = ys - i;
+
+	    x_pos=curr_x+x1*sample_dist;
+	    y_pos=curr_y+y1*sample_dist;
+	    
+	     hum_bar_pos[6]=x_pos;
+	    hum_bar_pos[7]=y_pos;
+	    hum_bar_pos[8]=z_pos;
+	    
+	    p3d_set_and_update_this_robot_conf(hum_bar_pt, hum_bar_pos);
+	    g3d_draw_allwin_active();
+	 
+            collision_occured=0;
+            res = p3d_col_test_robot(hum_bar_pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+	
+            configPt ag_curr_pos = MY_ALLOC(double,agent_Pt->nb_dof); 
+            p3d_get_robot_config_into(agent_Pt,&ag_curr_pos);
+    
+	    ag_curr_pos[6]=x_pos;
+	    ag_curr_pos[7]=y_pos;
+	    
+	    ag_obj_rel_ang=atan2((curr_y-y_pos),(curr_x-x_pos));
+	    
+	    ////ag_curr_pos[11]=ag_actual_pos[11]-ag_obj_rel_ang;
+		  printf(" ag_actual_pos[11] = %lf, ag_obj_rel_ang = %lf \n", ag_actual_pos[11]*180.0/M_PI, ag_obj_rel_ang*180.0/M_PI);
+	    
+	    ag_curr_pos[11]=ag_obj_rel_ang;
+	    
+	    p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);
+	    g3d_draw_allwin_active();
+	 
+            collision_occured=0;
+	    p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
+            res = p3d_col_test_robot(agent_Pt,kcd_with_report);
+	    
+	    if(res<=0)
+	       { 
+		 
+		printf(" valid Config \n");
+		configPt ag_res_config;
 		
+		int reach_test=get_reachable_config(performing_agent, agent_Pt, obj_Pt, ag_curr_pos, ag_res_config, reachable_by_hand);
+		if(reach_test==1)
+		{
+		  #ifdef STORE_STATE_CONFIGS
+		  if(ag_res_config==NULL)
+		  {
+		    printf(" Manipulability ERROR: ag_res_config should not be NULL, as a valid reachable config has been found. Debug it\n");
+		  }
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].configs.push_back(ag_res_config);
+	
+		  for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
+		  {
+		  printf(" For hand %d \n",k);
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].by_hand[k].push_back(reachable_by_hand[k]);
+		  ////printf(" Object is reachable by effort level %d state %d of %s by hand %d\n", agent_cur_effort[for_ability], curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[for_agent]]->name, k);
+		  }
+		  #endif
+		  
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+	          Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_REACH;
+		}
+		
+		valid_placement_found=1;
+		at_least_one_valid_placement_found=1;
+		/*
+		#ifdef STORE_STATE_CONFIGS
+         printf(" >>>> Pushing DISPLACEMENT configs \n");
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
+         //TODO:Push accordingly 
+	 ////Ag_Obj_Ab_mini_effort_states[for_agent][for_ability][for_object].configs.push_back(object_MM.object[for_object].geo_MM.reach_conf[for_agent][curr_analysis_state][k][ns]);
+#else
+	Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].configs.push_back(ag_curr_pos);
+#endif
+	
+#endif
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_VIS;
+	 */
+	 
+
+		////break;
+	       }
+	       else
+	       {
+	      MY_FREE(ag_curr_pos, double,agent_Pt->nb_dof);
+		  pqp_print_colliding_pair();
+	       }
+	       
 	      }
-  }//END for(int i=0;i<ON_object_list.size();i++)
+	    x1 = xs + d - i;
+	    y1 = ys + i;
+            x_pos=curr_x+x1*sample_dist;
+	    y_pos=curr_y+y1*sample_dist;
+	    
+	   
+	    
+	       hum_bar_pos[6]=x_pos;
+	    hum_bar_pos[7]=y_pos;
+	    hum_bar_pos[8]=z_pos;
+	    
+	    p3d_set_and_update_this_robot_conf(hum_bar_pt, hum_bar_pos);
+	    g3d_draw_allwin_active();
+	 
+            collision_occured=0;
+	    
+            res = p3d_col_test_robot(hum_bar_pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+		 configPt ag_curr_pos = MY_ALLOC(double,agent_Pt->nb_dof); 
+            p3d_get_robot_config_into(agent_Pt,&ag_curr_pos);
+	    
+ag_obj_rel_ang=atan2((curr_y-y_pos),(curr_x-x_pos));	    ////ag_curr_pos[11]=ag_actual_pos[11]-ag_obj_rel_ang;
+		  printf(" ag_actual_pos[11] = %lf, ag_obj_rel_ang = %lf \n", ag_actual_pos[11]*180.0/M_PI, ag_obj_rel_ang*180.0/M_PI);
+		   ag_curr_pos[6]=x_pos;
+	    ag_curr_pos[7]=y_pos;
+	    ag_curr_pos[11]=ag_obj_rel_ang;
+	    
+	    p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);
+	    g3d_draw_allwin_active();
+            collision_occured=0;
+	    p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
+            res = p3d_col_test_robot(agent_Pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+		printf(" valid Config \n");
+		configPt ag_res_config;
+		
+		int reach_test=get_reachable_config(performing_agent, agent_Pt, obj_Pt, ag_curr_pos, ag_res_config, reachable_by_hand);
+		if(reach_test==1)
+		{
+		  #ifdef STORE_STATE_CONFIGS
+		  if(ag_res_config==NULL)
+		  {
+		    printf(" Manipulability ERROR: ag_res_config should not be NULL, as a valid reachable config has been found. Debug it\n");
+		  }
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].configs.push_back(ag_res_config);
+	
+		  for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
+		  {
+		  printf(" For hand %d \n",k);
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].by_hand[k].push_back(reachable_by_hand[k]);
+		  ////printf(" Object is reachable by effort level %d state %d of %s by hand %d\n", agent_cur_effort[for_ability], curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[for_agent]]->name, k);
+		  }
+		  #endif
+		  
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+	          Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_REACH;
+		}
+		
+		valid_placement_found=1;
+				at_least_one_valid_placement_found=1;
+
+		/*
+		#ifdef STORE_STATE_CONFIGS
+         printf(" >>>> Pushing DISPLACEMENT configs \n");
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
+         //TODO:Push accordingly 
+	 ////Ag_Obj_Ab_mini_effort_states[for_agent][for_ability][for_object].configs.push_back(object_MM.object[for_object].geo_MM.reach_conf[for_agent][curr_analysis_state][k][ns]);
+#else
+	Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].configs.push_back(ag_curr_pos);
+#endif
+	
+#endif
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_VIS;
+	 */
+		////break;
+	      }
+	      else
+	       {
+	       MY_FREE(ag_curr_pos, double,agent_Pt->nb_dof);
+		  pqp_print_colliding_pair();
+	       }
+	       
+	      }
+	    // Check point (x2, y2)
+	}
+
+        if(valid_placement_found==1)
+	{
+	  		at_least_one_valid_placement_found=1;
+
+	  ////break;
+	}
+
+	for (int i = 1; i < d; i++)
+	{
+	  valid_placement_found=0;
+	  
+	    x1 = xs - i;
+	    y1 = ys + d - i;
+
+	     x_pos=curr_x+x1*sample_dist;
+	    y_pos=curr_y+y1*sample_dist;
+	    
+	  
+	       hum_bar_pos[6]=x_pos;
+	    hum_bar_pos[7]=y_pos;
+	   hum_bar_pos[8]=z_pos;
+	    
+	    p3d_set_and_update_this_robot_conf(hum_bar_pt, hum_bar_pos);
+	    g3d_draw_allwin_active();
+	 
+            collision_occured=0;
+            res = p3d_col_test_robot(hum_bar_pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+	configPt ag_curr_pos = MY_ALLOC(double,agent_Pt->nb_dof); 
+            p3d_get_robot_config_into(agent_Pt,&ag_curr_pos);
+           ag_obj_rel_ang=atan2((curr_y-y_pos),(curr_x-x_pos));	    ////ag_curr_pos[11]=ag_actual_pos[11]-ag_obj_rel_ang;
+		  printf(" ag_actual_pos[11] = %lf, ag_obj_rel_ang = %lf \n", ag_actual_pos[11]*180.0/M_PI, ag_obj_rel_ang*180.0/M_PI);
+		    ag_curr_pos[6]=x_pos;
+	    ag_curr_pos[7]=y_pos;
+	    
+	    ag_curr_pos[11]=ag_obj_rel_ang;
+	    
+	    p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);
+	    g3d_draw_allwin_active();
+            collision_occured=0;
+	    p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
+            res = p3d_col_test_robot(agent_Pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+		printf(" valid Config \n");
+		configPt ag_res_config;
+		int reach_test=get_reachable_config(performing_agent, agent_Pt, obj_Pt, ag_curr_pos, ag_res_config, reachable_by_hand);
+		if(reach_test==1)
+		{
+		  #ifdef STORE_STATE_CONFIGS
+		  if(ag_res_config==NULL)
+		  {
+		    printf(" Manipulability ERROR: ag_res_config should not be NULL, as a valid reachable config has been found. Debug it\n");
+		  }
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].configs.push_back(ag_res_config);
+	
+		  for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
+		  {
+		  printf(" For hand %d \n",k);
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].by_hand[k].push_back(reachable_by_hand[k]);
+		  ////printf(" Object is reachable by effort level %d state %d of %s by hand %d\n", agent_cur_effort[for_ability], curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[for_agent]]->name, k);
+		  }
+		  #endif
+		  
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+	          Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_REACH;
+		}
+				at_least_one_valid_placement_found=1;
+
+		valid_placement_found=1;
+		
+		/*
+		#ifdef STORE_STATE_CONFIGS
+         printf(" >>>> Pushing DISPLACEMENT configs \n");
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
+         //TODO:Push accordingly 
+	 ////Ag_Obj_Ab_mini_effort_states[for_agent][for_ability][for_object].configs.push_back(object_MM.object[for_object].geo_MM.reach_conf[for_agent][curr_analysis_state][k][ns]);
+#else
+	Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].configs.push_back(ag_curr_pos);
+#endif
+	
+#endif
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_VIS;
+	 */
+		////break;
+	      }
+	      else
+	       {
+	       MY_FREE(ag_curr_pos, double,agent_Pt->nb_dof);
+		  pqp_print_colliding_pair();
+	       }
+	       
+	      }
+
+	    x1 = xs + d - i;
+	    y1 = ys - i;
+
+	     x_pos=curr_x+x1*sample_dist;
+	    y_pos=curr_y+y1*sample_dist;
+	    
+	   
+	       hum_bar_pos[6]=x_pos;
+	    hum_bar_pos[7]=y_pos;
+	    hum_bar_pos[8]=z_pos;
+	    
+	    p3d_set_and_update_this_robot_conf(hum_bar_pt, hum_bar_pos);
+	    g3d_draw_allwin_active();
+	 
+            collision_occured=0;
+            res = p3d_col_test_robot(hum_bar_pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+	configPt ag_curr_pos = MY_ALLOC(double,agent_Pt->nb_dof); 
+            p3d_get_robot_config_into(agent_Pt,&ag_curr_pos);
+ag_obj_rel_ang=atan2((curr_y-y_pos),(curr_x-x_pos));	    ////ag_curr_pos[11]=ag_actual_pos[11]-ag_obj_rel_ang;
+		  printf(" ag_actual_pos[11] = %lf, ag_obj_rel_ang = %lf \n", ag_actual_pos[11]*180.0/M_PI, ag_obj_rel_ang*180.0/M_PI);
+		   ag_curr_pos[6]=x_pos;
+	    ag_curr_pos[7]=y_pos;
+	    
+	    ag_curr_pos[11]=ag_obj_rel_ang;
+	    
+	    p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);
+	    g3d_draw_allwin_active();
+            collision_occured=0;
+	    p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
+            res = p3d_col_test_robot(agent_Pt,kcd_with_report);
+	    
+	    if(res<=0)
+	      {
+		printf(" valid Config \n");
+		configPt ag_res_config;
+	int reach_test=get_reachable_config(performing_agent, agent_Pt, obj_Pt, ag_curr_pos, ag_res_config, reachable_by_hand);
+		if(reach_test==1)
+		{
+		  #ifdef STORE_STATE_CONFIGS
+		  if(ag_res_config==NULL)
+		  {
+		    printf(" Manipulability ERROR: ag_res_config should not be NULL, as a valid reachable config has been found. Debug it\n");
+		  }
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].configs.push_back(ag_res_config);
+	
+		  for(int k=0;k<agents_for_MA_obj.for_agent[performing_agent].no_of_arms;k++)
+		  {
+		  printf(" For hand %d \n",k);
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].by_hand[k].push_back(reachable_by_hand[k]);
+		  ////printf(" Object is reachable by effort level %d state %d of %s by hand %d\n", agent_cur_effort[for_ability], curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[for_agent]]->name, k);
+		  }
+		  #endif
+		  
+		  Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+	          Ag_Obj_Ab_mini_effort_states[performing_agent][REACH_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_REACH;
+		}
+		
+		valid_placement_found=1;
+				at_least_one_valid_placement_found=1;
+
+		/*
+		#ifdef STORE_STATE_CONFIGS
+         printf(" >>>> Pushing DISPLACEMENT configs \n");
+#ifdef USE_VECTOR_FORM_FOR_CONFIGS
+         //TODO:Push accordingly 
+	 ////Ag_Obj_Ab_mini_effort_states[for_agent][for_ability][for_object].configs.push_back(object_MM.object[for_object].geo_MM.reach_conf[for_agent][curr_analysis_state][k][ns]);
+#else
+	Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].configs.push_back(ag_curr_pos);
+#endif
+	
+#endif
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].effort_level=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+	 Ag_Obj_Ab_mini_effort_states[performing_agent][VIS_ABILITY][for_object_indx].analysis_state=MM_ARBITRARY_STATE_HUM_VIS;
+	 */
+		////break;
+	      }
+	      else
+	       {
+	       MY_FREE(ag_curr_pos, double,agent_Pt->nb_dof);
+		  pqp_print_colliding_pair();
+	       }
+	       
+	      }
+	    // Check point (x2, y2)
+	}
+	
+	if(valid_placement_found==1)
+	{
+	  		at_least_one_valid_placement_found=1;
+
+	 //// break;
+	}
+    }
+    
+    
+	
+   /* if(agent_is_human==1)
+    {
+    virtually_update_human_state_new(agent_Pt,agent_posture);//Restore the actual posture
+    }
+    */
+   
+    
+  ////}//end if(task==TAKE_OBJECT||task==GRASP_PICK_OBJECT)
+  p3d_set_and_update_this_robot_conf(agent_Pt, ag_actual_pos);
+	    g3d_draw_allwin_active();
+	    
+  p3d_col_activate_rob_rob(hum_bar_pt,agent_Pt);
+  
+  
+  if(at_least_one_valid_placement_found==0)
+	{
+	  printf(" No possible valid placement \n");
+	 //// return 0;
+	}
+	else
+	{
+	  res_node.task=curr_task.task_type;
+      res_node.performing_agent=performing_agent;
+      res_node.target_object=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+      res_node.performing_ag_effort[VIS_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+      res_node.performing_ag_effort[REACH_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+     
+	  ////return 1;
+	}
+	
+	 
+	    
+	UPDATE_MIGHTABILITY_MAP_INFO=MA_update_info;
+	 STOP_AGENT_STATE_ANALYSIS=ASA_status;
+	 
+	 MY_FREE(ag_actual_pos, double,agent_Pt->nb_dof);
+    ////MY_FREE(ag_curr_pos, double,agent_Pt->nb_dof);
+    MY_FREE(obj_curr_pos, double,obj_Pt->nb_dof);
+    MY_FREE(hum_bar_pos, double,hum_bar_pt->nb_dof);
+    
+    return at_least_one_valid_placement_found;
+
+	
 }
 
 int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskability_node &res_node )
@@ -7565,7 +8051,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
    if(ctr<=0)
    {
      printf(" No valid grasp... \n");
-     return 0;
+     return -1;
    }
    
    int sol_found=0;
@@ -7702,17 +8188,28 @@ int find_manipulability_graph()
 	curr_task.by_agent=(HRI_TASK_AGENT)i;
 	curr_task.for_object=envPt_MM->robot[j]->name;
        taskability_node res_node;
-       int res=find_agent_object_affordance(curr_task, j, res_node );
+       int res=find_agent_object_affordance(curr_task, j, res_node );//It will try until whole body effort at max
+       
+       if(res==-1)// No valid grasp, so skip displacement effort
+       {
+	 
+       }
+       
+       if(res==0)//valid grasp but not reachable so Try with displacement effort
+       {
+	 res=find_agent_object_affordance_displacement(curr_task, j, res_node );
+       }
+       
        if(res==1)
        {
-	 char manipulability_node_id_str[20];
-  std::string manipulability_node_desc;
-  sprintf (manipulability_node_id_str, "%d_",ctr);
-  manipulability_node_desc=manipulability_node_id_str;
-  manipulability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
-  manipulability_node_desc+='_';
-  manipulability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
-  manipulability_node_desc+='_';
+	char manipulability_node_id_str[20];
+	std::string manipulability_node_desc;
+	sprintf (manipulability_node_id_str, "%d_",ctr);
+        manipulability_node_desc=manipulability_node_id_str;
+        manipulability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
+        manipulability_node_desc+='_';
+        manipulability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
+        manipulability_node_desc+='_';
   
   manipulability_node_desc+=envPt_MM->robot[res_node.target_object]->name;
   
@@ -7731,7 +8228,207 @@ int find_manipulability_graph()
       }
     }
   }
+  
+ find_put_into_ability_graph();
+ 
 }
+
+/////// Functions related to putinto ability graph ///////
+int find_agent_container_putinto_affordance(HRI_task_desc curr_task, int container_obj_indx, taskability_node &res_node )
+{
+  int task=curr_task.task_type;
+  /////int container_obj_indx=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+  int performing_agent=curr_task.by_agent;
+  int agent_posture;
+  int agent_is_human=0;
+  int agent_supported=0;
+  
+  if(performing_agent==HUMAN1_MA)
+  {
+    agent_posture=HUMAN1_CURRENT_STATE_MM;
+    agent_is_human=1;
+    agent_supported=1;
+  }
+#ifdef HUMAN2_EXISTS_FOR_MA
+  if(performing_agent==HUMAN2_MA)
+  {
+    agent_posture=HUMAN2_CURRENT_STATE_MM;
+    agent_is_human=1;
+        agent_supported=1;
+
+  }
+#endif
+ 
+#ifdef PR2_EXISTS_FOR_MA
+  if(performing_agent==PR2_MA)
+  {
+    agent_posture=PR2_ARBITRARY_MA;
+    agent_is_human=0;
+        agent_supported=1;
+
+  }
+#endif
+
+  
+  int agent_cur_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  int agent_maxi_allowed_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
+  
+  agent_cur_effort[VIS_ABILITY]=MA_HEAD_EFFORT;
+  agent_cur_effort[REACH_ABILITY]=MA_ARM_EFFORT;
+  
+  int per_ag_hum=0;
+  
+  if(performing_agent==HUMAN1_MA)
+  {
+    per_ag_hum=1;
+  }
+  #ifdef HUMAN2_EXISTS_FOR_MA
+  {
+    if(performing_agent==HUMAN2_MA)
+    {
+      per_ag_hum=1;
+    }
+  }
+  #endif
+  
+  if(per_ag_hum==1)
+  {
+    agent_maxi_allowed_effort[VIS_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+    agent_maxi_allowed_effort[REACH_ABILITY]=MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
+  }
+  
+  #ifdef PR2_EXISTS_FOR_MA
+  if(performing_agent==PR2_MA)
+  {
+    agent_maxi_allowed_effort[VIS_ABILITY]=MA_HEAD_EFFORT;
+    agent_maxi_allowed_effort[REACH_ABILITY]=MA_ARM_EFFORT;
+  }
+  
+  #endif
+  
+  
+  
+  if(task==PUT_INTO_OBJECT)
+  { 
+     candidate_poins_for_task *curr_resultant_candidate_points=MY_ALLOC(candidate_poins_for_task,1);
+
+  curr_resultant_candidate_points->no_points=0;
+  
+  
+   int sol_found=0;
+   int at_least_one_analysis_to_test=1;
+   
+   while(sol_found==0&&at_least_one_analysis_to_test==1)
+   {
+     at_least_one_analysis_to_test=0;
+     
+     update_analysis_type_effort_level_group(performing_agent, agent_posture);
+     
+     int res=find_agent_container_putinto_points(performing_agent, container_obj_indx, agent_cur_effort, curr_resultant_candidate_points);
+     
+     if(curr_resultant_candidate_points->no_points<=0)
+     {
+      if(agent_cur_effort[VIS_ABILITY]<agent_maxi_allowed_effort[VIS_ABILITY])
+      {
+       agent_cur_effort[VIS_ABILITY]++;
+       at_least_one_analysis_to_test=1;
+      }
+       
+       if(agent_cur_effort[REACH_ABILITY]<agent_maxi_allowed_effort[REACH_ABILITY])
+      {
+       agent_cur_effort[REACH_ABILITY]++;
+       at_least_one_analysis_to_test=1;
+      }
+     }
+     else
+     {
+       sol_found=1;
+     }
+   }
+     
+    
+    if(sol_found==0)
+    {
+      printf(" The agent %s could not put into the object %s with its maximum allowed effort level \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, envPt_MM->robot[container_obj_indx]->name);
+      
+      return 0;
+    }
+    else
+    {
+       printf(" The agent %s could put into the object %s with its maximum allowed effort level \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, envPt_MM->robot[container_obj_indx]->name);
+      
+       printf(" Found the solution \n");
+     res_node.performing_agent=performing_agent;
+     res_node.target_object=container_obj_indx;
+     res_node.task=task;
+     res_node.performing_ag_effort[REACH_ABILITY]=agent_cur_effort[REACH_ABILITY];
+     res_node.performing_ag_effort[VIS_ABILITY]=agent_cur_effort[VIS_ABILITY];
+     
+     res_node.candidate_points=curr_resultant_candidate_points;
+     
+      return curr_resultant_candidate_points->no_points;
+    }
+   
+  }//End if(task==PUT_INTO_OBJECT)
+  
+  
+}
+
+int find_put_into_ability_graph()
+{
+  put_into_ability_graph.clear();
+  put_into_ability_node_DESC_ID_map.clear();
+  
+  HRI_task_desc curr_task;
+  curr_task.task_type=PUT_INTO_OBJECT;
+  int container_obj_indx;
+  
+  int ctr=0;
+  
+  for(int i=0; i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+  {
+    for(int j=0;j<container_names.size();j++)
+    {
+      
+	curr_task.by_agent=(HRI_TASK_AGENT)i;
+	curr_task.for_object=container_names.at(j);
+	container_obj_indx=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
+      
+       taskability_node res_node;
+       
+       int res=find_agent_container_putinto_affordance(curr_task, container_obj_indx, res_node );
+       
+       if(res>=1)
+       {
+	 char put_into_ability_node_id_str[20];
+  std::string put_into_ability_node_desc;
+  sprintf (put_into_ability_node_id_str, "%d_",ctr);
+  put_into_ability_node_desc=put_into_ability_node_id_str;
+  put_into_ability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
+  put_into_ability_node_desc+='_';
+  put_into_ability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
+  put_into_ability_node_desc+='_';
+  
+  put_into_ability_node_desc+=envPt_MM->robot[res_node.target_object]->name;
+  
+  put_into_ability_node_DESC_ID_map[put_into_ability_node_desc]=ctr;
+  printf(" Inserted into put_into_ability_node_DESC_ID_map key= %s \n",put_into_ability_node_desc.c_str());
+  
+  strcpy(res_node.desc,put_into_ability_node_desc.c_str());
+  
+  res_node.node_id=ctr;
+  
+  put_into_ability_graph.push_back(res_node);
+  
+  ctr++;
+  
+       }
+       
+      
+    }
+  }
+}
+
 /////// Functions related to taskability graph //////////
 int find_taskability_link_between_two_agents_for_task(HRI_task_desc curr_task, taskability_node &res_node )
 {
@@ -8723,6 +9420,100 @@ int ctr=0;
   
 }
 
+int show_all_put_into_ability_graph()
+{
+
+std::vector<taskability_node>::iterator it; 
+double x1, y1, z1, x2, y2, z2;
+double x_c, y_c, z_c;
+////double interval=grid_around_HRP2.GRID_SET->pace/25.0;
+
+
+double min_effort=0;
+double max_effort=10;//Assuming that the maximum effort level for visibility or reachability will be will be less than 10   
+double weight;
+double color[4]={1,1,0,1};
+double red, green, blue;
+double color_hue;
+
+p3d_vector3 p1, p2;
+
+char task_name[50];
+
+
+int ctr=0;
+ for(it=put_into_ability_graph.begin();it!=put_into_ability_graph.end();it++)
+ {
+   
+   show_these_candidate_points(it->candidate_points);
+   ////printf(">>>  for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n**",it->performing_agent, it->target_agent, it->task, it->candidate_points->no_points);
+   
+     //x1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.xmax)/2.0;
+     //y1=(envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymin+envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.ymax)/2.0;
+     x1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     y1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     z1=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     //x2=(envPt_MM->robot[it->target_object]->BB.xmin+envPt_MM->robot[it->target_object]->BB.xmax)/2.0;
+     //y2=(envPt_MM->robot[it->target_object]->BB.ymin+envPt_MM->robot[it->target_object]->BB.ymax)/2.0;
+     x2=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[0][3];
+     y2=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[1][3];
+     z2=envPt_MM->robot[it->target_object]->BB.zmax;
+     
+     p1[0]=x1;
+     p1[1]=y1;
+     p1[2]=z1;
+     
+     p2[0]=x2;
+     p2[1]=y2;
+     p2[2]=z2;
+     
+     //g3d_drawOneLine(x1, y1,z1, x2, y2, z2, it->task, NULL);
+     /* 
+     color_hue=((double)it->task/MAXI_NUM_OF_HRI_TASKS);
+     AKP_rgb_from_hue2(color_hue, color);
+     color[3]=1;
+     */
+     //////g3d_draw_arrow(p1, p2, color[0], color[1], color[2]);
+     g3d_draw_arrow_with_width(p1, p2, 2, 0.07, color[0], color[1], color[2]);
+     g3d_drawColorSphere(x1, y1, z1, .015, Any, color);
+     g3d_drawColorSphere(x2, y2, z2, .015, Any, color);
+     
+     weight= ((double)it->performing_ag_effort[VIS_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+     ////////// AKP_rgb_from_hue2(weight, color);
+     
+     double t2=0.25;//interval;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+	  
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Green, NULL);
+     //////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     weight= ((double)it->performing_ag_effort[REACH_ABILITY] - min_effort )/(max_effort-min_effort);
+     
+    ////////// AKP_rgb_from_hue2(weight, color);
+     
+     t2=0.30;
+     
+     x_c=(1-t2)*x1+t2*x2;
+     y_c=(1-t2)*y1+t2*y2;
+     z_c=(1-t2)*z1+t2*z2;
+     g3d_drawColorSphere(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+      ////////////g3d_drawDisc(x_c, y_c, z_c, (weight/10.0)+0.02, Blue, NULL);
+     /////////g3d_drawDisc(x_c, y_c, z_c, .02, Any, color);
+     
+     
+     
+   ctr++;
+   
+ }
+return 1;
+
+}
 
 
 int show_all_manipulability_graph()
@@ -9219,6 +10010,52 @@ int create_object_flow_graph()
 	  object_flow_graph[e.first].no_candidate=it->candidate_points->no_points;
      
    }
+   
+   //Now integrating put_into_ability_graph
+   for(it=put_into_ability_graph.begin();it!=put_into_ability_graph.end();it++)
+   {
+     vert_type=1;//for agent
+     int vert_res=does_vertex_exist(object_flow_graph, it->performing_agent, vert_type, v1);
+     if(vert_res==0)
+     {
+       v1=add_vertex( object_flow_graph );
+     object_flow_graph[v1].vert_type=vert_type;
+     object_flow_graph[v1].Ag_or_obj_index = it->performing_agent;
+     
+      object_flow_graph[v1].x=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v1].y=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v1].z=envPt_MM->robot[indices_of_MA_agents[it->performing_agent]]->BB.zmax;
+     
+     printf(" Added vertex for agent %d \n",it->performing_agent);
+     }
+     
+     vert_type=2;//for object
+     vert_res=does_vertex_exist(object_flow_graph, it->target_object, vert_type, v2);
+     if(vert_res==0)
+     {
+     v2=add_vertex( object_flow_graph );
+     object_flow_graph[v2].vert_type=vert_type;
+     object_flow_graph[v2].Ag_or_obj_index = it->target_object;
+     
+     object_flow_graph[v2].x=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[0][3];
+     object_flow_graph[v2].y=envPt_MM->robot[it->target_object]->joints[1]->abs_pos[1][3];
+     object_flow_graph[v2].z=envPt_MM->robot[it->target_object]->BB.zmax;
+     
+     printf(" Added vertex for object %d \n",it->target_object);
+     }
+   
+     e=add_edge(v1, v2, object_flow_graph);
+      object_flow_graph[e.first].agent_role_for_edge=1;//for performing agent
+      object_flow_graph[e.first].edge_task_type=it->task;
+	  
+      for(int i=0; i<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;i++)
+	  {
+	  object_flow_graph[e.first].performing_ag_effort[i] =it->performing_ag_effort[i];
+	  
+	  }
+	  object_flow_graph[e.first].no_candidate=it->candidate_points->no_points;
+     
+   }
 }
 
 int print_this_edge_old_to_del(MY_GRAPH &G,MY_VERTEX_DESC &v, MY_EDGE_DESC &e)
@@ -9655,12 +10492,21 @@ int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VER
        return 0;
      }
      
+     if(for_task.task_type==PUT_INTO_OBJECT)
+     {
+       vert_type=2;//for object
+     vert_res=does_vertex_exist(G, get_index_of_robot_by_name((char*)for_task.for_container.c_str()), vert_type, targ);
+     }
+     else
+     {
+     
      vert_type=1;//for agent
      vert_res=does_vertex_exist(G, for_task.for_agent, vert_type, targ);
+     }
      
      if(vert_res==0)
      {
-       printf(" Target agent does not exist \n");
+       printf(" Target vertex does not exist \n");
        return 0;
      }
   
@@ -9731,6 +10577,53 @@ int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VER
      
 }
 
+int restrict_agents_maximum_acceptable_effort(MY_GRAPH &G,int for_agent_type, int allowed_maxi_level)
+{
+  printf(" Inside restrict_agents_maximum_acceptable_effort for agent %d, and allowed_maxi_level=%lf \n", for_agent_type,allowed_maxi_level);
+  
+  MY_VERTEX_DESC v;
+  MY_EDGE_DESC e;
+  
+  if(get_vertex_desc_by_ag_type(G, for_agent_type, v)==1)
+  {
+    std::pair<MY_GRAPH::out_edge_iterator, MY_GRAPH::out_edge_iterator> MY_O_E;
+     
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_O_E = out_edges(v, G);
+     
+     
+         for(MY_GRAPH::out_edge_iterator it=MY_O_E.first; it!=MY_O_E.second; ++it)
+         {
+	  e=*it;
+	  if(G[e].weight_for_graph_search>allowed_maxi_level)
+	  {
+	    G[e].weight_for_graph_search=10000;//Assign very high weight
+	  }
+         }
+         
+          std::pair<MY_GRAPH::in_edge_iterator, MY_GRAPH::in_edge_iterator> MY_I_E;
+     
+     //MY_GRAPH::out_edge_iterator st, end;
+     MY_I_E = in_edges(v, G);
+     
+     
+         for(MY_GRAPH::in_edge_iterator it=MY_I_E.first; it!=MY_I_E.second; ++it)
+         {
+	  e=*it;
+	  if(G[e].weight_for_graph_search>allowed_maxi_level)
+	  {
+	    printf("Assigning high weight to this edge\n");
+	    G[e].weight_for_graph_search=10000;//Assign very high weight
+	  }
+         }
+  }
+  else
+  {
+    printf(" **** HRI task WARNING : The agent to restrict effort level is NOT present in the graph \n");
+    return 0;
+  }
+}
+
 int find_current_hri_goal_solution()
 {
   printf(" Inside find_current_hri_goal_solution()\n");
@@ -9796,20 +10689,41 @@ int find_current_hri_goal_solution()
        MY_VERTEX_DESC src, targ;
        HRI_task_desc curr_task;
        
+       //*** Example to enable an agent to perform a task
        curr_task.task_type=GRASP_PICK_OBJECT;
        curr_task.for_agent=CURRENT_TASK_PERFORMED_FOR;
        curr_task.for_object=CURRENT_OBJECT_TO_MANIPULATE;
        
        int valid_src_targ=get_src_targ_vertex_pair_for_task(curr_task, object_flow_graph, src, targ);
+       
        if(valid_src_targ==1)
        {
-	 printf(" Finding dijkstra_shortest_paths \n");
+       printf(" Finding dijkstra_shortest_paths \n");
        dijkstra_shortest_paths(object_flow_graph, src, boost::predecessor_map(&p[0]).distance_map(&d[0]).weight_map(get(&graph_edge::weight_for_graph_search, object_flow_graph))); 
        //dijkstra_shortest_paths(object_flow_graph, s, predecessor_map(&p[0]).distance_map(&d[0]));
        printf(" Finished finding dijkstra_shortest_paths \n");
        
-	 get_shortest_path_for_this_pair(object_flow_graph, p, d, src, targ);
+       get_shortest_path_for_this_pair(object_flow_graph, p, d, src, targ);
        }
+       
+       //*** Eaxmple to facilitate an object to reach to a target container
+       curr_task.task_type=PUT_INTO_OBJECT;
+       curr_task.for_container="PINK_TRASHBIN";
+       curr_task.for_object=CURRENT_OBJECT_TO_MANIPULATE;
+       
+       valid_src_targ=get_src_targ_vertex_pair_for_task(curr_task, object_flow_graph, src, targ);
+       
+       if(valid_src_targ==1)
+       {
+       printf(" Finding dijkstra_shortest_paths \n");
+       dijkstra_shortest_paths(object_flow_graph, src, boost::predecessor_map(&p[0]).distance_map(&d[0]).weight_map(get(&graph_edge::weight_for_graph_search, object_flow_graph))); 
+       //dijkstra_shortest_paths(object_flow_graph, s, predecessor_map(&p[0]).distance_map(&d[0]));
+       printf(" Finished finding dijkstra_shortest_paths \n");
+       
+       get_shortest_path_for_this_pair(object_flow_graph, p, d, src, targ);
+       }
+       
+       
     ////// }
     ///// else
     ///// {
@@ -9819,7 +10733,196 @@ int find_current_hri_goal_solution()
      
      
   ////////show_object_flow_graph_for_object("GREY_TAPE");
-  ////get_clean_the_table_plan("HRP2TABLE");
+  printf(" ===== Finding clean the table plan ===== \n");
+  
+  int allowed_maxi_level=2;
+  restrict_agents_maximum_acceptable_effort(object_flow_graph, HUMAN1_MA, allowed_maxi_level);
+  //allowed_maxi_level=1;
+  //restrict_agents_maximum_acceptable_effort(object_flow_graph, HUMAN2_MA, allowed_maxi_level);
+  
+  get_clean_the_table_plan("HRP2TABLE");
+  get_clean_the_table_plan("IKEA_SHELF");
+  
+  //To restore the actual weights and find new solution
+  assign_edge_weight_in_object_flow_graph(object_flow_graph);
+  get_clean_the_table_plan("HRP2TABLE");
+  get_clean_the_table_plan("IKEA_SHELF");
+  
+  
   
 }
 
+
+
+int get_IK_based_arm_reachability ( HRI_TASK_AGENT by_agent, char by_hand[50],  std::vector<point_co_ordi> &curr_candidate_points)
+{
+  std::list<gpGrasp> grasps_for_object;
+std::list<gpPlacement> curr_placementList;
+char obj_to_manipulate[50]="TOYCUBE_WOOD";
+p3d_rob* object= ( p3d_rob* ) p3d_get_robot_by_name ( ( char* ) obj_to_manipulate );
+
+  get_placements_in_3D (obj_to_manipulate ,  curr_placementList );
+  get_grasp_list_for_object(obj_to_manipulate, grasps_for_object);
+
+p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
+  
+  //FOR PR2 DO fixAllJointsWithoutArm(m_manipulation->robot(),0);
+  int armID= 0;
+#ifdef PR2_EXISTS_FOR_MA
+  if(by_agent==PR2_MA)
+  {
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
+  }
+#endif
+
+  
+ 
+  float clock0, elapsedTime;
+   int obj_index=get_index_of_robot_by_name ( obj_to_manipulate );
+  
+   
+
+   printf ( " <<<<<< curr_candidate_points.size()= %d >>>>>>>>\n", curr_candidate_points.size() );
+   if ( curr_candidate_points.size()<=0 )
+   {
+      printf ( " >>**>>  No Candidate points \n" );
+      return 0;
+   }
+
+   UPDATE_MIGHTABILITY_MAP_INFO=0;
+   SHOW_MIGHTABILITY_MAP_INFO=0;
+
+
+   clock0= clock();
+   
+   ArmManipulationData mData = ( *manipulation->robot()->armManipulationData ) [armID];
+   
+   
+   p3d_matrix4 Tplacement0, T;
+   p3d_matrix4 Tfinal_placement;
+//   gpGrasp grasp;
+   MANIPULATION_TASK_MESSAGE status;
+   int result;
+   gpHand_properties armHandProp = ( *manipulation->robot()->armManipulationData ) [armID].getHandProperties();
+   std::vector <double>  m_objStart ( 6 ), m_objGoto ( 6 );
+   configPt q = NULL;
+   gpHand_properties handProp = mData.getHandProperties();
+   point_co_ordi goal_pos, point_to_give;
+   int i1=0;
+   double x, y, z, rx, ry, rz;
+   MANIPULATION_TASK_MESSAGE message;
+   configPt qcur= p3d_get_robot_config ( manipulation->robot() );
+
+   bool quit= false;
+  
+   double visibility, confCost;
+
+   p3d_get_freeflyer_pose ( object, Tplacement0 );
+   p3d_get_freeflyer_pose2 ( object, &x, &y, &z, &rx, &ry, &rz );
+
+ 
+
+   p3d_matrix4 handFrame, tAtt, Tobject;
+   configPt refConf= NULL, approachConf= NULL, graspConf= NULL, openConf= NULL, liftConf= NULL, placeConf= NULL, obj_refConf=NULL;
+ 
+   refConf= p3d_get_robot_config ( manipulation->robot() );
+   ////refConf= p3d_get_robot_config ( envPt_MM->robot[indices_of_MA_agents[by_agent]] );
+   obj_refConf= p3d_get_robot_config ( object );
+
+   //// ManipulationUtils::copyConfigToFORM ( manipulation->robot(), refConf );
+
+     p3d_matrix4 Tplacement;       
+    
+////   ( *manipulation->robot()->armManipulationData ) [armID]. ( handFree ) ;
+
+   p3d_multiLocalPath_disable_all_groupToPlan ( manipulation->robot() );
+
+   p3d_multiLocalPath_set_groupToPlan ( manipulation->robot(), manipulation->getUpBodyMLP(), 1 );
+
+   int grasp_ctr=0;
+   double orig_safety_dist=manipulation->getSafetyDistanceValue();
+   
+   manipulation->setSafetyDistanceValue ( 0.00 );
+   printf(" >>>> Warning: For planning HRI task: Actual safety distance valus was %lf, which has been reset to %lf \n",orig_safety_dist, manipulation->getSafetyDistanceValue());
+   
+   p3d_rob* support_to_place=NULL;
+ 
+   /////p3d_set_freeflyer_pose2( ( p3d_rob* ) p3d_get_robot_by_name ( by_hand ),5,5,5,0,0,0);
+   
+#ifdef PR2_EXISTS_FOR_MA
+  if(by_agent==PR2_MA)
+  {
+    
+   fixAllJointsWithoutArm(manipulation->robot(),armID);
+  }
+#endif
+
+int support_index=-1;
+			      
+AT_LEAST_1_GRASP_LIFT_FOUND=1;
+
+
+
+ for ( int i1=0;i1<curr_candidate_points.size();i1++ )
+  {
+                        printf ( ">>>> checking for place %d \n",i1);
+			
+			
+			
+                        goal_pos.x=curr_candidate_points[i1].x;
+                        goal_pos.y=curr_candidate_points[i1].y;
+                        goal_pos.z=curr_candidate_points[i1].z;
+
+			point_to_give.x=goal_pos.x;
+                        point_to_give.y=goal_pos.y;
+                        point_to_give.z=goal_pos.z;
+
+                   
+       //ADDED for precaution
+      manipulation->robot()->isCarryingObject =FALSE;
+      
+      p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+      p3d_set_freeflyer_pose ( object, Tplacement0 );
+      g3d_draw_allwin_active();
+      p3d_get_freeflyer_pose ( object, Tobject );
+      
+      
+      
+      p3d_mat4Mult ( grasps_for_object.front().frame, handProp.Tgrasp_frame_hand, handFrame );
+      p3d_mat4Mult ( handFrame, manipulation->robot()->ccCntrts[armID]->Tatt2, tAtt );
+
+      setMaxNumberOfTryForIK ( 3000 );
+      // it is reactivated in armPickGoTo, so we need to deactivate again:
+     
+      //ADDED for precaution
+      gpDeactivate_object_fingertips_collisions( manipulation->robot(), object->joints[1]->o, armHandProp, armID);
+      
+      ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
+      gpDeactivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
+      ////for ( int i=0; i<1; ++i )
+      ////{
+	//////////ManipulationUtils::fixAllHands (manipulation->robot(), NULL, false );
+        ////////// p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+	 manipulation->checkConfigForCartesianMode(refConf, object);
+	 gpSet_grasp_configuration(manipulation->robot(), grasps_for_object.front(), armID);
+         graspConf= sampleRobotGraspPosWithoutBase ( manipulation->robot(), Tobject, tAtt,  0, 0, armID, false );
+         //graspConf= getGraspConf(object, armID, grasp, tAtt, confCost);
+
+
+         if(graspConf==NULL)
+         {
+	    //gpActivate_object_collisions(manipulation->robot(), object->joints[1]->o, handProp, armID);
+          printf(" No IK Found to grasp \n");
+	 
+	  g3d_draw_allwin_active();
+	  
+          
+         }
+         else
+	 {
+	   printf(" IK found \n");
+	 }
+  }
+  
+	 
+}

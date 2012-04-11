@@ -19,7 +19,7 @@
 //#define USE_HH_LEARNING
 ////#define USE_SYM_GEO_PLAN
 
-////#define STORE_STATE_CONFIGS//Important NOTE: use it only to debug, comment this define for real robot run because of excessive memory consumption which might eventually lead to memory corruption. //Used to store different configs of the agent corresponding to the Mightability computation. NOTE: IMPORTANT:Set this flag as 0 also to save memory and speedup the Mightability updation and calculation process;
+//#define STORE_STATE_CONFIGS//Important NOTE: use it only to debug, comment this define for real robot run because of excessive memory consumption which might eventually lead to memory corruption. //Used to store different configs of the agent corresponding to the Mightability computation. NOTE: IMPORTANT:Set this flag as 0 also to save memory and speedup the Mightability updation and calculation process;
 
 #define MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV 100
 #define COMMENT_TMP
@@ -1225,5 +1225,14 @@ typedef struct agent_effort_configs
   
   
 }agent_effort_configs;
+
+
+typedef struct object_putinto_points
+{
+ int object_index;
+ std::vector <point_co_ordi> points; 
+ int need_updation;
+}object_putinto_points;
+
 
 #endif
