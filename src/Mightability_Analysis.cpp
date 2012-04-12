@@ -1233,7 +1233,7 @@ int AKP_record_movie_frames()
     else sprintf(file,"00%d.jpg",count);
     
     // Next line is for xforms
-    sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    //sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
     /*     sprintf(str,"/usr/local/imagetools/sparc-solaris/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file); */
     system(str);
     printf("**** AKP >>>> Recorded Frame %s \n",file);
