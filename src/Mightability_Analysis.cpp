@@ -26358,11 +26358,19 @@ int show_put_into_points()
 
 int init_Container_Oriented_put_into_points()
 {
-  
+  int container_index;
   for(int i=0;i<container_names.size();i++)
   {
-    find_putinto_points_for_object(get_index_of_robot_by_name((char*)container_names.at(i).c_str()));
-    
+     container_index=get_index_of_robot_by_name((char*)container_names.at(i).c_str());
+     if(container_index>=0)
+     {
+     
+    find_putinto_points_for_object(container_index);
+     }
+     else
+     {
+       printf("container %s does not exist.\n", (char*)container_names.at(i).c_str() );
+     }
   }
 }
 
@@ -26384,7 +26392,8 @@ int check_obj_is_container(char *obj_name)
 
 int update_put_into_points()
 {
-  for(int i=0;i<container_names.size();i++)
+ //for(int i=0;i<container_names.size();i++)
+ for(int i=0;i<Obj_Put_Into_Pts.size();i++)
   {
     if(Obj_Put_Into_Pts.at(i).need_updation==1)
     {
