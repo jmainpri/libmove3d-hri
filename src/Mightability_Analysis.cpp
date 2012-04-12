@@ -1233,7 +1233,7 @@ int AKP_record_movie_frames()
     else sprintf(file,"00%d.jpg",count);
     
     // Next line is for xforms
-    //sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
     /*     sprintf(str,"/usr/local/imagetools/sparc-solaris/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file); */
     system(str);
     printf("**** AKP >>>> Recorded Frame %s \n",file);
@@ -26408,6 +26408,11 @@ int update_put_into_points()
 int find_agent_container_putinto_points(int agent_type, int container_obj_indx, int agent_cur_effort[2], candidate_poins_for_task *resultant_candidate_point)
 {
   int container_indx_in_list= get_index_for_obj_in_putintolist(container_obj_indx);
+  if(container_indx_in_list==-1)
+  {
+    printf(" Container does not exist\n");
+  return 0;  
+  }
   
   int cell_x, cell_y, cell_z;
   

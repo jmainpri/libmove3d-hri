@@ -4086,7 +4086,7 @@ g3d_draw_allwin_active();*/
 			   }
                            ///window->vs.enableLogo=0;
 			   g3d_draw_allwin_active();
-			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 1 );
+			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 0 );
 			   //// window->vs.enableLogo=1;
                                 printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
 
@@ -8393,7 +8393,11 @@ int find_put_into_ability_graph()
 	curr_task.by_agent=(HRI_TASK_AGENT)i;
 	curr_task.for_object=container_names.at(j);
 	container_obj_indx=get_index_of_robot_by_name((char*)curr_task.for_object.c_str());
-      
+      if(container_obj_indx<0)
+      {
+	printf(" Container %s does not exist \n", (char*)curr_task.for_object.c_str());
+	continue;
+      }
        taskability_node res_node;
        
        int res=find_agent_container_putinto_affordance(curr_task, container_obj_indx, res_node );
