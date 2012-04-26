@@ -57,6 +57,7 @@ HRI_ENTITIES * hri_create_entities()
     entities->general_allow_disappear = TRUE;
     entities->printVisibilityImages = FALSE;
     entities->printSARecomputeStatus = FALSE;
+    entities->displaySARecomputeStatus = false;
     entities->needToUpdateParameters = FALSE;
     entities->manageDivergentBeliefs = false;
     entities->numParameterToUpdate = 0;
@@ -2628,6 +2629,88 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     return counter;
 }
 
+
+/// Draw small spheres to show divergent positions.
+void hri_draw_situation_assessment_computation_status(float offsetXRatio, float offsetY, float widthRatio)
+{   
+    unsigned int LOGO_WIDTH = 10;
+    unsigned int LOGO_HEIGHT = 10;
+    GLfloat color[4];
+    bool isWorldStatic;
+    bool needSituationAssessmentUpdate;
+    int forceComputationScore; 
+
+    if(!GLOBAL_ENTITIES->displaySARecomputeStatus){
+	return;
+    }
+    
+    // Choose color according to SA computation Status.
+    // Is world static?
+    // Is recomputation needed?
+
+    isWorldStatic = GLOBAL_ENTITIES->isWorldStatic;
+    needSituationAssessmentUpdate = GLOBAL_ENTITIES->needSituationAssessmentUpdate;
+    
+    if( isWorldStatic ){
+	///Green if static and no need to compute
+	///Blue if ongoing processing
+	if(needSituationAssessmentUpdate){
+	    color[0] = 0.0; color[1]= 0.0; color[2]= 1.0; color[3]= 1.0;
+	}
+	else{
+	    color[0] = 0.0; color[1]= 1.0; color[2]= 0.0; color[3]= 1.0;
+	}
+    }
+    else{
+	/// forceComputationScore grows from 0 to 1. When it is one. Recomputation will be forced even if the world is not static 
+	if(GLOBAL_ENTITIES->maxWorldNotStaticBeforeRecompute>0)
+	    forceComputationScore = GLOBAL_ENTITIES->numSuccessiveWorldNotStaticSinceLastRecompute/GLOBAL_ENTITIES->maxWorldNotStaticBeforeRecompute;
+	if(needSituationAssessmentUpdate){
+	    color[0] = 1.0; color[1]= forceComputationScore; color[2]= 0.0; color[3]= 1.0; 
+	}
+	else{
+	    color[0] = 0.0; color[1]= 0.0; color[2]= 0.0; color[3]= 1.0;
+	}
+    }
+
+   
+
+    GLint viewport[4];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int width  = viewport[2];
+    int height = viewport[3];
+
+    float scale= widthRatio*width/( (float) LOGO_WIDTH);
+    float offsetX = offsetXRatio*width;
+
+    glPushAttrib(GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, 0, height, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glEnable(GL_BLEND);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glColor4f(color[0], color[1], color[2], color[3]);
+
+    glBegin (GL_QUADS);
+    glTexCoord2f(1.0f,1.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY);
+    glTexCoord2f(1.0f,0.0f);  glVertex2f(offsetX + scale*LOGO_WIDTH, offsetY + scale*LOGO_HEIGHT);
+    glTexCoord2f(0.0f,0.0f);  glVertex2f(offsetX, offsetY + scale*LOGO_HEIGHT);
+    glTexCoord2f(0.0f,1.0f);  glVertex2f(offsetX, offsetY);
+    glEnd();
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glPopAttrib();     
+}
 
 
 /// Draw small spheres to show divergent positions.

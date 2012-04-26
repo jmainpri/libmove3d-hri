@@ -135,6 +135,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   int general_allow_disappear; /// flag to allow or forbid disappear management
   int printVisibilityImages;  /// allow print of visibility of images for debugging purposes.
   int printSARecomputeStatus; /// flag to print info about SA recomputation Status.
+  bool displaySARecomputeStatus; /// flag to display info about SA recomputation Status.
 
   bool manageDivergentBeliefs; /// true if divergent belief management is activated.
 
@@ -369,6 +370,6 @@ typedef struct STRUCT_HRI_KNOWLEDGE {
 
 /// Draw small spheres to show divergent positions.
 void hri_draw_divergent_positions();
-
+void hri_draw_situation_assessment_computation_status(float offsetXRatio, float offsetY, float widthRatio);
 
 #endif

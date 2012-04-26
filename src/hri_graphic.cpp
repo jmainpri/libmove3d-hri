@@ -68,6 +68,7 @@ void g3d_hri_main()
     hri_draw_mindist();
     hri_draw_action_monitoring_spheres();
     hri_draw_divergent_positions();
+    hri_draw_situation_assessment_computation_status(0.20, 5, 0.07);
 
     if(false)
     {
