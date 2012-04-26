@@ -125,6 +125,7 @@ typedef struct STRUCT_HRI_ENTITIES {
   int entities_nb;
   int eventsInTheWorld; // put to 1 if something happen that make SA recomputation necessary
   int lastEventsInTheWorldStep; // number of step without something happening that make Situation Assessment recomputation necessary
+  int lastEventsInTheWorldStepsMin; // min number of steps without something happening that make Situation Assessment recomputation necessary before we consider world static
   int isWorldStatic; // 1 if nothing has happened since a given step threshold that make Situation Assessment recomputation necessary
   int maxWorldNotStaticBeforeRecompute; // number of maximum step with world not static before to force recoompute
   int numSuccessiveWorldNotStaticSinceLastRecompute; // number of step with world not static since last recoomputation

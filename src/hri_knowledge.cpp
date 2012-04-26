@@ -47,7 +47,9 @@ HRI_ENTITIES * hri_create_entities()
     entities->entities = NULL;
     ent_i = 0;
     entities->eventsInTheWorld = FALSE;
-    entities->lastEventsInTheWorldStep = 4; //TODO use a constant
+    entities->lastEventsInTheWorldStepsMin = 4; // can be changed through request
+    entities->lastEventsInTheWorldStep = entities->lastEventsInTheWorldStepsMin;
+
     entities->isWorldStatic = TRUE;
     entities->maxWorldNotStaticBeforeRecompute = 50;
     entities->numSuccessiveWorldNotStaticSinceLastRecompute = 0;
@@ -1535,7 +1537,7 @@ void hri_manage_object_disappearance_and_move(HRI_AGENTS * agents, HRI_ENTITIES 
         ents->needSituationAssessmentUpdate = TRUE;
     }
     else {
-        if(ents->lastEventsInTheWorldStep == 4){
+        if(ents->lastEventsInTheWorldStep == ents->lastEventsInTheWorldStepsMin){
             if(!ents->forbidWorldStatic)
                 ents->isWorldStatic = TRUE;
         }
@@ -2167,6 +2169,20 @@ int UpdateReachabilityValues(HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent,int firstAgentI
     }
 }
 
+void hri_print_computation_time(bool printStatus,time_t startComputationTime,clock_t startComputationClock,char* computeStep){
+    time_t endComputationTime;
+    clock_t endComputationClock;
+    int diffTime;
+    int diffClock;
+    if(!printStatus)
+	return;
+    time(&endComputationTime);
+    endComputationClock = clock();
+    diffTime =  endComputationTime-startComputationTime;
+    diffClock =  endComputationClock-startComputationClock;
+    printf("Computation took %d second and %d tick for %s\n", diffTime,diffClock,computeStep);    
+}
+
 // Function computing geometric facts between agents and objects
 // Each agent has its own view of the environment.
 
@@ -2190,6 +2206,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     HRI_PLACEMENT_RELATION placement_relation_result;
     int forceRecomputation = FALSE;
     int specialSupportEntityIndex = -1;
+
+    time_t startComputationTime;
+    clock_t startComputationClock;
     // int specialSupportEntityIndexInPresentEnts = -1;
 
     if(agents == NULL || ents == NULL) {
@@ -2228,7 +2247,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 
     // Print to inform about recomputation status.
     if(ents->printSARecomputeStatus)
-        printf("needSituationAssessmentUpdate : %d ; EventsInTheWorld : %d; lastEventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ; ; ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->lastEventsInTheWorldStep,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
+        printf("needSituationAssessmentUpdate : %d ; EventsInTheWorld : %d; lastEventsInTheWorldStep : %d; isWorldStatic : %d ; successive not static : %d ; forceRecomputation : %d ;\n", ents->needSituationAssessmentUpdate,ents->eventsInTheWorld,ents->lastEventsInTheWorldStep,ents->isWorldStatic,ents->numSuccessiveWorldNotStaticSinceLastRecompute,forceRecomputation);
 
     vis_result = MY_ALLOC(HRI_VISIBILITY, ents->entities_nb); // ALLOC
     present_ents = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
@@ -2236,6 +2255,11 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     present_entsAgent2 = MY_ALLOC(HRI_ENTITY*, ents->entities_nb); // ALLOC
     present_ents_global_idxsAgent2 = MY_ALLOC(int, ents->entities_nb); // ALLOC
     sourceAgent=agents->all_agents[agents->source_agent_idx];
+
+    if(ents->printSARecomputeStatus){
+	time(&startComputationTime);
+	startComputationClock = clock();	
+    }
 
     for(a_j=0; a_j<agents->all_agents_no; a_j++) {
 	//We want to be sure that facts for the main (perceiving) agent are computed first 
@@ -2617,6 +2641,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
     MY_FREE(present_entsAgent2, HRI_ENTITY*, ents->entities_nb); // FREE
     MY_FREE(present_ents_global_idxsAgent2, int, ents->entities_nb); // FREE
 
+
+    hri_print_computation_time(ents->printSARecomputeStatus,startComputationTime,startComputationClock,"full computation");
+
     // Events in the Wolrd have been managed.
     if(ents->eventsInTheWorld)
         ents->eventsInTheWorld = FALSE;
@@ -2638,7 +2665,11 @@ void hri_draw_situation_assessment_computation_status(float offsetXRatio, float 
     GLfloat color[4];
     bool isWorldStatic;
     bool needSituationAssessmentUpdate;
-    int forceComputationScore; 
+    double forceComputationScore; 
+
+    if(GLOBAL_ENTITIES == NULL){
+	return;
+    }
 
     if(!GLOBAL_ENTITIES->displaySARecomputeStatus){
 	return;
