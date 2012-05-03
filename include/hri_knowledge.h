@@ -245,10 +245,11 @@ typedef struct STRUCT_HRI_KNOWLEDGE_ON_ENTITY {
     
     configPt entityPositionForAgent;  // to save entity position in case it is different from main agent position. It is created when agent leave the scene and deleted as soon as agent has same position as robot. Also used for source agent to store its position while other agent diverging position are set as the one in the model.
     bool hasEntityPosition;  /// true if entityPositionForAgent is instantiated.
+    bool hasEntityPositionExportedValue; /// Exported Value for hasEntityPosition
     bool isEntityPositionInModel; /// true if this position is currently the one in model
     /* bool hasDifferentEntityPosition; */  /// true if different from main agent.
     bool hasEntityPositionKnowledge; /// true if agent knows position. (It could be the same one as robot, a different one known by robot (hasEntityPosition true and hasDifferentEntityPosition true) or unknown to robot.
-    bool hasEntityPositionKnowledgeExportedValue; 
+    bool hasEntityPositionKnowledgeExportedValue; /// Exported Value for hasEntityPositionKnowledge
     double lastEntPosX,lastEntPosY,lastEntPosZ; ///X,Y,Z value of enity last known position.
     //! @ingroup VISIBILITY
     /**

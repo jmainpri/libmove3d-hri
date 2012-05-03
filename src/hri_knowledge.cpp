@@ -307,6 +307,7 @@ int hri_initialize_agent_knowledge(HRI_KNOWLEDGE * knowledge, HRI_ENTITIES * ent
 
 	knowledge->entities[i].entityPositionForAgent = NULL;
 	knowledge->entities[i].hasEntityPosition = false;
+	knowledge->entities[i].hasEntityPositionExportedValue = true;
 	knowledge->entities[i].isEntityPositionInModel = false;
 	knowledge->entities[i].hasEntityPositionKnowledge = true; 
 	knowledge->entities[i].hasEntityPositionKnowledgeExportedValue = false; 
