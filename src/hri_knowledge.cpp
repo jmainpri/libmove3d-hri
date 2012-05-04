@@ -688,23 +688,18 @@ int hri_is_nexto(p3d_vector3 sourceC, p3d_BB *sourceBB, p3d_vector3 targetC, p3d
     /* Test if sourceObj is next to targetObj */
     /* Condition 1: The Z values of sourceObj and targetObj BB's should intersect = One should not be wholly above the other */
     /* Condition 2: Distance(sourceObj,targetObj) should be less then a constant */
+    
 
     if ( !(sourceBB->zmax <= targetBB->zmin || sourceBB->zmin >= targetBB->zmax) ) {
         if(DISTANCE2D(sourceC[0], sourceC[1], targetC[0], targetC[1]) <
-           MAX(ABS(sourceBB->xmin-sourceBB->xmax), ABS(sourceBB->ymin-sourceBB->ymax)) &&
-           DISTANCE2D(sourceC[0], sourceC[1], targetC[0], targetC[1]) >
-           MAX(ABS(sourceBB->xmin-sourceBB->xmax)/2, ABS(sourceBB->ymin-sourceBB->ymax)/2)) {
-
+           MAX(ABS(sourceBB->xmin-sourceBB->xmax), ABS(sourceBB->ymin-sourceBB->ymax))) {
             return TRUE;
         }
     }
 
     if ( !(targetBB->zmax <= sourceBB->zmin || targetBB->zmin >= sourceBB->zmax) ) {
         if(DISTANCE2D(targetC[0], targetC[1], sourceC[0], sourceC[1]) <
-           MAX(ABS(targetBB->xmin-targetBB->xmax), ABS(targetBB->ymin-targetBB->ymax)) &&
-           DISTANCE2D(targetC[0], targetC[1], sourceC[0], sourceC[1]) >
-           MAX(ABS(targetBB->xmin-targetBB->xmax)/2, ABS(targetBB->ymin-targetBB->ymax)/2)) {
-
+           MAX(ABS(targetBB->xmin-targetBB->xmax), ABS(targetBB->ymin-targetBB->ymax))) {
             return TRUE;
         }
     }
@@ -2595,8 +2590,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                 // Wa also want to know on which furnitures are placemat
                 if( ((ent->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ent->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
 
-                    if( e_j != e_i) {
-
+                    if( e_j != e_i) {			   
                         if(ent->disappeared || ents->entities[ge_j]->disappeared || !agent->knowledge->entities[ge_i].hasEntityPositionKnowledge)
                             placement_relation_result = HRI_UK_PLR;
                         else
