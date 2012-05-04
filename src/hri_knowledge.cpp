@@ -2470,7 +2470,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 								&elevation, &azimuth);
 			    }
 			    else
-				res = ents->manageDivergentBeliefs ?  sourceAgent->knowledge->entities[ge_j].is_placed_from_visibilityBy[a_k] : sourceAgent->knowledge->entities[ge_j].is_placed_from_visibility;
+				res = ents->manageDivergentBeliefs ?  sourceAgent->knowledge->entities[ge_i].is_placed_from_visibilityBy[a_k] : sourceAgent->knowledge->entities[ge_i].is_placed_from_visibility;
 			}
 	    
 			////////////////////////////////////////////
@@ -2502,7 +2502,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 			    }
 			    else{
 				HRI_TRUE_FALSE_UK_V pointed_value = 
-				    ents->manageDivergentBeliefs ?  sourceAgent->knowledge->entities[ge_j].is_pointed_atBy[a_k] : sourceAgent->knowledge->entities[ge_j].is_pointed_at;
+				    ents->manageDivergentBeliefs ?  sourceAgent->knowledge->entities[ge_i].is_pointed_atBy[a_k] : sourceAgent->knowledge->entities[ge_i].is_pointed_at;
 
 				res = (pointed_value == HRI_TRUE_V) ? HRI_FOV : HRI_OOF;
 			    }
@@ -2530,9 +2530,9 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				    else
 					reachability_result = hri_is_reachable(ent, agent2);
 				}
-				else
-				    reachability_result = sourceAgent->knowledge->entities[ge_j].reachabilityBy[a_k];
-				
+				else{				    
+				    reachability_result = sourceAgent->knowledge->entities[ge_i].reachabilityBy[a_k];
+				}
 				UpdateReachabilityValues(kn_on_ent,a_i,a_k,reachability_result,ents->manageDivergentBeliefs);
 			    }
 			}
