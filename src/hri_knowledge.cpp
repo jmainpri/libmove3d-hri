@@ -1904,6 +1904,8 @@ int CheckAgentPositionKnowledge(HRI_AGENTS * agents, int agentIndex, HRI_ENTITIE
 	    kn_on_ent = &(agent->knowledge->entities[e_i]);
 	    if(!kn_on_ent->hasEntityPosition && kn_on_ent->hasEntityPositionKnowledge){
 		kn_on_ent->hasEntityPositionKnowledge = false;
+		//To be sure it will be exported at least once.
+		kn_on_ent->hasEntityPositionKnowledgeExportedValue = true;
 		agent->knowledge->numUnknownPositions++;
 		kn_on_ent->lastEntPosX = kn_on_ent->entPt->robotPt->joints[1]->abs_pos[0][3];
 		kn_on_ent->lastEntPosY = kn_on_ent->entPt->robotPt->joints[1]->abs_pos[1][3];
@@ -2096,7 +2098,8 @@ int UpdateIsSeenValues(HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent,int firstAgentIndex,i
 int UpdateIsPointedAtValues(HRI_KNOWLEDGE_ON_ENTITY * kn_on_ent,int firstAgentIndex,int secondAgentIndex,HRI_VISIBILITY_PLACEMENT visPointValue, bool divergentBeliefManagement){
     ///Populate simple structure
     if(secondAgentIndex == firstAgentIndex){  
-	if ( (visPointValue == HRI_FOV || visPointValue == HRI_FOA) &&
+
+	   if ( (visPointValue == HRI_FOV || visPointValue == HRI_FOA) &&
 	     kn_on_ent->visibility == HRI_VISIBLE) {
 
 	    if (kn_on_ent->is_pointed_at != HRI_TRUE_V){
@@ -2471,11 +2474,11 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 			////////////////////////////////////////////
 			// is_looked_at
 			////////////////////////////////////////////
-			UpdateIsLookedAtValues(kn_on_ent,a_i,a_j,res,ents->manageDivergentBeliefs);
+			UpdateIsLookedAtValues(kn_on_ent,a_i,a_k,res,ents->manageDivergentBeliefs);
 			////////////////////////////////////////////
 			// isSeen. We use the value processed above.
 			/////////////////////////////////////////////
-			UpdateIsSeenValues(kn_on_ent,a_i,a_j,res,ents->manageDivergentBeliefs);	    
+			UpdateIsSeenValues(kn_on_ent,a_i,a_k,res,ents->manageDivergentBeliefs);	    
 	    
 			// POINTS AT / POINTING PLACEMENT - FOV,FOA,OOF
 			// TODO: visibility placement for robot parts
@@ -2503,7 +2506,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 			    }
 			}	    
 			// For pointing computation, FoA is set to 0.0 rad. Only FoV is actually useful.
-			UpdateIsPointedAtValues(kn_on_ent,a_i,a_j,res,ents->manageDivergentBeliefs);
+			UpdateIsPointedAtValues(kn_on_ent,a_i,a_k,res,ents->manageDivergentBeliefs);
 		    }
 		}
 	    }
