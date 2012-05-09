@@ -2594,7 +2594,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
                 if( ((ent->subtype == HRI_MOVABLE_OBJECT) && ((ents->entities[ge_j]->subtype == HRI_MOVABLE_OBJECT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT) || (ents->entities[ge_j]->subtype == HRI_OBJECT_CONTAINER) || (ents->entities[ge_j]->subtype == HRI_OBJECT_PLACEMAT))) || ((ent->subtype == HRI_OBJECT_PLACEMAT) && (ents->entities[ge_j]->subtype == HRI_OBJECT_SUPPORT))) {
 
                     if( e_j != e_i) {			   
-                        if(ent->disappeared || ents->entities[ge_j]->disappeared || !agent->knowledge->entities[ge_i].hasEntityPositionKnowledge)
+                        if(ent->disappeared || ents->entities[ge_j]->disappeared || !agent->knowledge->entities[ge_i].hasEntityPositionKnowledge  || !agent->knowledge->entities[ge_j].hasEntityPositionKnowledge)
                             placement_relation_result = HRI_UK_PLR;
                         else
                             placement_relation_result = hri_placement_relation(ent, ents->entities[ge_j]);
