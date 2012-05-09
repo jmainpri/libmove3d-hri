@@ -2336,7 +2336,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				if( agent2 == agents->all_agents[ents->entities[e_i]->agent_idx] )
 				    continue;
 			    }
-			    if(ents->entities[e_i]->is_present) {
+			    if(ents->entities[e_i]->is_present && (!ents->manageDivergentBeliefs || agent->knowledge->entities[e_i].hasEntityPositionKnowledge )) {
 				present_entsAgent2[present_ents_nbAgent2] = ents->entities[e_i];
 				present_ents_global_idxsAgent2[present_ents_nbAgent2] = e_i;
 				present_ents_nbAgent2++;
