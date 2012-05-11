@@ -2401,7 +2401,7 @@ int hri_compute_geometric_facts(HRI_AGENTS * agents, HRI_ENTITIES * ents, int ro
 				    agent->knowledge->numUnknownPositions++;
 				    /// Delete All Facts for this entity in this agent model.
 				    DeleteAllFactsOfAgentForThisEntity(agents,a_i,ents,ge_j);
-				    printf("Delete Agent %s hasEntityPosition for %s. Doesn't see old but should\n" ,agent->robotPt->name,ents->entities[e_i]->name);
+				    printf("Delete Agent %s hasEntityPosition for %s. Doesn't see old but should\n" ,agent->robotPt->name,ents->entities[ge_j]->name);
 				}				
 			    }
 			}
