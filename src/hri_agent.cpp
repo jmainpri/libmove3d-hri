@@ -1584,6 +1584,26 @@ int hri_agent_set_human_seated_posture(HRI_AGENT * agent,configPt q)
 
 //! @ingroup AGENTS
 //! sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
+int hri_agent_get_posture(HRI_AGENT * agent)
+{
+    // Only supports ACHILE human model. Everything else returns FALSE.
+    if(agent->type == HRI_ACHILE || agent->type == HRI_HERAKLES) {
+        double neckheight = agent->robotPt->joints[5]->abs_pos[2][3];
+        if (neckheight  > HRI_ACHILE_NECKHEIGHT)
+        {
+            return HRI_STANDING;
+        }
+        else
+        {
+            return HRI_SITTING;
+        }
+    }
+    return -1;
+}
+
+
+//! @ingroup AGENTS
+//! sets agents joints and state according to head height and state (STANDING, SITTING, MOVING) .
 int hri_agent_compute_posture(HRI_AGENT * agent, double neck_height, int state, configPt q)
 {
     double hiptoknee_dist, kneetoankle_dist, necktobase_dist, hiptoground_dist;

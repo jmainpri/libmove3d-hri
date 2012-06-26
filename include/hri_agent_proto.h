@@ -18,6 +18,7 @@ extern int hri_agent_single_task_manip_move(HRI_AGENT * agent, HRI_GIK_TASK_TYPE
 extern int hri_agent_single_task_manip_move(HRI_AGENT * agent, HRI_GIK_TASK_TYPE type, p3d_rob * object, configPt *q);
 extern int g3d_hri_display_shared_zone();
 extern int hri_agent_load_default_arm_posture(HRI_AGENT * agent, configPt q);
+extern int hri_agent_get_posture(HRI_AGENT * agent);
 extern int hri_agent_compute_posture(HRI_AGENT * agent, double neck_height, int state, configPt q);
 extern int hri_agent_set_human_standing_posture(HRI_AGENT * agent,configPt q);
 extern int hri_agent_set_human_seated_posture(HRI_AGENT * agent, configPt q);
