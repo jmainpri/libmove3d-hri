@@ -8,7 +8,7 @@
 #define GIK_MAX_JOINT_NO 50
 #define GIK_MAX_TASK_NO 5
 #define GIK_CONSTRAINTS 3
-#define HRI_ACHILE_NECKHEIGHT 1.6
+#define HRI_ACHILE_NECKHEIGHT 1.4
 
 //! @defgroup AGENTS Agents
 //! A module for agents
