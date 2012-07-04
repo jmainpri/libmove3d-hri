@@ -114,7 +114,7 @@ HRI_ENTITIES * hri_create_entities()
                     if(strcasestr(env->robot[i]->name,"HRP2TABLE"))
                         entities->specialSupportEntityIndex = ent_i;
                 }
-                else if(strcasestr(env->robot[i]->name,"TAPE")||strcasestr(env->robot[i]->name,"BOTTLE")||strcasestr(env->robot[i]->name,"BOX")||strcasestr(env->robot[i]->name,"CUBE")||strcasestr(env->robot[i]->name,"KIT")){
+                else if(strcasestr(env->robot[i]->name,"TAPE")||strcasestr(env->robot[i]->name,"BOTTLE")||strcasestr(env->robot[i]->name,"BOX")||strcasestr(env->robot[i]->name,"CUBE")||strcasestr(env->robot[i]->name,"KIT")||strcasestr(env->robot[i]->name,"CAN")){
                     entities->entities[ent_i]->subtype = HRI_MOVABLE_OBJECT;
                     entities->entities[ent_i]->can_disappear_and_move = TRUE;
                 }
