@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 2.6)
 PROJECT(LIBMOVE3D_HRI C CXX)
 
 set( PACKAGE_NAME libmove3d-hri )
-set( PACKAGE_VERSION 2.1 )
+set( PACKAGE_VERSION 2.2 )
 
 #Uncomment next line to get verbose makefiles.
 #SET(CMAKE_VERBOSE_MAKEFILE true)
