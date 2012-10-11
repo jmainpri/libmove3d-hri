@@ -32,6 +32,7 @@ HIDE_AWAY_OBJECT,
 MAKE_SPACE_FREE_OF_OBJECT,
 PUT_INTO_OBJECT,
 REACH_TO_POINT,
+PUT_ONTO_OBJECT,
 //NOTE: Don't forget to add any new task in init_HRI_task_name_ID_map() also
 //Add new tasks here before the last line
 
@@ -176,7 +177,14 @@ typedef struct graph_edge
  int agent_role_for_edge; //1 for performing agent, 2 for target agent
  
  double weight_for_graph_search;
+ double weight_for_graph_search_to_restore;
 }graph_edge;
+
+typedef struct agent_temporal_occupancy
+{
+  int time_slot_id;
+  std::vector<int> agent_id;
+}agent_temporal_occupancy;
 
 typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, graph_vertex, graph_edge > MY_GRAPH;
 typedef boost::graph_traits<MY_GRAPH>::vertex_descriptor MY_VERTEX_DESC;
