@@ -1850,7 +1850,7 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
 
 int is_object_laying_on_a_support(int obj_index, int &support_index)
 {
-  ////////printf(" Inside is_object_laying_on_a_support\n");
+  ////printf(" Inside is_object_laying_on_a_support for %s\n", envPt_ASA->robot[obj_index]->name);
   int kcd_with_report=0;
   double act_z_val=envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3];
   int res = p3d_col_test_robot(envPt_ASA->robot[obj_index],kcd_with_report);
@@ -1906,12 +1906,15 @@ int is_object_laying_on_a_support(int obj_index, int &support_index)
       ////pqp_print_colliding_pair();
     }
 	      
-  envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]-=0.05;
-	      
+  envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]-=0.03;
+  ////printf(" testing From down pos \n");	  
+  ////g3d_draw_allwin_active();
+
   res = p3d_col_test_robot(envPt_ASA->robot[obj_index],kcd_with_report);
+  ////printf("res=%d\n",res);
   if(res>0)
     {
-      ////////printf(" From down pos \n");
+     //// printf(" From down pos \n");
       char obj_1[200], obj_2[200];
       char sup_obj_name[200];
       pqp_colliding_obj_name_pair(obj_1, obj_2);

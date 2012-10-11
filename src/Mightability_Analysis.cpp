@@ -399,7 +399,7 @@ extern int NUM_VALID_GRASPABLE_OBJ;
  extern int JIDO_HAND_TYPE;//1 for gripper, 2 for SAHAND
  
  extern int done_object_flow_graph_init;
-  int SHOW_OBJECT_FLOW_GRAPH=0;
+  int SHOW_OBJECT_FLOW_GRAPH=1;
   
   extern int draw_this_graph(MY_GRAPH &G);
   
@@ -1233,7 +1233,7 @@ int AKP_record_movie_frames()
     else sprintf(file,"00%d.jpg",count);
     
     // Next line is for xforms
-    //sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
     /*     sprintf(str,"/usr/local/imagetools/sparc-solaris/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file); */
     system(str);
     printf("**** AKP >>>> Recorded Frame %s \n",file);
@@ -1329,6 +1329,7 @@ int init_HRI_task_name_ID_map()
  HRI_task_NAME_ID_map[MAKE_SPACE_FREE_OF_OBJECT]="MAKE_SPACE_FREE_OF_OBJECT";
  HRI_task_NAME_ID_map[PUT_INTO_OBJECT]="PUT_INTO_OBJECT";
  HRI_task_NAME_ID_map[REACH_TO_POINT]="REACH_TO_POINT";
+ HRI_task_NAME_ID_map[PUT_ONTO_OBJECT]="PUT_ONTO_OBJECT";
 
  HRI_sub_task_NAME_ID_map[REACH_TO_TAKE]="REACH_TO_TAKE";
  HRI_sub_task_NAME_ID_map[REACH_TO_GRASP]="REACH_TO_GRASP";
@@ -8950,7 +8951,7 @@ int update_3d_grid_reachability_for_agent_MM(HRI_TASK_AGENT for_agent, MA_agent_
 			  grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.reach_conf[for_agent][for_state][for_hand].push_back(tmp_config);
 #else
 			  at_indx=grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.reach_conf[for_agent][for_state][for_hand].no_configs;
-			  if(at_indx>15)//NOTE: WARNING Tmp hack to overcome the memory corruption problem. Don't rely on the values or configs
+			  if(at_indx<0 || at_indx>15)//NOTE: WARNING Tmp hack to overcome the memory corruption problem. Don't rely on the values or configs
 			  {
 			    at_indx=0;
 			    grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.reach_conf[for_agent][for_state][for_hand].no_configs=0;
@@ -9462,7 +9463,15 @@ printf(" inside find_3D_grid_visibility_for_MM()\n");
 		    	///	    printf(" Storing \n");
 
 		     tot_no_configs=grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].no_configs;
+		 
+		    ////printf(" For agent %d for cell (%d, %d, %d), no_configs = %d \n",agent_type, cell_x,cell_y,cell_z, grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].no_configs);
 		    
+		    //IMPORTANT: Tmp hack to overcome memory corruption problem. Actually sometimes for a cell tot_no_configs becomes some strange value like -2020409408 which results into segfault. NOTE: Debug it
+		    if(tot_no_configs<0 || tot_no_configs>=1000)
+		    {
+		      tot_no_configs=0;
+		      grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].no_configs=0;
+		    }
 	            grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].configPts[tot_no_configs]=tmp_config;
 		    grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[cell_x][cell_y][cell_z].Mightability_Map.conf[agent_type][visibility_type].no_configs++;
 		    /// printf(" after storing\n");
@@ -25946,13 +25955,36 @@ configs_size=object_MM.object[for_object].geo_MM.reach_conf[for_agent][curr_anal
 	
 	}
 	 if(sol_found==1)
+	 {
 	   break;
-	  
+	 }
+	
+	 
      }
    }
     agent_cur_effort[for_ability]++;
     at_least_one_analysis_to_test=1;
     
+   }
+   if(sol_found==0)
+   {
+     if(for_ability==REACH_ABILITY)
+     {
+     p3d_rob * agent_Pt=envPt_MM->robot[indices_of_MA_agents[for_agent]];
+     p3d_rob * obj_Pt=envPt_MM->robot[for_object];
+int only_first_solution=1;
+  int at_least_one_valid_placement_found=get_agent_object_affordance_reach_disp_effort(agent_Pt, obj_Pt, for_agent, only_first_solution);
+  
+       if(at_least_one_valid_placement_found==0)
+	{
+	  printf(" No possible valid placement \n");
+	 //// return 0;
+	}
+	else
+	{
+	  printf(" Least feasible effort to reach needs displacement \n");
+	}
+     }
    }
    ////XYZ_ENV->cur_robot=curr_rob;
    
@@ -26565,7 +26597,7 @@ int get_reachable_config(int for_agent, p3d_rob* agent_Pt,p3d_rob* obj_Pt,config
 		 {
 		   ag_curr_config[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=curr_pitch_ang; 
             p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_config);
-	     g3d_draw_allwin_active();
+	    //// g3d_draw_allwin_active();
 		  //break;
 		 }
 		 else
@@ -26592,7 +26624,7 @@ if(at_least_reachable_by_one_hand==1)
 	    
 	    ag_curr_config[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=act_pitch_ang; 
             p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_config);
-	     g3d_draw_allwin_active();
+	    ///// g3d_draw_allwin_active();
 	      
 // 	      ag_curr_pos[agents_for_ASA[for_agent].Q_indx.torso_Q_pitch]=curr_pitch_ang; 
 //             p3d_set_and_update_this_robot_conf(agent_Pt, ag_curr_pos);

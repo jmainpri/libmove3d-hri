@@ -259,5 +259,10 @@ extern int show_all_put_into_ability_graph();
 extern int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ);
 extern int get_shortest_path_for_this_pair(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ);
 extern int get_reachable_config(int for_agent, p3d_rob* agent_Pt,p3d_rob* obj_Pt,configPt ag_curr_config, configPt &ag_res_config, int *by_hand);
+extern int get_agent_object_affordance_reach_disp_effort(p3d_rob * agent_Pt, p3d_rob * obj_Pt, int for_MA_agent, int only_first_solution);
+extern int modify_graph_for_agent_busy(MY_GRAPH &G,int for_agent_type, int agent_busy);
+extern int get_shortest_path_for_this_pair_new(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ,  std::vector<MY_EDGE_DESC> &path);
+extern int print_path_of_graph(MY_GRAPH &G, std::vector<MY_EDGE_DESC> &path);
+extern int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria);
 #endif /* __CEXTRACT__ */
 
