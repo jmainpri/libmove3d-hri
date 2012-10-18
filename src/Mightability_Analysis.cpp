@@ -1232,8 +1232,9 @@ int AKP_record_movie_frames()
     else if(count < 100) sprintf(file,"000%d.jpg",count);
     else sprintf(file,"00%d.jpg",count);
     
-    // Next line is for xforms
-    sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    // IMPORTANT: Next line is for xforms, comment it if not using xform GUI
+    ////sprintf(str,"/usr/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file);
+    
     /*     sprintf(str,"/usr/local/imagetools/sparc-solaris/bin/import -silent -window %d -quality %d %s",g3d_win_id(G3D_WIN),image_compress,file); */
     system(str);
     printf("**** AKP >>>> Recorded Frame %s \n",file);
@@ -23235,7 +23236,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
   
   resultant_candidate_point->no_points=0;
    int need_placement_on_plane=0;
-   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT)
+   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT||curr_task==PUT_ONTO_OBJECT)
    {
    need_placement_on_plane=1;  
    }
@@ -25363,7 +25364,7 @@ int init_agent_ability_effort_places()
     }
 }
 	
-
+//TODO: This function should be used as a basis for creating a function for finding candidate places based on various constraints by sequently calling that function for different agents. This requires some modifications such as sharing of the same candidate places among different calls . Also VALID_CELLS_FOR_CURR_EFFORT_LEVEL should decleared as vector for allocating memory dynamically 
 int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff) 
 {
   printf(" Inside get_effort_based_places_facts(). No. of elements= %d\n",ag_ab_eff.num_elements);
