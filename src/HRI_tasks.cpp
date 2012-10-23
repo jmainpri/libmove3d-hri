@@ -11023,7 +11023,7 @@ int find_current_hri_goal_solution()
   
   ChronoOff();
   ChronoOn();
-  get_clean_the_table_plan("TABLE_1");
+  get_clean_the_table_plan("TABLE_4");
   get_clean_the_table_plan("IKEA_SHELF_LIGHT_2");
   
   ChronoPrint("Time for finding Clean the table plan");
