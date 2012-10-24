@@ -17,6 +17,8 @@
 ////#define SECOND_HUMAN_EXISTS
 extern void* (*XFORM_update_func)();
 extern int (*default_drawtraj_fct_ptr)(p3d_rob* robot, p3d_localpath* curLp);
+extern bool (*ext_hrics_init_otp)(std::string humanName);
+extern bool (*ext_hrics_compute_otp)(std::string humanName, std::vector<std::vector<double> >& traj, configPt& handConf,bool isStanding, double objectNessecity);
 
 typedef enum HRI_TASK_TYPE_ENUM
 {

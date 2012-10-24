@@ -196,6 +196,10 @@ int default_drawtraj_fct_without_XFORM(p3d_rob* robot, p3d_localpath* curLp);
 
 int (*default_drawtraj_fct_ptr)(p3d_rob* robot, p3d_localpath* curLp)=default_drawtraj_fct_without_XFORM;
 
+bool (*ext_hrics_init_otp)(std::string humanName)= NULL;
+
+bool (*ext_hrics_compute_otp)(std::string humanName, std::vector<std::vector<double> >& traj, configPt& handConf,bool isStanding, double objectNessecity)= NULL;
+
 int set_current_HRI_manipulation_task(int arg)
 {
  switch(arg)
@@ -7530,7 +7534,7 @@ int at_least_one_valid_placement_found=0;
 
 //p3d_rob * agent_Pt=envPt_MM->robot[indices_of_MA_agents[performing_agent]];
 //p3d_rob * obj_Pt=envPt_MM->robot[get_index_of_robot_by_name((char*)curr_task.for_object.c_str())];
-p3d_rob * hum_bar_pt=envPt_MM->robot[get_index_of_robot_by_name((char*)"HUMAN_BAR")];
+p3d_rob * hum_bar_pt=envPt_MM->robot[get_index_of_robot_by_name((char*)"HUM_BAR")];
 
 p3d_col_deactivate_rob_rob(hum_bar_pt,agent_Pt);
 
@@ -8610,9 +8614,50 @@ int find_put_into_ability_graph()
 int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria)// mutual_effort_criteria=1: Effort Balancing (may be m=0.5), mutual_effort_criteria=2: Reducing target_agent_index (may be m=1) mutual_effort_criteria=3: Reducing performing_agent_index (may be m~0) 
 //Return 1 if succeed, return 0 if fails 
 {
-  
-  
-  
+    if (ext_hrics_init_otp)
+    {
+        if (!ext_hrics_init_otp(target_agent->name))
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        printf("ext_hrics_init_otp not defined\n");
+        return 0;
+    }
+
+    std::vector<std::vector<double> > traj;
+    configPt handConf;
+    if (ext_hrics_compute_otp)
+    {
+        if (ext_hrics_compute_otp(target_agent->name,traj,handConf,true,mutual_effort_criteria))
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        printf("ext_hrics_compute_otp not defined\n");
+        return 0;
+    }
+//   dynamic_cast<HRICS::OTPMotionPl*>(HRICS_MotionPLConfig)->InitMhpObjectTransfert(target_agent->name);
+//
+
+//   dynamic_cast<HRICS::OTPMotionPl*>(HRICS_MotionPLConfig)->getOtp(target_agent->name,traj,handConf,true,mutual_effort_criteria);
+
+//    bool OTPMotionPl::getOtp(std::string humanName,
+//                             std::vector<std::vector<double> >& traj,
+//                             configPt& handConf,bool isStanding, double objectNessecity)
+
+    //bool OTPMotionPl::InitMhpObjectTransfert(std::string humanName)
+
+
+  return 1;
 }
 
 int find_taskability_link_between_two_agents_for_task(HRI_task_desc curr_task, taskability_node &res_node )
@@ -9151,40 +9196,54 @@ ctr=0;
 	   //TODO try finding solution with DISPLACEMENT_EFFORT with Mamoun's system NEED to populate following function
 	   int mutual_effort_criteria=1;//for effort balancing
 	   res=find_give_task_link_between_two_agents_for_displacement_effort(envPt_MM->robot[indices_of_MA_agents[curr_task.by_agent]],envPt_MM->robot[indices_of_MA_agents[curr_task.for_agent]], mutual_effort_criteria);
-	   
+//           if (res == 1)
+//           {
+//               printf(" Found the solution \n");
+//               res_node.performing_agent=curr_task.by_agent;
+//               res_node.target_agent=curr_task.for_agent;
+//               res_node.task=curr_task.task_type;
+//               res_node.performing_ag_effort[REACH_ABILITY]=DISPLACEMENT_EFFORT;
+//               res_node.performing_ag_effort[VIS_ABILITY]=DISPLACEMENT_EFFORT;
+//               res_node.target_ag_effort[REACH_ABILITY]=DISPLACEMENT_EFFORT;
+//               res_node.target_ag_effort[VIS_ABILITY]=DISPLACEMENT_EFFORT;
+////               res_node.candidate_points=curr_resultant_candidate_points;
+//           }
 	 }
 	 
+
+
+
 	if(res==1)
 	 {
 	  printf(">>> Adding to the taskability graph, for performing agent %d, for target agent %d, for task %d, no_candidate_poins %d\n",res_node.performing_agent, res_node.target_agent, res_node.task, res_node.candidate_points->no_points);
 	  
 	  
 	  
-  char taskability_node_id_str[20];
-  std::string taskability_node_desc;
-  sprintf (taskability_node_id_str, "%d_",ctr);
-  taskability_node_desc=taskability_node_id_str;
-  taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
-  taskability_node_desc+='_';
-  taskability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
-  taskability_node_desc+='_';
-  ////printf("task_plan_desc before adding obj name = %s \n",task_plan_desc.c_str());
- //// printf(" curr_task.for_object.c_str() = %s\n", curr_task.for_object.c_str());
-  ////////taskability_node_desc+=curr_task_to_validate.hri_task.for_object.c_str();
- ////  printf("task_plan_desc after adding obj name = %s \n",task_plan_desc.c_str());
-  ////////task_plan_desc+='_';
-  taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.target_agent]]->name;
-  
-  taskability_node_DESC_ID_map[taskability_node_desc]=ctr;
-  printf(" Inserted into taskability_node_DESC_ID_map key= %s \n",taskability_node_desc.c_str());
-  
-  strcpy(res_node.desc,taskability_node_desc.c_str());
-  
-  res_node.node_id=ctr;
-  
-  taskability_graph.push_back(res_node);
-  
-  ctr++;
+          char taskability_node_id_str[20];
+          std::string taskability_node_desc;
+          sprintf (taskability_node_id_str, "%d_",ctr);
+          taskability_node_desc=taskability_node_id_str;
+          taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.performing_agent]]->name;
+          taskability_node_desc+='_';
+          taskability_node_desc+=HRI_task_NAME_ID_map.find(curr_task.task_type)->second;
+          taskability_node_desc+='_';
+          ////printf("task_plan_desc before adding obj name = %s \n",task_plan_desc.c_str());
+          //// printf(" curr_task.for_object.c_str() = %s\n", curr_task.for_object.c_str());
+          ////////taskability_node_desc+=curr_task_to_validate.hri_task.for_object.c_str();
+          ////  printf("task_plan_desc after adding obj name = %s \n",task_plan_desc.c_str());
+          ////////task_plan_desc+='_';
+          taskability_node_desc+=envPt_MM->robot[indices_of_MA_agents[res_node.target_agent]]->name;
+
+          taskability_node_DESC_ID_map[taskability_node_desc]=ctr;
+          printf(" Inserted into taskability_node_DESC_ID_map key= %s \n",taskability_node_desc.c_str());
+
+          strcpy(res_node.desc,taskability_node_desc.c_str());
+
+          res_node.node_id=ctr;
+
+          taskability_graph.push_back(res_node);
+
+          ctr++;
   
 	 }
 	 
