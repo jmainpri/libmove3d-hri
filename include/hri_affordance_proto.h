@@ -264,5 +264,8 @@ extern int modify_graph_for_agent_busy(MY_GRAPH &G,int for_agent_type, int agent
 extern int get_shortest_path_for_this_pair_new(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ,  std::vector<MY_EDGE_DESC> &path);
 extern int print_path_of_graph(MY_GRAPH &G, std::vector<MY_EDGE_DESC> &path);
 extern int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria);
+extern int test_to_extract_candidate_paces();
+extern int get_places_based_on_this_fact(agent_ability_effort_tuple &ag_ab_eff, std::set <cell_X_Y_Z> &curr_places, int operation_type, int on_plane);
+extern int show_this_agent_ability_effort_points(std::set <cell_X_Y_Z> &curr_places);
 #endif /* __CEXTRACT__ */
 

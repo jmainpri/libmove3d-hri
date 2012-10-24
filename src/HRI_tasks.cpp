@@ -8355,8 +8355,8 @@ int find_manipulability_graph()
     {
       if(GRASP_EXISTS_FOR_OBJECT[j]==1)
       {
-	curr_task.by_agent=(HRI_TASK_AGENT)i;
-	curr_task.for_object=envPt_MM->robot[j]->name;
+       curr_task.by_agent=(HRI_TASK_AGENT)i;
+       curr_task.for_object=envPt_MM->robot[j]->name;
        taskability_node res_node;
        res_node.task=curr_task.task_type;
        res_node.performing_agent=curr_task.by_agent;

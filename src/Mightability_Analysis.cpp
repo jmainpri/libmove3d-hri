@@ -54,6 +54,7 @@
 #include <boost/concept_check.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/concept_check.hpp>
+#include <set>
 
 #define COMMENT_TMP
 //// This will be used for exporting the object level mightability information to the external modules/functions
@@ -416,6 +417,8 @@ std::vector<std::string> container_names(Container_Names, Container_Names+sizeof
 
 agent_effort_configs Ag_Obj_Ab_mini_effort_states[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV]; //Will be used to store the agents configs corresponding to minimum effort for visibility and reachability of objects
 
+std::set <cell_X_Y_Z> CURRENT_RESULTANT_PLACES; //We use set to avoid entering duplicate values
+
 //================================
 int reach_effort_to_give=0;
 std::list<gpGrasp> grasps_for_object;
@@ -717,7 +720,9 @@ int execute_Mightability_Map_functions()
 	  
 	}
 
-      //Tmp for test
+      //Tmp to test
+      ////show_this_agent_ability_effort_points(CURRENT_RESULTANT_PLACES);
+      
   
  ////printf(" SHOW_TASKABILITIES=%d\n",SHOW_TASKABILITIES);
      if(SHOW_TASKABILITIES==1)
@@ -24460,6 +24465,7 @@ int set_all_Mightability_Analyses_to_update()
 analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][50];//3rd index will be synchronized with the enum of the corresponding effort levels
 
 //To group different states for a particular effort level depending upon the posture of the agent
+ //TODO: If we decide to use multiple postures of PR2, such as high, low, we have to populate the function update_analysis_type_effort_level_group based on the agent_posture flag which is currently not bein used for the case of PR2
 int update_analysis_type_effort_level_group(int agent, int agent_posture)
 {
   int agent_supported=0;
@@ -24748,7 +24754,7 @@ no_analysis_types=0;
 
 Analysis_type_Effort_level[agent][ability][effort_type].num_analysis_types=no_analysis_types;
 
-//FOR MA_HEAD_EFFORT
+//FOR MA_ARM_EFFORT
 effort_type=MA_ARM_EFFORT;
 
 no_analysis_types=0;
@@ -25012,12 +25018,12 @@ int for_agent;
   
 	  if(fabs(R_knee_val)>=DTOR(45)&&fabs(L_knee_val)>=DTOR(45))
 	  {
-	    ////printf(" Human is sitting\n");
+	    printf(" Human1 is sitting\n");
 	    HUMAN1_CURRENT_STATE_MM=HRI_SITTING;
 	  }
 	  else
 	  {
-	     ////printf(" Human is standing\n");
+	     printf(" Human1 is standing\n");
 	     HUMAN1_CURRENT_STATE_MM=HRI_STANDING;
 	  }
 	       
@@ -25033,12 +25039,12 @@ int for_agent;
   
 	  if(fabs(R_knee_val)>=DTOR(45)&&fabs(L_knee_val)>=DTOR(45))
 	  {
-	    ////printf(" Human is sitting\n");
+	    printf(" Human2 is sitting\n");
 	    HUMAN2_CURRENT_STATE_MM=HRI_SITTING;
 	  }
 	  else
 	  {
-	     ////printf(" Human is standing\n");
+	     printf(" Human2 is standing\n");
 	     HUMAN2_CURRENT_STATE_MM=HRI_STANDING;
 	  }
 	       
@@ -25364,7 +25370,7 @@ int init_agent_ability_effort_places()
     }
 }
 	
-//TODO: This function should be used as a basis for creating a function for finding candidate places based on various constraints by sequently calling that function for different agents. This requires some modifications such as sharing of the same candidate places among different calls . Also VALID_CELLS_FOR_CURR_EFFORT_LEVEL should decleared as vector for allocating memory dynamically 
+
 int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff) 
 {
   printf(" Inside get_effort_based_places_facts(). No. of elements= %d\n",ag_ab_eff.num_elements);
@@ -25462,6 +25468,522 @@ int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff)
  
 }
 
+int test_to_extract_candidate_paces()
+{
+  printf("Inside test_to_extract_candidate_paces\n");
+   agent_ability_effort_tuple ag_ab_eff;
+   int operation_type;
+   int res;
+   int on_plane=0;
+  ////init_agent_ability_effort_places();
+  CURRENT_RESULTANT_PLACES.clear();
+   ag_ab_eff.ability_type=VIS_ABILITY;
+  ag_ab_eff.agent=PR2_MA;
+  ag_ab_eff.effort_level=MA_HEAD_EFFORT;
+  ag_ab_eff.val=1;
+  operation_type=2;
+  
+     res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type, on_plane);
+
+  
+//CURRENT_RESULTANT_PLACES.clear();
+
+   ag_ab_eff.ability_type=REACH_ABILITY;
+   ag_ab_eff.agent=PR2_MA;
+   ag_ab_eff.effort_level=MA_ARM_EFFORT;
+   ag_ab_eff.by_hand=MA_RIGHT_HAND; //Need seperately for both hands 
+   ag_ab_eff.val=1;
+   operation_type=1;
+   
+   //on_plane=1;
+   
+   res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type, on_plane);
+  
+   //CURRENT_RESULTANT_PLACES.clear();
+  ag_ab_eff.ability_type=VIS_ABILITY;
+  ag_ab_eff.agent=HUMAN1_MA;
+  ag_ab_eff.effort_level=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+  ag_ab_eff.val=0;
+  operation_type=1;
+  
+  on_plane=1;//To get the resultant places on planes only
+  
+  res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type, on_plane);
+  
+  /*
+  ag_ab_eff.ability_type=VIS_ABILITY;
+  ag_ab_eff.agent=HUMAN2_MA;
+  ag_ab_eff.effort_level=MA_WHOLE_BODY_CURR_POS_EFFORT_VIS;
+  ag_ab_eff.val=0;
+  operation_type=1;
+  
+  res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+  */
+//  
+//   ag_ab_eff.ability_type=VIS_ABILITY;
+//   ag_ab_eff.agent=HUMAN1_MA;
+//   ag_ab_eff.effort_level=MA_HEAD_EFFORT;
+//   ag_ab_eff.val=1;
+//   int operation_type=2;//Union, since initially the set is empty
+//   
+//   int res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+//   
+// //    CURRENT_RESULTANT_PLACES.clear();
+// //    ag_ab_eff.ability_type=REACH_ABILITY;
+// //    ag_ab_eff.agent=HUMAN1_MA;
+// //    ag_ab_eff.effort_level=MA_ARM_EFFORT;
+// //    ag_ab_eff.by_hand=MA_RIGHT_HAND; //Need seperately for both hands 
+// //    ag_ab_eff.val=1;
+// //    operation_type=2;//Union
+// //    
+// //    res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+//   
+// 
+//    ag_ab_eff.ability_type=REACH_ABILITY;
+//    ag_ab_eff.agent=HUMAN1_MA;
+//    ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//    ag_ab_eff.by_hand=MA_RIGHT_HAND; //Need seperately for both hands 
+//    ag_ab_eff.val=0;//Note it is set as false
+//    operation_type=1;//Intersection, to filter out the set based on reachability
+//    
+//    res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+//    
+//    ag_ab_eff.ability_type=REACH_ABILITY;
+//    ag_ab_eff.agent=HUMAN1_MA;
+//    ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//    ag_ab_eff.by_hand=MA_LEFT_HAND; //Need seperately for both hands 
+//    ag_ab_eff.val=0;//Note it is set as false
+//    operation_type=1;//Intersection, to filter out the set based on reachability
+//    
+//    res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+// 
+// 
+//     ag_ab_eff.ability_type=VIS_ABILITY;
+//    ag_ab_eff.agent=PR2_MA;
+//    ag_ab_eff.effort_level=MA_HEAD_EFFORT;
+//    //ag_ab_eff.by_hand=MA_LEFT_HAND; //Need seperately for both hands 
+//    ag_ab_eff.val=0;//Note it is set as false
+//    operation_type=1;//Intersection, to filter out the set based on visibility
+//    
+//    ag_ab_eff.ability_type=REACH_ABILITY;
+//    ag_ab_eff.agent=PR2_MA;
+//    ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//    ag_ab_eff.by_hand=MA_RIGHT_HAND; //Need seperately for both hands 
+//    ag_ab_eff.val=0;//Note it is set as false
+//    operation_type=1;//Intersection, to filter out the set 
+//    
+//     ag_ab_eff.ability_type=REACH_ABILITY;
+//    ag_ab_eff.agent=PR2_MA;
+//    ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//    ag_ab_eff.by_hand=MA_LEFT_HAND; //Need seperately for both hands 
+//    ag_ab_eff.val=0;//Note it is set as false
+//    operation_type=1;//Intersection, to filter out the set 
+//    
+//    res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+
+//   ag_ab_eff.ability_type=REACH_ABILITY;
+//   ag_ab_eff.agent=HUMAN1_MA;
+//   ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//   ag_ab_eff.by_hand=MA_LEFT_HAND; //Need seperately for both hands
+//   ag_ab_eff.val=1;
+//   operation_type=1; //Intersection
+//   
+//   res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+  
+//   ag_ab_eff.ability_type=REACH_ABILITY;
+//   ag_ab_eff.agent=PR2_MA;
+//   ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//   ag_ab_eff.by_hand=MA_RIGHT_HAND;
+//   ag_ab_eff.val=1;
+//   operation_type=2; //Union
+//   
+//   res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+  
+//   ag_ab_eff.ability_type=REACH_ABILITY;
+//   ag_ab_eff.agent=PR2_MA;
+//   ag_ab_eff.effort_level=MA_ARM_EFFORT;
+//   ag_ab_eff.by_hand=MA_RIGHT_HAND;
+//   ag_ab_eff.val=1;
+//   operation_type=1;
+  
+//  res=get_places_based_on_this_fact(ag_ab_eff, CURRENT_RESULTANT_PLACES, operation_type);
+  
+  CANDIDATE_POINTS_FOR_TASK_FOUND=1;
+}  
+
+int get_places_based_on_this_fact(agent_ability_effort_tuple &ag_ab_eff, std::set <cell_X_Y_Z> &curr_places, int operation_type, int on_plane)//operation_type=1 for finding the intersection between curr_places and the resultand places satisfying the provided fact, operation_type=2 for finding the union. 
+{
+      printf(" ================*****====================\n");
+
+  printf(" Inside get_places_based_on_this_fact()\n");
+  printf(" Total number of cells in the already provided set of candiadte places= %d\n", curr_places.size());
+      
+  
+  update_human_posture_state();
+  int agent_posture;
+  
+#ifdef HUMAN1_EXISTS_FOR_MA
+  //if(for_agent==HUMAN1_MA)
+  //{
+    agent_posture=HUMAN1_CURRENT_STATE_MM;
+    update_analysis_type_effort_level_group(HUMAN1_MA,agent_posture);
+  //} 
+#endif
+
+#ifdef HUMAN2_EXISTS_FOR_MA
+ //if(for_agent==HUMAN1_MA)
+  //{
+    agent_posture=HUMAN2_CURRENT_STATE_MM;
+    update_analysis_type_effort_level_group(HUMAN2_MA,agent_posture);
+  //}
+#endif
+    
+#ifdef PR2_EXISTS_FOR_MA
+ //if(for_agent==HUMAN1_MA)
+  //{
+    //TODO: If we decide to use multiple postures of PR2, such as high, low, we have to populate the function update_analysis_type_effort_level_group based on the agent_posture flag which is currently not bein used for the case of PR2
+    agent_posture=PR2_CURRENT_POSTURE;
+    update_analysis_type_effort_level_group(PR2_MA,agent_posture);
+  //}
+#endif
+
+  cell_X_Y_Z curr_cell;
+  
+   int x=0;
+   int y=0;
+   int z=0;
+   
+   //std::set <cell_X_Y_Z> tmp_set;
+        
+   std::set<cell_X_Y_Z>::iterator it;
+
+  int total_no_of_cells=0;
+  
+  for (it=curr_places.begin(); it!=curr_places.end(); it++)
+  {
+    //WARNING: Do the following, i.e. changing the value of an entry of std::set, only if you are sure the attribute of the structure is not contributing in the sorting of the elements. I.E. not used by the overload operator<
+    const_cast<bool&>(it->valid)=false;//NOTE: This is a work around with a const_cast, otherwise the compiler will give the error "assignment of read-only location" if we directly do it->valid=0; 
+    total_no_of_cells++;
+  }
+  
+  printf(" total_no_of_cells valid flag is set to 0 =%d\n", total_no_of_cells);
+
+int ability_type;
+int for_agent;
+int effort_level;
+int val;
+int cur_accepted_analysis_type;
+int by_hand;
+   
+ability_type=ag_ab_eff.ability_type;
+
+		  if(ability_type!=VIS_ABILITY&&ability_type!=REACH_ABILITY) 
+		   {
+		    printf(" >**>> MA ERROR: The  type %d is unknown \n", ability_type);
+		    return 0;
+		   }
+		for_agent=ag_ab_eff.agent;
+		effort_level=ag_ab_eff.effort_level;
+		val=ag_ab_eff.val;
+		by_hand=ag_ab_eff.by_hand;
+		
+printf("Analysis_type_Effort_level[%d][%d][%d].num_analysis_types=%d\n",for_agent, ability_type,effort_level,Analysis_type_Effort_level[for_agent][ability_type][effort_level].num_analysis_types);
+
+int cell_ok=0;
+int no_valid_cells=0;
+int no_ok_vis_criteria_cells=0;
+
+  for(x=0;x<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nx;x++)
+    {
+      //y=0;
+      for(y=0;y<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->ny;y++)
+	{
+	  //z=0;
+	  for(z=0;z<grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->nz;z++)
+	    {
+	      cell_ok=0;
+	      
+	        if(on_plane==1 && grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_map_cell_obj_info.is_horizontal_surface==0)
+		continue;
+		
+		
+		//cell_not_ok=0;
+		if(val==1)
+		{
+		for(int j=0;j<Analysis_type_Effort_level[for_agent][ability_type][effort_level].num_analysis_types;j++)
+		 {
+		   
+		  cur_accepted_analysis_type=Analysis_type_Effort_level[for_agent][ability_type][effort_level].analysis_types[j];
+		   
+		  //// printf(" ** cur_accepted_analysis_type=%d\n",cur_accepted_analysis_type);
+		   if(ability_type==REACH_ABILITY)
+	           {
+		   if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[for_agent][cur_accepted_analysis_type][by_hand]==val)
+		    {
+		      cell_ok=1;
+		     break;//Sufficient to have true value for at least one state 
+		    }
+		   }
+		   
+	          if(ability_type==VIS_ABILITY)
+	           {
+		   
+	           if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[for_agent][cur_accepted_analysis_type]==1)
+		    {
+		     cell_ok=1;
+		     break;//Sufficient to have true value for at least one state 
+		    }
+		   }
+		  }
+		 }
+		 //int tmp_ctr=0;
+		if(val==0)
+		 {
+		   //tmp_ctr++;
+		 cell_ok=1;
+		 for(int j=0;j<Analysis_type_Effort_level[for_agent][ability_type][effort_level].num_analysis_types;j++)
+		  {
+		   
+		  cur_accepted_analysis_type=Analysis_type_Effort_level[for_agent][ability_type][effort_level].analysis_types[j];
+		   
+		  //// printf(" ** cur_accepted_analysis_type=%d\n",cur_accepted_analysis_type);
+		   
+		 if(ability_type==REACH_ABILITY)
+	           {
+		   if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[for_agent][cur_accepted_analysis_type][by_hand]==val)
+		    {
+		      cell_ok=0;
+		     break;//Sufficient to have true value for at least one state 
+		    }
+		   }
+		   
+	          if(ability_type==VIS_ABILITY)
+	           {
+		   
+	           if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.visible[for_agent][cur_accepted_analysis_type]==1)
+		    {
+		     cell_ok=0;
+		     break;//Sufficient to have true value for at least one state 
+		    }
+		   }
+		  }
+		 }
+		 ////printf(" no. of cells tested for false effort val case =%d\n",tmp_ctr);
+		 
+		  /*else
+		  {
+	          if(ability_type==REACH_ABILITY)
+	           {
+		   
+		 
+	           if(grid_around_HRP2.GRID_SET->bitmap[HRP2_GIK_MANIP]->data[x][y][z].Mightability_Map.reachable[for_agent][cur_accepted_analysis_type][by_hand]==val)
+		    {
+		     cell_ok=1;
+		   
+		    }
+	           }		  
+	         
+		  }
+		 }*/
+		  
+		  if(cell_ok==1)
+		  {
+		     curr_cell.x=x;
+		     curr_cell.y=y;
+		     curr_cell.z=z;
+		     
+		     //if(operation_type==1)//Intersection
+		     //{
+		     //std::set<cell_X_Y_Z>::iterator it;
+                     if(operation_type==2)//Union, so simply insert into the set, it takes care of avoiding duplicate value
+                     {
+		       ////curr_cell.valid=1;
+		       curr_places.insert(curr_cell);
+		     }
+		     else
+		     {
+		        if(operation_type==1)//Intersection
+                        {
+			  
+			  it=curr_places.find(curr_cell);
+			   if(it!=curr_places.end())//element is already in the set, then find intersection
+                         {
+			    //WARNING: Do the following, i.e. changing the value of an entry of std::set, only if you are sure the attribute of the structure is not contributing in the sorting of the elements. I.E. not used by the overload operator<
+		      const_cast<bool&>(it->valid)=true;//Marking this as valid cell. NOTE: This is a work around with a const_cast, otherwise the compiler will give the error "assignment of read-only location" if we directly do it->valid=0;
+		      no_valid_cells++;
+			 }
+		      
+		        }
+		     
+		   
+		     }
+		     //break;//as the cell is already valid, do not check for more states 
+		  }
+		 //}
+	      }
+	    }
+	}
+    
+    printf(" no_ok_vis_criteria_cells=%d\n",no_ok_vis_criteria_cells);
+  if(operation_type==1)//Intersection we need to erase the non valid entries
+  {
+    //// printf("Total no. of cells before removing invalid cells=%d\n",curr_places.size()); 
+       
+  printf(" no_valid_cells=%d\n", no_valid_cells);
+  
+    ////int no_valid_cells_total=0;
+    int no_deleted_cells=0;
+//     it=curr_places.begin();
+//     
+//     
+//     while(it!=curr_places.end())
+// {
+//   if(it->valid==false)
+//   {
+//    std::set<cell_X_Y_Z>::iterator itr2= it;
+//    ++it;   // increment before erasing!
+//    curr_places.erase(itr2);
+//     no_deleted_cells++;
+//   }
+// }
+
+
+   for (it=curr_places.begin(); it!=curr_places.end(); /*Don't increment here*/)
+   {
+    if(it->valid==false)
+    {
+      ////std::set<cell_X_Y_Z>::iterator itr2;
+      ////itr2=it;
+      //it++;
+      curr_places.erase(it++);//to obtain the next valid iterator, at the current will be erased
+      ////no_valid_cells_total++;
+      ////no_deleted_cells++;
+    }
+    else
+    {
+      ++it;
+    }
+    
+   }
+   
+  //// printf("no_valid_cells_total=%d\n",no_valid_cells_total);
+ 
+/*	int no_deleted_cells=0;
+  for (it=curr_places.begin(); it!=curr_places.end(); it++)
+   {
+    if(it->valid!=true)
+    {
+      curr_places.erase(it);
+      no_deleted_cells++;
+    }
+   }
+   */
+  //// printf("no_deleted_cells=%d\n", no_deleted_cells);
+  }
+  
+    printf(" Total number of resultant candiadte places= %d\n", curr_places.size());
+    printf(" =====*****=====\n");
+    
+    return 1;	     
+ 
+}
+
+int show_this_agent_ability_effort_points(std::set <cell_X_Y_Z> &curr_places)
+{
+   double radius=grid_around_HRP2.GRID_SET->pace/3.0;
+   
+  int color[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];//Red for human's visibility, Blue for robot's visibility, Green for human's reachability, Yellow for robot's reachability
+  
+  for(int i=0; i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK; i++)
+  {
+    for(int j=0; j<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT; j++)
+    {
+      if(i==HUMAN1_MA)
+      {
+	if(j==VIS_ABILITY)
+	{
+	  color[i][j]=Red;
+	}
+	else
+	{
+	  if(j==REACH_ABILITY)
+	  {
+	    color[i][j]=Green;
+	  }
+	}
+      }
+#ifdef HUMAN2_EXISTS_FOR_MA
+      if(i==HUMAN2_MA)
+      {
+	if(j==VIS_ABILITY)
+	{
+	  color[i][j]=Red;
+	}
+	else
+	{
+	  if(j==REACH_ABILITY)
+	  {
+	    color[i][j]=Green;
+	  }
+	}
+      }
+#endif
+      
+#ifdef PR2_EXISTS_FOR_MA
+      if(i==PR2_MA)
+      {
+	if(j==VIS_ABILITY)
+	{
+	  color[i][j]=Blue;
+	}
+	else
+	{
+	  if(j==REACH_ABILITY)
+	  {
+	    color[i][j]=Yellow;
+	  }
+	}
+      }
+#endif
+
+#ifdef JIDO_EXISTS_FOR_MA
+      if(i==JIDO_MA)
+      {
+	if(j==VIS_ABILITY)
+	{
+	  color[i][j]=Blue;
+	}
+	else
+	{
+	  if(j==REACH_ABILITY)
+	  {
+	    color[i][j]=Yellow;
+	  }
+	}
+      }
+#endif
+    }
+  }
+  
+   
+    double x_world;
+    double y_world;
+    double z_world;
+
+    std::set<cell_X_Y_Z>::iterator it;
+
+  
+  for (it=curr_places.begin(); it!=curr_places.end(); it++)
+  {
+     x_world = grid_around_HRP2.GRID_SET->realx + (it->x * grid_around_HRP2.GRID_SET->pace);
+     y_world = grid_around_HRP2.GRID_SET->realy + (it->y * grid_around_HRP2.GRID_SET->pace);
+     z_world = grid_around_HRP2.GRID_SET->realz + (it->z * grid_around_HRP2.GRID_SET->pace);
+
+     //g3d_drawDisc(x_world, y_world, z_world, radius, color[i][j], NULL);
+     g3d_drawDisc(x_world, y_world, z_world, radius, Red, NULL);
+  }
+  
+}
 
 int show_agent_ability_effort_points()
 {

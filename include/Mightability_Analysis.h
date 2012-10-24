@@ -63,6 +63,52 @@ typedef struct point_co_ordi
  double theta;
 }point_co_ordi;
 
+//To store the indices to identify a particular cell in the 3D grid
+typedef struct cell_X_Y_Z
+{
+ int x;
+ int y;
+ int z;
+ 
+ bool valid;
+ 
+ cell_X_Y_Z()
+ {
+   valid=false;
+ }
+ //overload operator< for the std:set to work, i.e. to be able to insert, as it need to compare the values to sort while inserting
+ bool operator<(const cell_X_Y_Z &a) const 
+ { 
+   if(x<a.x) 
+     return true;
+   
+   if(x>a.x) 
+     return false;
+   
+   if(y<a.y) 
+     return true;
+   
+   if(y>a.y) 
+     return false;
+   
+   if(z<a.z) 
+     return true;
+   
+   return false;
+   
+ }
+ 
+ //overload operator== for the std:set to work, i.e. to be able to find correctly, as it need to compare the values to sort while inserting
+ bool operator==(const cell_X_Y_Z &a) const 
+ { 
+   if(x==a.x && y==a.y && z==a.z) 
+     return true;
+   
+   return false;
+   
+ }
+}cell_X_Y_Z;
+
 typedef enum HRI_TASK_AGENT_ENUM
 {
   #ifdef HUMAN1_EXISTS_FOR_MA
@@ -1179,7 +1225,7 @@ typedef struct agent_ability_effort_tuple
   int ability_type;//should be the element of ability_type_for_effort_level
   int effort_level;//should be the element of MA_transition_reach_effort_type or MA_transition_vis_effort_type 
   int by_hand;//In the case the ability type is REACH_ABILITY. Should be the element of MA_agent_hand_name
-  
+  int val; //1 or 0 for true or false 
 }agent_ability_effort_tuple;
 
 typedef struct agent_ability_effort_set
