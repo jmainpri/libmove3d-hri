@@ -8611,7 +8611,7 @@ int find_put_into_ability_graph()
 }
 
 /////// Functions related to taskability graph //////////
-int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria)// mutual_effort_criteria=1: Effort Balancing (may be m=0.5), mutual_effort_criteria=2: Reducing target_agent_index (may be m=1) mutual_effort_criteria=3: Reducing performing_agent_index (may be m~0) 
+int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria, bool is_human_standing)// mutual_effort_criteria=1: Effort Balancing (may be m=0.5), mutual_effort_criteria=2: Reducing target_agent_index (may be m=1) mutual_effort_criteria=3: Reducing performing_agent_index (may be m~0) 
 //Return 1 if succeed, return 0 if fails 
 {
     if (ext_hrics_init_otp)
@@ -8631,7 +8631,7 @@ int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* perf
     configPt handConf;
     if (ext_hrics_compute_otp)
     {
-        if (ext_hrics_compute_otp(target_agent->name,traj,handConf,true,mutual_effort_criteria))
+        if (ext_hrics_compute_otp(target_agent->name,traj,handConf,is_human_standing,mutual_effort_criteria))
         {
             return 1;
         }
@@ -9191,23 +9191,45 @@ ctr=0;
 	curr_task.task_type=(HRI_TASK_TYPE)k;
 	taskability_node res_node;
 	int res=find_taskability_link_between_two_agents_for_task(curr_task, res_node);
-	if(res==0&&k==GIVE_OBJECT)
+	if(res==0&&k==GIVE_OBJECT&&curr_task.by_agent==PR2_MA)
 	 {
 	   //TODO try finding solution with DISPLACEMENT_EFFORT with Mamoun's system NEED to populate following function
 	   int mutual_effort_criteria=1;//for effort balancing
-	   res=find_give_task_link_between_two_agents_for_displacement_effort(envPt_MM->robot[indices_of_MA_agents[curr_task.by_agent]],envPt_MM->robot[indices_of_MA_agents[curr_task.for_agent]], mutual_effort_criteria);
-//           if (res == 1)
-//           {
-//               printf(" Found the solution \n");
-//               res_node.performing_agent=curr_task.by_agent;
-//               res_node.target_agent=curr_task.for_agent;
-//               res_node.task=curr_task.task_type;
-//               res_node.performing_ag_effort[REACH_ABILITY]=DISPLACEMENT_EFFORT;
-//               res_node.performing_ag_effort[VIS_ABILITY]=DISPLACEMENT_EFFORT;
-//               res_node.target_ag_effort[REACH_ABILITY]=DISPLACEMENT_EFFORT;
-//               res_node.target_ag_effort[VIS_ABILITY]=DISPLACEMENT_EFFORT;
-////               res_node.candidate_points=curr_resultant_candidate_points;
-//           }
+	   bool is_human_standing=false;
+	   
+	   if(curr_task.by_agent==HUMAN1_MA)
+	   {
+            if(HUMAN1_CURRENT_STATE_MM==HRI_SITTING)
+	    {
+	      is_human_standing=true;
+	    }
+	   }
+	   
+#ifdef HUMAN2_EXISTS_FOR_MA
+	   if(curr_task.by_agent==HUMAN2_MA)
+	   {
+            if(HUMAN2_CURRENT_STATE_MM==HRI_SITTING)
+	    {
+	      is_human_standing=true;
+	    }
+	   }
+#endif
+
+	   printf("****** Trying give task solution with Displacement Effort  ############\n");
+	   res=find_give_task_link_between_two_agents_for_displacement_effort(envPt_MM->robot[indices_of_MA_agents[curr_task.by_agent]],envPt_MM->robot[indices_of_MA_agents[curr_task.for_agent]], mutual_effort_criteria, is_human_standing);
+	
+          if (res == 1)
+          {
+              printf(" >>>> found give task solution with displacement effort\n <<<<");
+              res_node.performing_agent=curr_task.by_agent;
+              res_node.target_agent=curr_task.for_agent;
+              res_node.task=curr_task.task_type;
+              res_node.performing_ag_effort[REACH_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+              //res_node.performing_ag_effort[VIS_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+              res_node.target_ag_effort[REACH_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_REACH;
+              //res_node.target_ag_effort[VIS_ABILITY]=MA_WHOLE_BODY_CHANGE_POS_EFFORT_VIS;
+              //res_node.candidate_points=curr_resultant_candidate_points;
+          }
 	 }
 	 
 
