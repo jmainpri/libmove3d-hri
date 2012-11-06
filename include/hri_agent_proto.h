@@ -28,3 +28,4 @@ extern int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const 
 extern int hri_agent_is_grasping_obj_at_center(HRI_AGENT* agent, const char* OBJECT , int armId , p3d_matrix4 t);
 extern int hri_is_robot_an_agent(p3d_rob * robot, HRI_AGENTS * agents, int * is_human, int * agent_idx);
 extern HRI_AGENT* hri_get_one_agent_of_type(HRI_AGENTS * agents, HRI_AGENT_TYPE agentType);
+extern HRI_AGENT* hri_get_agent_by_name( HRI_AGENTS* agents, const char* name );

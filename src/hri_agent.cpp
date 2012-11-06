@@ -1886,7 +1886,7 @@ int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* O
     p3d_rob* rob = agent->robotPt;
     p3d_rob* obj = p3d_get_robot_by_name(OBJECT);
 
-    if(obj == NULL){
+    if(obj == NULL && is_grasping ){
         return  !is_grasping;
     }
 #ifdef LIGHT_PLANNER
@@ -1957,5 +1957,17 @@ HRI_AGENT* hri_get_one_agent_of_type(HRI_AGENTS * agents, HRI_AGENT_TYPE agentTy
         }
     }
     return NULL;
+}
+
+HRI_AGENT* hri_get_agent_by_name( HRI_AGENTS* agents, const char* name )
+{
+  for(int i=0; i<agents->all_agents_no; i++)
+  {
+    if( strcmp(name, agents->all_agents[i]->robotPt->name)==0 )
+    {
+      return agents->all_agents[i];
+    }
+  }
+  return NULL;
 }
 

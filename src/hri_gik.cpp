@@ -9,6 +9,8 @@
 
 #include "hri_gik_proto.h"
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 hri_gik * HRI_GIK = NULL;
 int HRI_GIK_CONTINUOUS = TRUE;
 int GIK_VIS = 100;
@@ -394,7 +396,8 @@ int hri_gik_computeJacobian(hri_gik * gik, int task_no, int rotation)
       J[0][task->jnt[j]->index] = z[1]*p[2]-z[2]*p[1];
       J[1][task->jnt[j]->index] = z[2]*p[0]-z[0]*p[2];
       J[2][task->jnt[j]->index] = z[0]*p[1]-z[1]*p[0];
-      if(isnan(J[0][task->jnt[j]->index])){
+      boost::math::isnan( i );
+      if( boost::math::isnan(J[0][task->jnt[j]->index]) ){
         printf("NAN VALUE\n");
       }
       if(rotation){
