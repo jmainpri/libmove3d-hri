@@ -228,15 +228,15 @@ extern void g3d_draw_text_at(char* string, double x_shift, double y_shift, doubl
 extern int init_currently_supported_tasks();
 extern int find_agent_object_affordance(HRI_task_desc curr_task, taskability_node &res_node );
 extern int get_maximum_possible_lean_angle_for_agent(HRI_TASK_AGENT for_agent, double &res_lean_forward_ang);
-extern int find_manipulability_graph();
+extern int find_manipulability_graph(std::vector<taskability_node> &manipulability_graph);
 extern int init_grasp_exists_for_object();
 extern int update_analysis_type_effort_level_group(int agent, int agent_posture);
-extern int print_manipulability_graph();
-extern int show_all_manipulability_graph();
-extern int show_taskabilities(show_taskability_params &curr_params );
+extern int print_manipulability_graph(std::vector<taskability_node> &manipulability_graph);
+extern int show_all_manipulability_graph(std::vector<taskability_node> &manipulability_graph);
+extern int show_taskabilities(show_taskability_params &curr_params, std::vector<taskability_node> curr_manipulability_graph );
 extern int show_Ag_Ag_taskability_node(int performing_agent, int target_agent, int task, int show_edge, int show_candidates);
-extern int show_Ag_Obj_manipulability_node(int performing_agent, int target_object);
-extern int show_this_manipulability_node(int node_id);
+extern int show_Ag_Obj_manipulability_node(int performing_agent, int target_object, std::vector<taskability_node> &manipulability_graph);
+extern int show_this_manipulability_node(int node_id,std::vector<taskability_node> &manipulability_graph);
 extern int print_this_taskability_params(show_taskability_params &curr_params );
 extern int show_agent_state_configs(int for_agent, int for_ability_type, int for_state) ;
 extern int free_state_configs(int for_agent, int for_state, int for_ability_type);
@@ -262,10 +262,25 @@ extern int get_reachable_config(int for_agent, p3d_rob* agent_Pt,p3d_rob* obj_Pt
 extern int get_agent_object_affordance_reach_disp_effort(p3d_rob * agent_Pt, p3d_rob * obj_Pt, int for_MA_agent, int only_first_solution);
 extern int modify_graph_for_agent_busy(MY_GRAPH &G,int for_agent_type, int agent_busy);
 extern int get_shortest_path_for_this_pair_new(MY_GRAPH &G, std::vector<MY_VERTEX_DESC> &predecessors, std::vector<double> &weights, MY_VERTEX_DESC &src,MY_VERTEX_DESC &targ,  std::vector<MY_EDGE_DESC> &path);
-extern int print_path_of_graph(MY_GRAPH &G, std::vector<MY_EDGE_DESC> &path);
+extern int print_path_of_graph(MY_GRAPH &G, std::vector<MY_EDGE_DESC> &path, std::string &path_desc);
 extern int find_give_task_link_between_two_agents_for_displacement_effort(p3d_rob* performing_agent, p3d_rob* target_agent, int mutual_effort_criteria, bool is_human_standing);
 extern int test_to_extract_candidate_paces();
 extern int get_places_based_on_this_fact(agent_ability_effort_tuple &ag_ab_eff, std::set <cell_X_Y_Z> &curr_places, int operation_type, int on_plane);
 extern int show_this_agent_ability_effort_points(std::set <cell_X_Y_Z> &curr_places);
+extern int store_current_world_state_physical_position(world_state_configs &curr_WS);
+extern int compare_two_world_states_physical_positions(world_state_configs &WS1,world_state_configs &WS2, std::vector<int> &moved_objects , std::vector<int> &lost_objects, std::vector<int> &new_objects, std::vector<std::string> &physical_changes);
+extern int find_world_state_with_id(world_state_configs &WS, int WS_id);
+extern int find_ability_graph(HRI_TASK_TYPE ability, std::vector<taskability_node> &ability_graph);
+extern int find_ability_graph_with_id(std::vector<ability_graph> ab_graphs, int ab_gr_id, ability_graph &res_ab_graph);
+extern int compare_two_world_states_ability_graphs(MY_GRAPH &ab_graph_1,MY_GRAPH &ab_graph_2, std::vector<std::string> &changes);
+extern int insert_object_to_exclude_from_MA(std::string obj_name);
+extern int find_potential_actions_for_this_source_target_env_pair(world_state_configs &WS1,world_state_configs &WS2, std::vector<World_state_change_explanation> &explanations);
+extern int find_potential_actions_for_this_source_target_env_pair_id(int WS1_id,int WS2_id, std::vector<World_state_change_explanation> &explanations);
+extern int compare_two_world_states_id_physical_positions(int WS1_id,int WS2_id, std::vector<std::string> &physical_changes);
+extern int compare_two_world_states_id_ability_graphs(int WS1_id,int WS2_id, std::vector<std::string> &ability_changes);
+extern int compare_two_world_states_ids(int ws1_id, int ws2_id, World_State_Changes &res_changes);
+extern int print_this_world_state_change(World_State_Changes &WS_changes);
+ 
+
 #endif /* __CEXTRACT__ */
 

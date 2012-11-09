@@ -35,6 +35,7 @@ MAKE_SPACE_FREE_OF_OBJECT,
 PUT_INTO_OBJECT,
 REACH_TO_POINT,
 PUT_ONTO_OBJECT,
+REACH_OBJECT,
 //NOTE: Don't forget to add any new task in init_HRI_task_name_ID_map() also
 //Add new tasks here before the last line
 
@@ -74,6 +75,7 @@ typedef struct HRI_task_desc
 typedef struct world_state_configs
 {
  //int no_robots;
+ int world_state_id;
  std::vector <configPt> robot_config;// robot_config[50]; //To store configurations of all the robots, it should be synchronized with the index of the robots
    
  
@@ -156,6 +158,12 @@ typedef struct taskability_node
   char desc[200];
 }taskability_node;
 
+typedef struct ability_graph
+{
+  int graph_id;
+std::vector<taskability_node> graph;
+  
+}ability_graph;
 
 typedef struct graph_vertex
 {
@@ -187,6 +195,25 @@ typedef struct agent_temporal_occupancy
   int time_slot_id;
   std::vector<int> agent_id;
 }agent_temporal_occupancy;
+
+typedef struct World_state_change_explanation
+{
+ int object_id;
+ std::string object_name;
+ 
+ std::string action_sequence;
+ 
+}World_state_change_explanation;
+
+typedef struct World_State_Changes
+{
+  int WS1_id;
+  int WS2_id;
+  std::vector<std::string> physical_changes;
+  std::vector<std::string> ability_changes;
+  std::vector<World_state_change_explanation> explanations;
+  
+}World_State_Changes;
 
 typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, graph_vertex, graph_edge > MY_GRAPH;
 typedef boost::graph_traits<MY_GRAPH>::vertex_descriptor MY_VERTEX_DESC;

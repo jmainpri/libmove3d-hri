@@ -401,6 +401,8 @@ extern int NUM_VALID_GRASPABLE_OBJ;
  
  extern int done_object_flow_graph_init;
   int SHOW_OBJECT_FLOW_GRAPH=1;
+  int DRAW_CURR_AFFORDANCE_GRAPH=0;
+  MY_GRAPH curr_affordance_graph_to_draw;
   
   extern int draw_this_graph(MY_GRAPH &G);
   
@@ -418,6 +420,10 @@ std::vector<std::string> container_names(Container_Names, Container_Names+sizeof
 agent_effort_configs Ag_Obj_Ab_mini_effort_states[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV]; //Will be used to store the agents configs corresponding to minimum effort for visibility and reachability of objects
 
 std::set <cell_X_Y_Z> CURRENT_RESULTANT_PLACES; //We use set to avoid entering duplicate values
+
+extern std::vector<taskability_node> curr_manipulability_graph;
+extern std::vector<taskability_node> curr_vis_reach_aibility_graph;
+
 
 //================================
 int reach_effort_to_give=0;
@@ -747,7 +753,13 @@ int execute_Mightability_Map_functions()
        ////show_Ag_Ab_Obj_least_effort_states(CURRENT_TASK_PERFORMED_BY, REACH_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
        
       print_this_taskability_params(curr_params_for_show_taskability);
-    show_taskabilities(curr_params_for_show_taskability);
+      
+      //Uncomment it to show manipulability graph
+      ////show_taskabilities(curr_params_for_show_taskability, curr_manipulability_graph);
+      
+      //Uncomment it to show current visibility reachability graph
+      show_taskabilities(curr_params_for_show_taskability, curr_vis_reach_aibility_graph);
+      
      }
     
     } 
@@ -759,6 +771,11 @@ int execute_Mightability_Map_functions()
      draw_this_graph(object_flow_graph);
      }
   
+    }
+    
+    if(DRAW_CURR_AFFORDANCE_GRAPH==1)
+    {
+      draw_this_graph(curr_affordance_graph_to_draw);
     }
    
     if(SHOW_LEAST_EFFORTS==1)
@@ -783,7 +800,7 @@ int execute_Mightability_Map_functions()
     return 1;
 }
 
-int show_taskabilities(show_taskability_params &curr_params )
+int show_taskabilities(show_taskability_params &curr_params, std::vector<taskability_node> curr_manipulability_graph )
 {
   curr_params.show_TN_edge=1;
   curr_params.show_TN_candidates=1;
@@ -795,7 +812,7 @@ int show_taskabilities(show_taskability_params &curr_params )
     }
     if(curr_params.show_all_manipulability_graph==1)
     {
-      show_all_manipulability_graph();
+      show_all_manipulability_graph(curr_manipulability_graph);
       show_all_put_into_ability_graph();
     }
   
@@ -815,11 +832,11 @@ int show_taskabilities(show_taskability_params &curr_params )
    {
     if(curr_params.show_MN_by_node_ID==1)
     {
-      show_this_manipulability_node(curr_params.MN_ID);
+      show_this_manipulability_node(curr_params.MN_ID, curr_manipulability_graph);
     }
     if(curr_params.show_MN_by_agent==1)
     {
-      show_Ag_Obj_manipulability_node(curr_params.MN_perf_ag, curr_params.MN_targ_obj);
+      show_Ag_Obj_manipulability_node(curr_params.MN_perf_ag, curr_params.MN_targ_obj, curr_manipulability_graph);
     }
   }
   
@@ -1336,6 +1353,7 @@ int init_HRI_task_name_ID_map()
  HRI_task_NAME_ID_map[PUT_INTO_OBJECT]="PUT_INTO_OBJECT";
  HRI_task_NAME_ID_map[REACH_TO_POINT]="REACH_TO_POINT";
  HRI_task_NAME_ID_map[PUT_ONTO_OBJECT]="PUT_ONTO_OBJECT";
+ HRI_task_NAME_ID_map[REACH_OBJECT]="REACH_OBJECT";
 
  HRI_sub_task_NAME_ID_map[REACH_TO_TAKE]="REACH_TO_TAKE";
  HRI_sub_task_NAME_ID_map[REACH_TO_GRASP]="REACH_TO_GRASP";

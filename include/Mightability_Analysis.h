@@ -24,6 +24,8 @@
 #define MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV 100
 #define COMMENT_TMP
 
+#define UNKNOWN_OBJ_POS_Z -50 //This will be sued to set the z value of some object which is not perceivable by the robot. Assuming the objects could not be underground at -50 m
+
 //Set operators on Mightability Maps
 #define MM_SET_OPR_NONE 0
 #define MM_SET_OPR_OR 1
