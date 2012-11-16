@@ -1928,6 +1928,102 @@ int hri_agent_is_grasping_obj(HRI_AGENT* agent, bool is_grasping , const char* O
     return is_grasping;
 }
 
+void hri_agent_print_config_for_softmotion(HRI_AGENT* agent)
+{
+  std::string name = agent->robotPt->name;
+  
+  if( name != "PR2_ROBOT" ) {
+    std::cout << "can only print PR2 softMotion config" << std::endl;
+    return;
+  }
+  
+  configPt q = p3d_alloc_config( agent->robotPt );
+  
+  p3d_jnt* jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"platformJoint");
+  double base_tx = q[jnt->index_dof+0];
+  double base_ty = q[jnt->index_dof+1];
+  double base_tz = q[jnt->index_dof+2];
+  double base_rx = q[jnt->index_dof+3];
+  double base_ry = q[jnt->index_dof+4];
+  double base_rz = q[jnt->index_dof+5];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"Torso");
+  double torso = q[jnt->index_dof+0];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"pan_cam");
+  double head_pan = q[jnt->index_dof+0]; 
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"tilt_cam");
+  double head_tilt = q[jnt->index_dof+0];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"laser-jnt");
+  double laser_tilt = q[jnt->index_dof+0];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"right-Arm1");
+  double r_shoulder_pan     = q[jnt->index_dof+0]; 
+  double r_shoulder_lift    = q[jnt->index_dof+1];
+  double r_upper_arm_roll   = q[jnt->index_dof+2];
+  double r_elbow_flex       = q[jnt->index_dof+3];
+  double r_forearm_roll     = q[jnt->index_dof+4];
+  double r_wrist_flex       = q[jnt->index_dof+5];
+  double r_writ_roll        = q[jnt->index_dof+6];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"fingerJointGripper_0");
+  double r_gripper = q[jnt->index_dof+0]; 
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"right-grip2");
+  double r_gripper_false = q[jnt->index_dof+0]; 
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"left-Arm1");
+  double l_shoulder_pan     = q[jnt->index_dof+0];
+  double l_shoulder_lift    = q[jnt->index_dof+1];
+  double l_upper_arm_roll   = q[jnt->index_dof+2];
+  double l_elbow_flex       = q[jnt->index_dof+3];
+  double l_forearm_roll     = q[jnt->index_dof+4];
+  double l_wrist_flex       = q[jnt->index_dof+5];
+  double l_wrist_roll       = q[jnt->index_dof+6];
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"fingerJointGripper_1");
+  double l_gripper = q[jnt->index_dof+0]; 
+  
+  jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"left-grip2");
+  double l_gripper_false = q[jnt->index_dof+0]; 
+  
+  std::cout << "CONFIG FOR PR2 SOFTMOTION" << std::endl;
+  std::cout << base_tx << " ";
+  std::cout << base_ty << " ";
+  std::cout << base_tz << " ";
+  std::cout << base_rx << " ";
+  std::cout << base_ry << " ";
+  std::cout << base_rz << " ";
+  
+  std::cout << torso << " ";
+  std::cout << head_pan << " ";
+  std::cout << head_tilt << " ";
+  std::cout << laser_tilt << " ";
+  
+  std::cout << r_shoulder_pan  << " ";   
+  std::cout << r_shoulder_lift  << " ";
+  std::cout << r_upper_arm_roll << " ";  
+  std::cout << r_elbow_flex << " "; 
+  std::cout << r_forearm_roll  << " ";
+  std::cout << r_wrist_flex   << " "; 
+  std::cout << r_writ_roll   << " "; 
+  std::cout << r_gripper << " ";
+  std::cout << r_gripper_false << " ";
+  
+  std::cout << l_shoulder_pan  << " ";
+  std::cout << l_shoulder_lift  << " "; 
+  std::cout << l_upper_arm_roll << " "; 
+  std::cout << l_elbow_flex  << " ";  
+  std::cout << l_forearm_roll << " ";  
+  std::cout << l_wrist_flex << " ";  
+  std::cout << l_wrist_roll << " ";  
+  std::cout << l_gripper << " ";
+  std::cout << l_gripper_false << " ";
+  std::cout << std::endl;  
+}
+
 //! @ingroup AGENTS
 int hri_is_robot_an_agent(p3d_rob * robot, HRI_AGENTS * agents, int * is_human, int * agent_idx)
 {
