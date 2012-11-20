@@ -36,6 +36,12 @@ PUT_INTO_OBJECT,
 REACH_TO_POINT,
 PUT_ONTO_OBJECT,
 REACH_OBJECT,
+PICK_MAKE_OBJECT_ACCESSIBLE,
+PICK_SHOW_OBJECT,
+PICK_GIVE_OBJECT,
+PICK_HIDE_OBJECT,
+PUT_VISIBLE_OBJECT,
+PICK_PUT_VISIBLE_OBJECT,
 //NOTE: Don't forget to add any new task in init_HRI_task_name_ID_map() also
 //Add new tasks here before the last line
 
@@ -69,7 +75,10 @@ typedef struct HRI_task_desc
 
  HRI_TASK_AGENT by_agent;
  HRI_TASK_AGENT for_agent;
-
+ 
+ std::vector<agent_ability_effort_tuple> ag_ab_effort;//to store all the desired constraints for this task wrt all the agent, not only the performing or target agent.
+ //TODO: use above as the actual set of constraints for planning a task
+ 
 }HRI_task_desc;
 
 typedef struct world_state_configs
@@ -77,8 +86,7 @@ typedef struct world_state_configs
  //int no_robots;
  int world_state_id;
  std::vector <configPt> robot_config;// robot_config[50]; //To store configurations of all the robots, it should be synchronized with the index of the robots
-   
- 
+
 }world_state_configs;
 
 typedef struct traj_for_HRI_sub_task
@@ -183,7 +191,6 @@ typedef struct graph_edge
  double target_ag_effort[MAXI_NUM_ABILITY_TYPE_FOR_EFFORT];
  int no_candidate; //to store no. of points or grasps depending upon Taskability, Manipulability graph or Put Into Ability graph
  int edge_task_type;
- 
  int agent_role_for_edge; //1 for performing agent, 2 for target agent
  
  double weight_for_graph_search;
@@ -200,7 +207,6 @@ typedef struct World_state_change_explanation
 {
  int object_id;
  std::string object_name;
- 
  std::string action_sequence;
  
 }World_state_change_explanation;

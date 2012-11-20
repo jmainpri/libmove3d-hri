@@ -1354,6 +1354,12 @@ int init_HRI_task_name_ID_map()
  HRI_task_NAME_ID_map[REACH_TO_POINT]="REACH_TO_POINT";
  HRI_task_NAME_ID_map[PUT_ONTO_OBJECT]="PUT_ONTO_OBJECT";
  HRI_task_NAME_ID_map[REACH_OBJECT]="REACH_OBJECT";
+ HRI_task_NAME_ID_map[PICK_MAKE_OBJECT_ACCESSIBLE]="PICK_MAKE_OBJECT_ACCESSIBLE";
+ HRI_task_NAME_ID_map[PICK_SHOW_OBJECT]="PICK_SHOW_OBJECT";
+ HRI_task_NAME_ID_map[PICK_GIVE_OBJECT]="PICK_GIVE_OBJECT";
+ HRI_task_NAME_ID_map[PICK_HIDE_OBJECT]="PICK_HIDE_OBJECT";
+ HRI_task_NAME_ID_map[PUT_VISIBLE_OBJECT]="PUT_VISIBLE_OBJECT";
+ HRI_task_NAME_ID_map[PICK_PUT_VISIBLE_OBJECT]="PICK_PUT_VISIBLE_OBJECT";
 
  HRI_sub_task_NAME_ID_map[REACH_TO_TAKE]="REACH_TO_TAKE";
  HRI_sub_task_NAME_ID_map[REACH_TO_GRASP]="REACH_TO_GRASP";
@@ -1454,21 +1460,27 @@ for(int i=0;i<MAXI_NUM_OF_HRI_TASKS;i++)
 switch(i)
   {
    case SHOW_OBJECT:
+     case PICK_SHOW_OBJECT:
+     case PUT_VISIBLE_OBJECT:
+     case PICK_PUT_VISIBLE_OBJECT:
     mini_visibility_threshold_for_task[i]=0.9;
     maxi_visibility_threshold_for_task[i]=1.1;
    break;
   
    case GIVE_OBJECT:
+     case PICK_GIVE_OBJECT:
     mini_visibility_threshold_for_task[i]=0.9;
     maxi_visibility_threshold_for_task[i]=1.1;
    break;
 
    case MAKE_OBJECT_ACCESSIBLE:
+     case PICK_MAKE_OBJECT_ACCESSIBLE:
     mini_visibility_threshold_for_task[i]=0.9;
     maxi_visibility_threshold_for_task[i]=1.0;
    break;
 
    case HIDE_OBJECT:
+     case PICK_HIDE_OBJECT:
     mini_visibility_threshold_for_task[i]=-0.1;
     maxi_visibility_threshold_for_task[i]=.05;
    break;
@@ -1595,6 +1607,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
    
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
@@ -1649,6 +1662,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
     break;
     
      case SHOW_OBJECT:
+        case PICK_SHOW_OBJECT:
     
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
@@ -1704,6 +1718,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
    break;
 
   case GIVE_OBJECT:
+     case PICK_GIVE_OBJECT:
      
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
@@ -1761,6 +1776,7 @@ int init_accepted_states_for_tasks_HUMAN1_JIDO()
     break;
 
     case HIDE_OBJECT:
+      case PICK_HIDE_OBJECT:
     
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN1_MA][JIDO_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
@@ -1893,6 +1909,7 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
    
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
@@ -1947,6 +1964,7 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
     break;
     
      case SHOW_OBJECT:
+       case PICK_SHOW_OBJECT:
     
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
@@ -2002,6 +2020,7 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
    break;
 
   case GIVE_OBJECT:
+    case PICK_GIVE_OBJECT:
      
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
@@ -2055,6 +2074,8 @@ int init_accepted_states_for_tasks_HUMAN2_JIDO()
     break;
 
     case HIDE_OBJECT:
+       case PICK_HIDE_OBJECT:
+    
     
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[HUMAN2_MA][JIDO_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
@@ -2187,7 +2208,8 @@ int init_accepted_states_for_tasks_JIDO_HUMAN1()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-   
+   case PICK_MAKE_OBJECT_ACCESSIBLE:
+     
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_non_accepted_reach_states=0;
@@ -2241,7 +2263,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN1()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_non_accepted_reach_states=0;
@@ -2295,7 +2317,8 @@ int init_accepted_states_for_tasks_JIDO_HUMAN1()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
+	
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_non_accepted_reach_states=0;
@@ -2348,7 +2371,8 @@ int init_accepted_states_for_tasks_JIDO_HUMAN1()
     break;
 
     case HIDE_OBJECT:
-    
+    case PICK_HIDE_OBJECT:
+      
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN1_MA][HUMAN1_MA][i].no_non_accepted_reach_states=0;
@@ -2473,7 +2497,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN1()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-	
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
+	  
       constraint_for_agent=HUMAN1_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -2529,7 +2554,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN1()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
+       
        constraint_for_agent=HUMAN1_MA;
        
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -2591,7 +2617,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN1()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
+	
     constraint_for_agent=HUMAN1_MA;
     
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -2647,6 +2674,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN1()
     break;
 
     case HIDE_OBJECT:
+      case PICK_HIDE_OBJECT:
+	
     constraint_for_agent=HUMAN1_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -2772,7 +2801,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN2()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-	
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
+	  
       constraint_for_agent=HUMAN2_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -2828,7 +2858,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN2()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
+       
        constraint_for_agent=HUMAN2_MA;
        
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -2884,7 +2915,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN2()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
+	
     constraint_for_agent=HUMAN2_MA;
     
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -2940,6 +2972,8 @@ int init_accepted_states_for_tasks_PR2_HUMAN2()
     break;
 
     case HIDE_OBJECT:
+      case PICK_HIDE_OBJECT:
+	
     constraint_for_agent=HUMAN2_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3066,7 +3100,8 @@ int init_accepted_states_for_tasks_HUMAN1_PR2()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-	
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
+	  
       constraint_for_agent=HUMAN1_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3122,7 +3157,8 @@ int init_accepted_states_for_tasks_HUMAN1_PR2()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
+       
        constraint_for_agent=HUMAN1_MA;
        
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3181,7 +3217,8 @@ int init_accepted_states_for_tasks_HUMAN1_PR2()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
+	
     constraint_for_agent=HUMAN1_MA;
     
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3237,6 +3274,8 @@ int init_accepted_states_for_tasks_HUMAN1_PR2()
     break;
 
     case HIDE_OBJECT:
+      case PICK_HIDE_OBJECT:
+	
     constraint_for_agent=HUMAN1_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3376,7 +3415,8 @@ int init_accepted_states_for_tasks_HUMAN2_PR2()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-	
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
+	  
       constraint_for_agent=HUMAN2_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3432,7 +3472,8 @@ int init_accepted_states_for_tasks_HUMAN2_PR2()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
+       
        constraint_for_agent=HUMAN2_MA;
        
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3491,7 +3532,8 @@ int init_accepted_states_for_tasks_HUMAN2_PR2()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
+	
     constraint_for_agent=HUMAN2_MA;
     
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3547,6 +3589,8 @@ int init_accepted_states_for_tasks_HUMAN2_PR2()
     break;
 
     case HIDE_OBJECT:
+      case PICK_HIDE_OBJECT:
+	
     constraint_for_agent=HUMAN2_MA;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3696,7 +3740,7 @@ int init_accepted_states_for_human_human_tasks(int performed_by_agent,int perfor
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-	
+	case PICK_MAKE_OBJECT_ACCESSIBLE:
 	constraint_for_agent=performed_by_agent;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3761,7 +3805,7 @@ int init_accepted_states_for_human_human_tasks(int performed_by_agent,int perfor
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
        constraint_for_agent=performed_by_agent;
        
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3832,7 +3876,7 @@ int init_accepted_states_for_human_human_tasks(int performed_by_agent,int perfor
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
     constraint_for_agent=performed_by_agent;
     
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
@@ -3900,7 +3944,7 @@ int init_accepted_states_for_human_human_tasks(int performed_by_agent,int perfor
     break;
 
     case HIDE_OBJECT:
-      
+      case PICK_HIDE_OBJECT:
        constraint_for_agent=performed_by_agent;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[performed_by_agent][performed_for_agent][constraint_for_agent][i].no_accepted_vis_states=0;
@@ -3995,7 +4039,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN2()
     switch (i)
     {
       case MAKE_OBJECT_ACCESSIBLE:
-   
+   case PICK_MAKE_OBJECT_ACCESSIBLE:
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_non_accepted_reach_states=0;
@@ -4049,7 +4093,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN2()
     break;
     
      case SHOW_OBJECT:
-    
+     case PICK_SHOW_OBJECT:
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_non_accepted_reach_states=0;
@@ -4103,7 +4147,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN2()
    break;
 
   case GIVE_OBJECT:
-     
+      case PICK_GIVE_OBJECT:
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_non_accepted_reach_states=0;
@@ -4156,7 +4200,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN2()
     break;
 
     case HIDE_OBJECT:
-    
+    case PICK_HIDE_OBJECT:
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_reach_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_accepted_vis_states=0;
       accepted_states_for_HRI_task[JIDO_MA][HUMAN2_MA][HUMAN2_MA][i].no_non_accepted_reach_states=0;
@@ -4270,6 +4314,7 @@ int init_accepted_states_for_tasks_JIDO_HUMAN2()
 }
 #endif
 
+//TODO: For PICK_ varients of the tasks
 #ifdef HRP2_EXISTS_FOR_MA
 int init_accepted_states_for_tasks_HRP2_HUMAN1()
 {
@@ -15275,6 +15320,8 @@ int update_robots_and_objects_status()
 		  robots_status_for_Mightability_Maps[r_ctr].has_moved=1;
                   at_least_one_object_has_moved=1;
 		  printf(" >>**>> Robot = %s has moved.\n",r->name);
+		  printf(" current position of %s stored in dof_data is (%lf, %lf, %lf) \n", r->name, r->joints[1]->dof_data[0].v,r->joints[1]->dof_data[1].v,r->joints[1]->dof_data[2].v);
+	  
 		  
 		  if(check_obj_is_container(r->name)==1)
 		  {
@@ -15715,6 +15762,8 @@ int object_index=get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE);
 	  p3d_get_robot_config_into(r,&cur_rob_pos);
   
 	  printf(" Updating obstacle cells for Object = %s \n",r->name);
+	  printf(" current position of %s is (%lf, %lf, %lf) \n", r->name, cur_rob_pos[6],cur_rob_pos[7],cur_rob_pos[8]);
+	  
 	 
  /*  
 	  NEED_HUMAN1_ALL_VISIBILITY_UPDATE=1;
@@ -19560,7 +19609,7 @@ int find_candidate_points_for_current_HRI_task(HRI_TASK_TYPE curr_task, HRI_TASK
   
   resultant_candidate_point->no_points=0;
    int need_placement_on_plane=0;
-   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT)
+   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT||curr_task==PICK_MAKE_OBJECT_ACCESSIBLE||curr_task==PICK_HIDE_OBJECT)
    {
    need_placement_on_plane=1;  
    }
@@ -23165,7 +23214,8 @@ int print_object_oriented_Mightability_for_object_by_agent(object_Symbolic_Might
 
 int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_task, HRI_TASK_AGENT_ENUM performed_by, HRI_TASK_AGENT_ENUM performed_for, int performing_agent_rank, candidate_poins_for_task *resultant_candidate_point, char *object, int consider_obj_dimension)
 {
-  //IMPORTANT TODO Write the code to handle the case when no. of accepted reach or vis states are 0. Currently in that case it give bad results.
+  //IMPORTANT WARNING TODO Write the code to handle the case when no. of accepted reach or vis states are 0. Currently in that case it give bad results.
+  
   
   int no_expansion_cells=0;
   double ox,oy,oz,orx,ory,orz;
@@ -23259,7 +23309,7 @@ int find_candidate_points_for_current_HRI_task_for_object(HRI_TASK_TYPE curr_tas
   
   resultant_candidate_point->no_points=0;
    int need_placement_on_plane=0;
-   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT||curr_task==PUT_ONTO_OBJECT)
+   if(curr_task==MAKE_OBJECT_ACCESSIBLE||curr_task==HIDE_AWAY_OBJECT||curr_task==HIDE_OBJECT||curr_task==PUT_ONTO_OBJECT||curr_task==PICK_MAKE_OBJECT_ACCESSIBLE||curr_task==PICK_HIDE_OBJECT||curr_task==PUT_VISIBLE_OBJECT||curr_task==PICK_PUT_VISIBLE_OBJECT)
    {
    need_placement_on_plane=1;  
    }
@@ -24483,7 +24533,7 @@ int set_all_Mightability_Analyses_to_update()
 analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_AGENT_FOR_HRI_TASK][MAXI_NUM_ABILITY_TYPE_FOR_EFFORT][50];//3rd index will be synchronized with the enum of the corresponding effort levels
 
 //To group different states for a particular effort level depending upon the posture of the agent
- //TODO: If we decide to use multiple postures of PR2, such as high, low, we have to populate the function update_analysis_type_effort_level_group based on the agent_posture flag which is currently not bein used for the case of PR2
+ //TODO: If we decide to use multiple postures of PR2, such as high, low, we have to populate the function update_analysis_type_effort_level_group based on the agent_posture flag which is currently not being used for the case of PR2
 int update_analysis_type_effort_level_group(int agent, int agent_posture)
 {
   int agent_supported=0;
@@ -24819,7 +24869,7 @@ int update_effort_levels_for_HRI_Tasks(HRI_task_desc &curr_task, int effort_for,
   desired_level.vis_relevent=1;
   desired_level.reach_relevant=1;
   
-   if((curr_task.task_type==SHOW_OBJECT||curr_task.task_type==HIDE_OBJECT)&&effort_for==1)//Because for target agent reach is not relevant for these tasks
+   if((curr_task.task_type==SHOW_OBJECT||curr_task.task_type==HIDE_OBJECT||curr_task.task_type==PICK_SHOW_OBJECT||curr_task.task_type==PICK_HIDE_OBJECT||curr_task.task_type==PUT_VISIBLE_OBJECT||curr_task.task_type==PICK_PUT_VISIBLE_OBJECT)&&effort_for==1)//Because for target agent reach is not relevant for these tasks
     {
     desired_level.reach_relevant=0;
     }
@@ -25486,6 +25536,8 @@ int get_effort_based_places_facts(agent_ability_effort_set &ag_ab_eff)
  
 }
 
+
+
 int test_to_extract_candidate_paces()
 {
   printf("Inside test_to_extract_candidate_paces\n");
@@ -25629,6 +25681,7 @@ int test_to_extract_candidate_paces()
   CANDIDATE_POINTS_FOR_TASK_FOUND=1;
 }  
 
+//TODO: Implement for the consider_obj_dimension flag as done in find_candidate_points_for_current_HRI_task_for_object
 int get_places_based_on_this_fact(agent_ability_effort_tuple &ag_ab_eff, std::set <cell_X_Y_Z> &curr_places, int operation_type, int on_plane)//operation_type=1 for finding the intersection between curr_places and the resultand places satisfying the provided fact, operation_type=2 for finding the union. 
 {
       printf(" ================*****====================\n");

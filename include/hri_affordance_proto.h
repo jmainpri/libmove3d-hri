@@ -207,7 +207,7 @@ extern int JIDO_find_solution_to_take_new(char *obj_to_manipulate, HRI_TASK_TYPE
 extern int JIDO_find_solution_to_take_new2(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int JIDO_find_solution_to_take_new3(char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT from_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> placementList, traj_for_HRI_task &res_trajs);
 extern int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candidate_poins_for_task *candidate_points, int indx_by_agent, int indx_for_agent, int performing_agent_rank);
-extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, int filter_contact_polygon_inside_support, traj_for_HRI_task &res_trajs);
+extern int robot_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, int filter_contact_polygon_inside_support, int object_in_hand, traj_for_HRI_task &res_trajs);
 extern int get_object_list_on_object(char* supporting_obj_name, std::vector<std::string> &ON_object_list, std::vector<int> &ON_object_indices);
 extern int print_this_string_list(std::vector<std::string> &str_list);
 extern int get_clean_the_table_plan(char *Table_name);
@@ -280,7 +280,8 @@ extern int compare_two_world_states_id_physical_positions(int WS1_id,int WS2_id,
 extern int compare_two_world_states_id_ability_graphs(int WS1_id,int WS2_id, std::vector<std::string> &ability_changes);
 extern int compare_two_world_states_ids(int ws1_id, int ws2_id, World_State_Changes &res_changes);
 extern int print_this_world_state_change(World_State_Changes &WS_changes);
- 
+extern int filter_world_state_based_on_agent_perspective(int MA_agent_type);
+extern int addCurrentRobotGraspToList(p3d_rob *robot, p3d_rob *object, gpHand_properties &handProp, std::list<gpGrasp> &graspList);
 
 #endif /* __CEXTRACT__ */
 

@@ -24,7 +24,7 @@
 #define MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV 100
 #define COMMENT_TMP
 
-#define UNKNOWN_OBJ_POS_Z -50 //This will be sued to set the z value of some object which is not perceivable by the robot. Assuming the objects could not be underground at -50 m
+#define UNKNOWN_OBJ_POS_Z -15 //This will be used to set the z value of some object which is not perceivable by the robot. 
 
 //Set operators on Mightability Maps
 #define MM_SET_OPR_NONE 0
@@ -1228,6 +1228,8 @@ typedef struct agent_ability_effort_tuple
   int effort_level;//should be the element of MA_transition_reach_effort_type or MA_transition_vis_effort_type 
   int by_hand;//In the case the ability type is REACH_ABILITY. Should be the element of MA_agent_hand_name
   int val; //1 or 0 for true or false 
+  int operation_type; //1 for union, 2 for intersection. This is optional and will be used to indicate in the cases where the set operations are performed on a ordered list of this structure
+  bool on_plane; //optional, used to filter the resultant set based on support planes
 }agent_ability_effort_tuple;
 
 typedef struct agent_ability_effort_set
