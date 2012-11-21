@@ -82,6 +82,7 @@ extern p3d_env *envPt_MM;
 ////extern HRI_AGENT * jido_robot_MM;
 ////extern HRI_AGENT * hrp2_robot_MM;
 extern struct robots_indices rob_indx;
+
 static ManipulationPlanner *manipulation= NULL;
 
 //extern candidate_poins_for_task resultant_current_candidate_point;
@@ -210,6 +211,15 @@ bool (*ext_hrics_init_otp)(std::string humanName)= NULL;
 
 bool (*ext_hrics_compute_otp)(std::string humanName, std::vector<std::vector<double> >& traj, configPt& handConf,bool isStanding, double objectNessecity)= NULL;
 
+p3d_traj* (*hri_tasks_planner_fct)( p3d_rob* robotPt, configPt qs, configPt qg ) = NULL;
+void (*hri_tasks_smoothing_fct)( p3d_rob* robotPt, p3d_traj* traj, int nbSteps, double maxTime ) = NULL;
+
+void hri_tasks_set_manipulation_planner_fct( p3d_traj* (*planner_fct)( p3d_rob* robotPt, configPt qs, configPt qg ),void (*smoothing_fct)( p3d_rob* robotPt, p3d_traj* traj, int nbSteps, double maxTime ) )
+{
+  hri_tasks_planner_fct    = planner_fct;
+  hri_tasks_smoothing_fct  = smoothing_fct; 
+}
+
 int set_current_HRI_manipulation_task(int arg)
 {
  switch(arg)
@@ -278,10 +288,14 @@ int convert_symbolic_HRI_task_desc_into(symbolic_HRI_task_desc &HRI_task_ip, HRI
  
  std::map<int, string>::iterator it;
  int task_known=0;
+ std::string hri_task_name = HRI_task_ip.task_name;	 
+
  for(it = HRI_task_NAME_ID_map.begin(); it != HRI_task_NAME_ID_map.end(); ++it)
  {
- if(strcasestr(HRI_task_ip.task_name,it->second.c_str()))
+   printf(" Task name %s,%s \n",HRI_task_ip.task_name,it->second.c_str());
+   if( hri_task_name == it->second )
   {
+   printf(" SUCCESS task name %s,%s \n",HRI_task_ip.task_name,it->second.c_str());
    task_to_validate.task_type=(HRI_TASK_TYPE)it->first;
    task_known=1;
    break;
@@ -355,11 +369,18 @@ int init_manipulation_planner(char robot_name[100])
 if ( manipulation== NULL )
    {
       ////p3d_rob * robotPt= p3d_get_robot_by_name("JIDOKUKA_ROBOT");//justin//JIDOKUKA_ROBOT
-      p3d_rob * robotPt= p3d_get_robot_by_name(robot_name);
-      manipulation= new ManipulationPlanner(robotPt);
-//         manipulation->setArmType(GP_LWR); // set the arm type
+     p3d_rob * robotPt= p3d_get_robot_by_name(robot_name);
+     manipulation= new ManipulationPlanner(robotPt);
+     //         manipulation->setArmType(GP_LWR); // set the arm type
+
+     if(  hri_tasks_planner_fct != NULL &&  hri_tasks_smoothing_fct != NULL ) 
+       {
+	 manipulation->setPlanningMethod( hri_tasks_planner_fct );
+	 manipulation->setSmoothingMethod( hri_tasks_smoothing_fct );
+	 manipulation->setCleanningRoadmaps( false );
+       }
    }
-return 1;
+ return 1;
 }
 
 

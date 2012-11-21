@@ -20,6 +20,8 @@ extern int (*default_drawtraj_fct_ptr)(p3d_rob* robot, p3d_localpath* curLp);
 extern bool (*ext_hrics_init_otp)(std::string humanName);
 extern bool (*ext_hrics_compute_otp)(std::string humanName, std::vector<std::vector<double> >& traj, configPt& handConf,bool isStanding, double objectNessecity);
 
+void hri_tasks_set_manipulation_planner_fct( p3d_traj* (*planner_fct)( p3d_rob* robotPt, configPt qs, configPt qg ),void (*smoothing_fct)( p3d_rob* robotPt, p3d_traj* traj, int nbSteps, double maxTime ) );
+
 typedef enum HRI_TASK_TYPE_ENUM
 {
 MAKE_OBJECT_ACCESSIBLE=0,
