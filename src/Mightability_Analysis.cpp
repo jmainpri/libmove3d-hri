@@ -18999,12 +18999,12 @@ int assign_weights_on_candidte_points_to_show_obj_new(char *object_name, candida
   
   p3d_mat4Copy(envPt_MM->robot[indx_for_agent]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos);
   p3d_matInvertXform(hum_pos, hum_pos_inverse);
-  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof); /* Allocation of temporary robot configuration */
+  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[indx_for_agent]->nb_dof); /* Allocation of temporary robot configuration */
 
   for(i=0;i<3;++i)
     meanPoint[i]= hum_pos[i][3] + 0.5*hum_pos[i][0];
   //meanPoint[3]= 1.0;
-  p3d_get_robot_config_into(envPt_MM->robot[rob_indx.HUMAN],&hum_cur_pos);
+  p3d_get_robot_config_into(envPt_MM->robot[indx_for_agent],&hum_cur_pos);
 
 
   ////double yaw=M_PI/3.0;
@@ -19157,7 +19157,7 @@ candidate_points_to_give.weight[i]+=2.0*max_weight*exp(-(((point_to_bottle_dist)
 }
   */
   normalize_weights(candidate_points);
-  MY_FREE(hum_cur_pos,double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof);
+  MY_FREE(hum_cur_pos,double,envPt_MM->robot[indx_for_agent]->nb_dof);
 
   return 1;
 }
@@ -19253,12 +19253,12 @@ int assign_weights_on_candidte_points_to_give_obj(char *object_name, candidate_p
   
   p3d_mat4Copy(envPt_MM->robot[indx_for_agent]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos);
   p3d_matInvertXform(hum_pos, hum_pos_inverse);
-  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof); /* Allocation of temporary robot configuration */
+  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[indx_for_agent]->nb_dof); /* Allocation of temporary robot configuration */
 
   for(i=0;i<3;++i)
     meanPoint[i]= hum_pos[i][3] + 0.5*hum_pos[i][0];
   //meanPoint[3]= 1.0;
-  p3d_get_robot_config_into(envPt_MM->robot[rob_indx.HUMAN],&hum_cur_pos);
+  p3d_get_robot_config_into(envPt_MM->robot[indx_for_agent],&hum_cur_pos);
 
 
   ////double yaw=M_PI/3.0;
@@ -19403,7 +19403,7 @@ candidate_points_to_give.weight[i]+=2.0*max_weight*exp(-(((point_to_bottle_dist)
 }
   */
   normalize_weights(candidate_points);
-  MY_FREE(hum_cur_pos,double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof);
+  MY_FREE(hum_cur_pos,double,envPt_MM->robot[indx_for_agent]->nb_dof);
 
   return 1;
 }
@@ -19418,11 +19418,11 @@ int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_p
   p3d_matrix4 hum_pos_inverse;
   double relative_yaw, relative_pitch; 
   
-  p3d_matInvertXform(envPt_MM->robot[rob_indx.HUMAN]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos_inverse);
+  p3d_matInvertXform(envPt_MM->robot[indx_for_agent]->joints[HUMAN_J_NECK_PAN]->abs_pos, hum_pos_inverse);
 
-  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof); /* Allocation of temporary robot configuration */
+  configPt hum_cur_pos = MY_ALLOC(double,envPt_MM->robot[indx_for_agent]->nb_dof); /* Allocation of temporary robot configuration */
 
-  p3d_get_robot_config_into(envPt_MM->robot[rob_indx.HUMAN],&hum_cur_pos);
+  p3d_get_robot_config_into(envPt_MM->robot[indx_for_agent],&hum_cur_pos);
 
    p3d_matrix4 hum_pos;
   
@@ -19511,7 +19511,7 @@ int assign_weights_on_candidte_points_to_hide_obj(char *object_name, candidate_p
       //////////printf(" New weight for candidate point %d to hide with pos (%lf,%lf,%lf) is %lf\n", i,point_in_global_frame[0],point_in_global_frame[1],point_in_global_frame[2],candidate_points_to_hide.weight[i]);
     }
   normalize_weights(candidate_points);
-  MY_FREE(hum_cur_pos,double,envPt_MM->robot[rob_indx.HUMAN]->nb_dof);
+  MY_FREE(hum_cur_pos,double,envPt_MM->robot[indx_for_agent]->nb_dof);
 
   return 1;
 }
@@ -27228,3 +27228,59 @@ if(at_least_reachable_by_one_hand==1)
   
 }
 
+int remove_this_object_out_of_scene_and_update_MA(char* obj_name, std::vector<double> &act_pos)
+{
+  act_pos.clear();
+  double ox, oy, oz, orx, ory, orz;
+  
+  int obj_index=get_index_of_robot_by_name(obj_name);
+  
+   p3d_get_freeflyer_pose2(envPt_MM->robot[obj_index], &ox,&oy,&oz,&orx,&ory,&orz);
+  p3d_set_freeflyer_pose2(envPt_MM->robot[obj_index], 0,0,UNKNOWN_OBJ_POS_Z,0,0,0);
+  
+  //To update the MM assuming the object is not there as a constraint for visibility and reachability
+  update_robots_and_objects_status();
+     /////set_all_Mightability_Analyses_to_update();
+  int tmp_mm_info=UPDATE_MIGHTABILITY_MAP_INFO;
+  
+  UPDATE_MIGHTABILITY_MAP_INFO=0;
+  
+  update_horizontal_surfaces();
+ 
+  update_Mightability_Maps_new();
+ 
+  UPDATE_MIGHTABILITY_MAP_INFO=tmp_mm_info;
+  act_pos.push_back(ox);
+  act_pos.push_back(oy);
+   act_pos.push_back(oz);
+    act_pos.push_back(orx);
+     act_pos.push_back(ory);
+      act_pos.push_back(orz);
+      
+      return 1;
+}
+
+int put_this_object_here_and_update_MA(char* obj_name, std::vector<double> &act_pos)
+{
+  act_pos.clear();
+  
+  
+  int obj_index=get_index_of_robot_by_name(obj_name);
+  
+   
+  p3d_set_freeflyer_pose2(envPt_MM->robot[obj_index], act_pos[0],act_pos[1], act_pos[2], act_pos[3], act_pos[4], act_pos[5]);
+  
+  //To update the MM assuming the object is not there as a constraint for visibility and reachability
+  update_robots_and_objects_status();
+     /////set_all_Mightability_Analyses_to_update();
+  int tmp_mm_info=UPDATE_MIGHTABILITY_MAP_INFO;
+  
+  UPDATE_MIGHTABILITY_MAP_INFO=0;
+  
+  update_horizontal_surfaces();
+ 
+  update_Mightability_Maps_new();
+ 
+  UPDATE_MIGHTABILITY_MAP_INFO=tmp_mm_info;
+      return 1;
+}

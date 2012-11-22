@@ -627,7 +627,7 @@ CURRENT_CANDIDATE_GRASP_FOR_TASK=&candidate_grasps_for_task;
  break;
  
  case SHOW_OBJECT:
-   case PICK_SHOW_OBJECT:
+  case PICK_SHOW_OBJECT:
  {
   get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
  } 
@@ -708,7 +708,7 @@ int find_constraint_based_candidate_places(HRI_task_desc &curr_task, candidate_p
 
 }
 
-  
+
 int is_object_in_hand=0;
 int find_current_HRI_manip_task_solution(HRI_task_desc curr_task, traj_for_HRI_task &res_traj)
 {
@@ -765,7 +765,16 @@ CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS=1;//to avoid trying to hide behind t
  if(curr_task.task_type==PUT_VISIBLE_OBJECT||curr_task.task_type==PICK_PUT_VISIBLE_OBJECT)//Using the new approach of using vector of constraints for finding the candidate space for this task. TODO: Adapt for all other tasks
  {
   curr_resultant_candidate_points->no_points=0;
+  
+  std::vector<double> act_pos_tmp;
+  
+  //To avoid finding a point on the top of this object itself
+  remove_this_object_out_of_scene_and_update_MA((char*)curr_task.for_object.c_str(), act_pos_tmp);
+  
   find_constraint_based_candidate_places(curr_task, curr_resultant_candidate_points);
+  
+  //re-Storing the object and updating MA
+  put_this_object_here_and_update_MA((char*)curr_task.for_object.c_str(), act_pos_tmp);
   
   assign_task_based_weights_on_these_points(curr_task.task_type, CURRENT_OBJECT_TO_MANIPULATE, curr_task.by_agent, curr_task.for_agent, performing_agent_rank, curr_resultant_candidate_points, CONSIDER_OBJECT_DIMENSION_FOR_CANDIDATE_PTS);
   
@@ -927,6 +936,7 @@ case HIDE_OBJECT:
  {
   int filter_contact_polygon_inside_support=1;
   //TODO: For the time being the flag is_object_in_hand is used to tell the following planner to plan differently for the both cases. Make the changes so that just based on the task it should identify whether a pick is required or not an dplan plan
+
  validate_task_result=robot_perform_task ( CURRENT_OBJECT_TO_MANIPULATE, CURRENT_HRI_MANIPULATION_TASK, CURRENT_TASK_PERFORMED_BY, by_hand, CURRENT_TASK_PERFORMED_FOR, curr_resultant_candidate_points, candidate_grasps_for_task, curr_placementList,  filter_contact_polygon_inside_support, is_object_in_hand, res_traj);
  
  }
@@ -7897,6 +7907,35 @@ int get_soft_motion_trajectories_for_plan_ID(int HRI_task_plan_id, std::vector <
   
 }
 
+int get_sub_trajectory_names_for_plan_ID(int HRI_task_plan_id, std::vector<std::string> &traj_names)
+{
+  traj_names.clear();
+  std::string traj_name;
+  
+  
+  for(int i=0;i<HRI_task_list.size();i++)
+  {
+  if(HRI_task_list[i].task_plan_id==HRI_task_plan_id)
+   {
+     
+     for(int j=0;j<HRI_task_list[i].traj.sub_task_traj.size();j++)
+     {
+       traj_name=HRI_sub_task_NAME_ID_map.find(HRI_task_list[i].traj.sub_task_traj[j].sub_task_type)->second;
+       printf(" Storing Sub traj name: %s\n", traj_name.c_str());
+       
+       traj_names.push_back(traj_name);
+     }
+  
+   
+   return 1;
+   }
+  }
+  
+  printf(" >>>> HRI Task ERROR: The task plan ID has not been found to extract the trajectory information.\n");
+  return 0;
+  
+}
+
 int ececute_this_HRI_task_SM_Traj_in_simu(char *for_robot, SM_TRAJ &smTraj)
 {
    
@@ -12741,7 +12780,7 @@ manipulability_graph2.clear();
  //// create_graph_for_taskability(MAKE_OBJECT_ACCESSIBLE);
  //// create_graph_for_taskability(HIDE_OBJECT);
   
-int space_vertex_ctr=merge_taskability_graph_into_this_Affordance_graph(affordance_graph1, taskability_graph);//NOTE: Assuming taskability graph already hold the relevant graph. TODO: Create and store taskability graphs for different enviornments as done for manipulability graph  
+int space_vertex_ctr=merge_taskability_graph_into_this_Affordance_graph(affordance_graph1, taskability_graph);//NOTE: Assuming taskability graph already hold the relevant graph. TODO: Create and store taskability graphs for different enviornments as done for manipulability graph. Presently the same taskability graph is used assuming no significant changes in agents and big object positions and postures.   
   printf(" After merge_taskability_graph_into_this_Affordance_graph\n");
 
 
@@ -12906,6 +12945,7 @@ for(int mv_obj_ctr=0; mv_obj_ctr<lost_objects.size();mv_obj_ctr++)
      }
      
      //First need to guess where the object might be if someone has tried to make it hidden from the agent
+     ////find_
      
      /*
      printf(" <<<*** Creating the virtual vertex in the affordance graph for %s\n",envPt_MM->robot[moved_objects[mv_obj_ctr]]->name);

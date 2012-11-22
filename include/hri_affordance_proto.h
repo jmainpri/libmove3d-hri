@@ -282,6 +282,10 @@ extern int compare_two_world_states_ids(int ws1_id, int ws2_id, World_State_Chan
 extern int print_this_world_state_change(World_State_Changes &WS_changes);
 extern int filter_world_state_based_on_agent_perspective(int MA_agent_type);
 extern int addCurrentRobotGraspToList(p3d_rob *robot, p3d_rob *object, gpHand_properties &handProp, std::list<gpGrasp> &graspList);
+extern int remove_this_object_out_of_scene_and_update_MA(char* obj_name, std::vector<double> &act_pos);
+extern int put_this_object_here_and_update_MA(char* obj_name, std::vector<double> &act_pos);
+extern int get_sub_trajectory_names_for_plan_ID(int HRI_task_plan_id, std::vector<std::string> &traj_names);
+
 
 #endif /* __CEXTRACT__ */
 
