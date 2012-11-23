@@ -802,6 +802,8 @@ int execute_Mightability_Map_functions()
 
 int show_taskabilities(show_taskability_params &curr_params, std::vector<taskability_node> curr_manipulability_graph )
 {
+  printf(" **** Inside show_taskabilities \n");
+  
   curr_params.show_TN_edge=1;
   curr_params.show_TN_candidates=1;
   

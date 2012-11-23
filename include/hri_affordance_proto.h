@@ -172,7 +172,7 @@ extern int print_object_oriented_Mightability_for_object_by_agent(object_Symboli
 
 extern int init_visibility_acceptance_for_tasks();
 extern int JIDO_perform_task (char *obj_to_manipulate, HRI_TASK_TYPE task, HRI_TASK_AGENT by_agent, char by_hand[50], HRI_TASK_AGENT for_agent, candidate_poins_for_task *curr_candidate_points, std::list<gpGrasp> graspList, std::list<gpPlacement> curr_placementList, traj_for_HRI_task &res_trajs);
-extern int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info);
+extern int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info, double timeout);
 extern int show_traj_for_this_HRI_task(HRI_task_node &for_task,int show_traj);
 extern int show_desired_HRI_task_plan();
 extern int show_plan_for_this_sub_task(HRI_task_node &for_task, traj_for_HRI_sub_task &sub_task_traj, int sub_task_index, int show_traj);
@@ -285,7 +285,7 @@ extern int addCurrentRobotGraspToList(p3d_rob *robot, p3d_rob *object, gpHand_pr
 extern int remove_this_object_out_of_scene_and_update_MA(char* obj_name, std::vector<double> &act_pos);
 extern int put_this_object_here_and_update_MA(char* obj_name, std::vector<double> &act_pos);
 extern int get_sub_trajectory_names_for_plan_ID(int HRI_task_plan_id, std::vector<std::string> &traj_names);
-
+extern int delete_this_world_state(world_state_configs &curr_WS);
 
 #endif /* __CEXTRACT__ */
 

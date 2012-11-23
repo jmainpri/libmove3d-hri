@@ -199,6 +199,9 @@ int get_ranking_based_on_view_point(p3d_matrix4 view_frame,point_co_ordi point,p
 int get_placements_at_position(p3d_rob *object, point_co_ordi point, std::list<gpPlacement> placementList, int no_rot, std::list<gpPlacement> &placementListOut);
 int copy_HRI_task_candidate_points(candidate_poins_for_task *from_candidate_points, candidate_poins_for_task *to_candidate_points);
 
+double HRI_TASK_PLANNER_TIME_OUT; //in s
+bool STOP_HRI_TASK_PLANNING=false;
+			    
 void fct_draw_loop();
 
 void* (*XFORM_update_func)()=NULL;
@@ -3710,7 +3713,7 @@ p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
    strcpy(curr_robot_hand_name,"SAHandRight");
    }
    */
-  float clock0, elapsedTime;
+  float clock0, elapsedTime=0;
    int obj_index=get_index_of_robot_by_name ( obj_to_manipulate );
   
    std::list<gpPlacement> curr_placementList=placementList;
@@ -3862,6 +3865,17 @@ AT_LEAST_1_GRASP_LIFT_FOUND=1;
 
  for ( int i1=0;i1<curr_candidate_points->no_points;i1++ )
   {
+    elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
+                                   //printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			  if(elapsedTime>=HRI_TASK_PLANNER_TIME_OUT)
+			  {
+			    printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			    printf(" This is exceeding the HRI_TASK_PLANNER_TIME_OUT=%lf, so stopping and returning fail. \n", HRI_TASK_PLANNER_TIME_OUT);
+			    
+			    STOP_HRI_TASK_PLANNING=true;
+			    break;
+			  }
+     
    //if(STOP_HRI_TASK_PLANNING==1) 
                         printf ( ">>>> checking for place %d \n",i1);
 			
@@ -3988,7 +4002,18 @@ g3d_draw_allwin_active();*/
    
    for ( std::list<gpGrasp>::iterator igrasp=graspList.begin(); igrasp!=graspList.end(); ++igrasp )
    {
-      
+      elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
+                                   //printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			  if(elapsedTime>=HRI_TASK_PLANNER_TIME_OUT)
+			  {
+			    printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			    printf(" This is exceeding the HRI_TASK_PLANNER_TIME_OUT=%lf, so stopping and returning fail. \n", HRI_TASK_PLANNER_TIME_OUT);
+			    
+			    STOP_HRI_TASK_PLANNING=true;
+			    break;
+			  }
+     
+			    
       printf ( "for grasp id= %d\n",igrasp->ID );
       
       if(take_lift_traj_found_for_grasp[grasp_ctr]==-1)//Already tested and failed
@@ -4242,6 +4267,17 @@ g3d_draw_allwin_active();*/
                         int plac_ctr=0 ;
                         for ( std::list<gpPlacement>::iterator iplacement=curr_placementList.begin(); iplacement!=curr_placementList.end(); ++iplacement )
                         {
+			   elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
+                                   //printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			  if(elapsedTime>=HRI_TASK_PLANNER_TIME_OUT)
+			  {
+			    printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			    printf(" This is exceeding the HRI_TASK_PLANNER_TIME_OUT=%lf, so stopping and returning fail. \n", HRI_TASK_PLANNER_TIME_OUT);
+			    
+			    STOP_HRI_TASK_PLANNING=true;
+			    break;
+			  }
+				   
 			  printf(" >> Testing for placement configuration %d \n", plac_ctr);
                            plac_ctr++;
                            ////iter->draw(0.05);
@@ -4705,6 +4741,17 @@ manipulation->robot()->isCarryingObject = FALSE;
                         int plac_ctr=0 ;
                         for ( std::list<gpPlacement>::iterator iplacement=curr_placementList.begin(); iplacement!=curr_placementList.end(); ++iplacement )
                         {
+			  elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
+                                   //printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			  if(elapsedTime>=HRI_TASK_PLANNER_TIME_OUT)
+			  {
+			    printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			    printf(" This is exceeding the HRI_TASK_PLANNER_TIME_OUT=%lf, so stopping and returning fail. \n", HRI_TASK_PLANNER_TIME_OUT);
+			    
+			    STOP_HRI_TASK_PLANNING=true;
+			    break;
+			  }
+     
 			  printf(" >> Testing for placement configuration %d \n", plac_ctr);
                            plac_ctr++;
                            ////iter->draw(0.05);
@@ -7362,8 +7409,10 @@ int init_tested_cell_info()
 
   
 
-int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info)
+int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proactive_info, double timeout)
 {
+  HRI_TASK_PLANNER_TIME_OUT=timeout;
+  STOP_HRI_TASK_PLANNING=false;
  HRI_task_node curr_task_to_validate;
  curr_task_to_validate.task_plan_id=task_plan_id;
  curr_task_to_validate.hri_task.task_type=curr_task.task_type;
@@ -7432,7 +7481,7 @@ int validate_HRI_task(HRI_task_desc curr_task, int task_plan_id, int for_proacti
     }
     
     
-    while(find_solution_curr_res==0&&cur_vis_effort<=maxi_vis_effort_trans_available&&cur_reach_effort<=maxi_reach_effort_trans_available)
+    while(find_solution_curr_res==0&&cur_vis_effort<=maxi_vis_effort_trans_available&&cur_reach_effort<=maxi_reach_effort_trans_available&&STOP_HRI_TASK_PLANNING!=true)
     {
  /*
   desired_level.maxi_reach_accept=(MA_transition_reach_effort_type)cur_reach_effort;//MA_ARM_EFFORT;//MA_ARM_EFFORT;//MA_ARM_TORSO_EFFORT;//MA_WHOLE_BODY_CURR_POS_EFFORT_REACH;
@@ -12288,6 +12337,20 @@ int find_world_state_with_id(world_state_configs &WS, int WS_id)
   return 0;
 }
 
+int delete_this_world_state(world_state_configs &curr_WS)
+{
+  configPt tmp_config;
+  
+  for(int i=0;i<envPt_MM->nr;i++)
+  {
+  p3d_destroy_config(envPt_MM->robot[i], curr_WS.robot_config.at(i));
+  ///printf(" Destroying the configuration of %s\n",envPt_MM->robot[i]->name);
+  ////MY_FREE(tmp_config,double,envPt_MM->robot[i]->nb_dof);//DONOT FREE it because configs are stored 
+  }
+
+return 1;
+
+}
 
 
 int compare_two_world_states_physical_positions(world_state_configs &WS1,world_state_configs &WS2, std::vector<int> &moved_objects, std::vector<int> &lost_objects, std::vector<int> &new_objects, std::vector<std::string> &physical_changes)
