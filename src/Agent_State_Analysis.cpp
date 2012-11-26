@@ -62,6 +62,9 @@ std::map<int,std::string > agent_hand_rest_info_map;
 std::map<int,std::string > agent_torso_status_map;
 std::map<int,std::string > agent_whole_body_turn_status_map;
 
+std::vector<std::string> agent_sitting_on;
+std::vector<int> indx_support_agent_sitting_on;
+
 // Internal functions
 static int get_human_activity_facts(HRI_TASK_AGENT_ENUM for_agent);
 static int init_agent_state_analysis();
@@ -1845,6 +1848,121 @@ int print_agents_activity_facts(int find_facts_for[MAXI_NUM_OF_AGENT_FOR_HRI_TAS
 #endif
 	}
     }
+  
+}
+
+
+int is_agent_sitting_on_a_support(int ag_index, int &support_index)
+{
+  printf(" Inside is_agent_sitting_on_a_support for %s\n", envPt_ASA->robot[ag_index]->name);
+  int kcd_with_report=0;
+  
+  p3d_rob * hum_bar_pt=envPt_ASA->robot[get_index_of_robot_by_name((char*)"HUM_BAR")];
+
+  p3d_col_deactivate_rob_rob(hum_bar_pt,envPt_ASA->robot[ag_index]);
+  
+  ////configPt ag_actual_pos = MY_ALLOC(double,envPt_ASA->robot[ag_index]->nb_dof); 
+   //// p3d_get_robot_config_into(envPt_ASA->robot[ag_index],&ag_actual_pos);
+
+  ////double act_z_val=envPt_ASA->robot[ag_index]->joints[1]->abs_pos[2][3];
+    double x=envPt_ASA->robot[ag_index]->joints[1]->abs_pos[0][3];
+    double y=envPt_ASA->robot[ag_index]->joints[1]->abs_pos[1][3];
+    ////double z=envPt_ASA->robot[ag_index]->joints[1]->abs_pos[2][3];
+    double z=0.6;//To avoid collision with floor as the origin of object is at middle //ag_actual_pos[8];
+    
+  
+    p3d_set_freeflyer_pose2(hum_bar_pt,x,y,z,0,0,0);
+    
+  int res = p3d_col_test_robot(hum_bar_pt,kcd_with_report);
+
+  if(res>0)
+    {
+      char obj_1[200], obj_2[200];
+      char sup_obj_name[200];
+      pqp_colliding_obj_name_pair(obj_1, obj_2);
+      ////////printf("obj1= %s, obj2 =%s\n",obj_1,obj_2);
+		
+      if(strcasestr(obj_1,hum_bar_pt->name))
+	{
+	  //sup_obj=o2;
+	  strcpy(sup_obj_name,obj_2);
+                  
+	  ////int coll_obj_index=get_index_of_robot_by_name(o2->name);
+	  ////is_object_laying_on_a_support()
+	}
+      else
+	{
+	  //sup_obj=o1;
+	  strcpy(sup_obj_name,obj_1);
+	}
+      printf(" sup_obj_name=%s\n",sup_obj_name);
+      int pt_ctr=0;
+      char obj_name[100];
+      while(sup_obj_name[pt_ctr]!='.'&&sup_obj_name[pt_ctr]!='\0')
+	{
+	  obj_name[pt_ctr]=sup_obj_name[pt_ctr];
+	  pt_ctr++;
+	}
+      
+      obj_name[pt_ctr]='\0';
+      /*
+	int obj_name_end_indx;
+	obj_name_end_indx = strcspn (sup_obj_name,".");
+	printf(" obj_name_end_indx=%d\n",obj_name_end_indx);
+	char * obj_name;
+	strncpy(obj_name,sup_obj_name,obj_name_end_indx);
+	obj_name[obj_name_end_indx]='\0';
+      */
+      support_index=get_index_of_robot_by_name(obj_name);
+      /////envPt_ASA->robot[obj_index]->joints[1]->abs_pos[2][3]=act_z_val;
+      ////////printf(" support is %s, supp_index=%d\n",obj_name, support_index);
+		  p3d_col_activate_rob_rob(hum_bar_pt,envPt_ASA->robot[ag_index]);
+		  
+    p3d_set_freeflyer_pose2(hum_bar_pt,0,0,0,0,0,0);
+    
+      return 1;
+      // 		p3d_obj *o1;
+      // 		p3d_obj *o2;
+      // 		printf(" From current pos \n");
+      // 		pqp_colliding_pair(&o1, &o2);
+      // 		printf(" obj1= %s, obj2 =%s\n",o1->name,o2->name);
+      ////pqp_print_colliding_pair();
+    }
+    
+  p3d_col_activate_rob_rob(hum_bar_pt,envPt_ASA->robot[ag_index]);
+  p3d_set_freeflyer_pose2(hum_bar_pt,0,0,0,0,0,0);
+  
+  return 0;
+}
+
+int update_agent_sitting_information()
+{
+  printf(" >>>> Inside update_agent_sitting_information \n");
+  agent_sitting_on.clear();
+  indx_support_agent_sitting_on.clear();    
+      
+  int surface_index;
+  
+  for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+  {
+   int res=is_agent_sitting_on_a_support(indices_of_MA_agents[i],surface_index);  
+   if(res==1)
+   {
+     indx_support_agent_sitting_on.push_back(surface_index);    
+      
+     agent_sitting_on.push_back(envPt_ASA->robot[surface_index]->name);
+   }
+   else
+   {
+     indx_support_agent_sitting_on.push_back(-1);    
+      
+     agent_sitting_on.push_back("NOT_ON_ANY_FURNITURE");
+   }
+  }
+  for(int i=0;i<MAXI_NUM_OF_AGENT_FOR_HRI_TASK;i++)
+  {
+    printf(" Agent %s sitting on %s\n", envPt_ASA->robot[indices_of_MA_agents[i]]->name, agent_sitting_on.at(i).c_str()); 
+  }
   
 }
 
