@@ -12,8 +12,9 @@ extern bool hri_draw_distance;
 extern std::vector<double> hri_disp_dist;
 
 int STOP_AGENT_STATE_ANALYSIS=0;//Will be used by spark to set/reset
-int MA_ASA_WITHOUT_SPARK=0; // WARNING: It should be always set to 0 when the libhri is used with Spark or mhp. Set it to 1 only to execute the MA and ASA functions, when libhri is used without spark, because of the synchronization problem
+int MA_ASA_WITHOUT_SPARK=1; // WARNING: It should be always set to 0 when the libhri is used with Spark or mhp. Set it to 1 only to execute the MA and ASA functions, when libhri is used without spark, because of the synchronization problem
 int SHOW_OBJECT_FACTS=0;
+int MA_DISPLAY_FLAG=1;//Used to set the flag to display MA related results
 
 void g3d_hri_main()
 {
@@ -38,10 +39,16 @@ void g3d_hri_main()
   {
     ////printf("Inside g3d_draw_env_custom() \n");
     execute_Mightability_Map_functions();
+    
     if(STOP_AGENT_STATE_ANALYSIS!=1)
     {
 		  hri_execute_Agent_State_Analysis_functions();
     }
+  }
+  
+  if(MA_DISPLAY_FLAG==1)
+  {
+    MA_Display_Functions();
   }
 #endif
   
