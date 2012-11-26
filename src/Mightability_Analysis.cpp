@@ -400,7 +400,7 @@ extern int NUM_VALID_GRASPABLE_OBJ;
  extern int JIDO_HAND_TYPE;//1 for gripper, 2 for SAHAND
  
  extern int done_object_flow_graph_init;
-  int SHOW_OBJECT_FLOW_GRAPH=1;
+  int SHOW_OBJECT_FLOW_GRAPH=0;
   int DRAW_CURR_AFFORDANCE_GRAPH=0;
   MY_GRAPH curr_affordance_graph_to_draw;
   
@@ -424,6 +424,9 @@ std::set <cell_X_Y_Z> CURRENT_RESULTANT_PLACES; //We use set to avoid entering d
 extern std::vector<taskability_node> curr_manipulability_graph;
 extern std::vector<taskability_node> curr_vis_reach_aibility_graph;
 
+extern std::vector<std::string> agent_sitting_on;
+extern std::vector<int> indx_support_agent_sitting_on;
+
 
 //================================
 int reach_effort_to_give=0;
@@ -436,6 +439,374 @@ int execute_Mightability_Map_functions()
 ////test_inside(( p3d_rob* ) p3d_get_robot_by_name ( "TRASHBIN" ), ( p3d_rob* ) p3d_get_robot_by_name ( "GREY_TAPE" ));
 
   if(Affordances_Found==1)
+    {
+      //G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
+ //window->vs.displayJoints=0;
+  
+      // // //Tmp for testing
+      // // //   show_point_of_screen();
+      // // //   HRI_AGENT * target_robot;
+      // // //   printf("rob_indx.JIDO_ROBOT=%d\n",rob_indx.JIDO_ROBOT);
+      // // //   target_robot = hri_create_agent(envPt_MM->robot[rob_indx.JIDO_ROBOT]);
+      // // //   target_robot->perspective->enable_vision_draw=TRUE;
+      // // //    ////g3d_draw_rob_cone(ACBTSET->robot);
+      // // //   g3d_draw_agent_fov(target_robot);
+      // // //   get_current_FOV_vertices(target_robot);
+      // // //   draw_current_FOV_vertices(); 
+   
+      //tmp for testing
+      /////find_Mightability_Maps();
+      /////draw_all_current_points_on_FOV_screen();
+      ////g3d_drawDisc(standing_human_eye_pos.x,standing_human_eye_pos.y,standing_human_eye_pos.z,.1,Green,NULL); 
+      //follow_human_head_to_object(HUMAN2_MA, "YELLOW_BOTTLE");
+      /////g3d_drawDisc(agent_eye_pos.x,agent_eye_pos.y,agent_eye_pos.z,.1,Green,NULL); 
+//       std::list<std::string> ON_object_list;
+//       get_object_list_on_object("HRP2TABLE", ON_object_list);
+//       print_this_string_list(ON_object_list);
+
+      ////get_clean_the_table_plan("HRP2TABLE");
+      //TO SHOW the frames for finding wrist alignment
+      ////////g3d_draw_frame(WRIST_FRAME, 0.1);
+      ////////g3d_draw_frame(HEAD_FRAME, 0.2);
+      
+     /* Showing and saving the different effort level of give
+     if(reach_effort_to_give<=5)
+     {
+      AKP_record_movie_frames();
+      find_human_give_candidate_points(HUMAN1_MA, reach_effort_to_give);
+      reach_effort_to_give++;
+      AKP_record_movie_frames();
+     }
+     */
+     
+     //////**** TO SHOW PLACEMENT CONFIGURATION LIST *****/////
+      /*
+      point_co_ordi curr_point_to_place;
+      curr_point_to_place.x=4.0;
+      curr_point_to_place.y=-3.5;
+      curr_point_to_place.z=1.0;
+      std::list<gpPlacement> curr_placementList;
+       get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
+       CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+       show_all_how_to_placements_in_3D(curr_point_to_place,0,10,0,CURRENT_CANDIDATE_PLACEMENT_LIST);
+       */
+      //////**** TO SHOW GRASP LIST *****/////
+      
+//       static p3d_rob* hand=NULL;
+//       hand=p3d_get_robot_by_name("JIDO_GRIPPER");
+//       ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+//       if(hand!=NULL)
+//       {
+// 	gpHand_properties armHandProp;
+// 	armHandProp.initialize(GP_GRIPPER);
+// 
+// // 	init_manipulation_planner();
+// 	std::list<gpGrasp> grasps_for_object;
+// 	gpGet_grasp_list ( "GREY_TAPE", armHandProp.type, grasps_for_object );
+//         ////get_grasp_list_for_object("GREY_TAPE", grasps_for_object);
+// 	CURRENT_CANDIDATE_GRASP_FOR_TASK=&grasps_for_object;
+// 	show_hand_grasps_of_list(hand,p3d_get_robot_by_name("GREY_TAPE"),CURRENT_CANDIDATE_GRASP_FOR_TASK);
+//       }
+      
+      //////**** TO SHOW GRASP LIST of Human hand*****/////
+     /* static p3d_rob* hum_hand=NULL;
+      hum_hand=p3d_get_robot_by_name("SAHandRight2");
+      ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+      if(hum_hand!=NULL)
+      {
+	gpHand_properties armHandProp_human;
+	armHandProp_human.initialize(GP_SAHAND_RIGHT);
+
+// 	init_manipulation_planner();
+	std::list<gpGrasp> hum_grasps_for_object;
+	gpGet_grasp_list ( "GREY_TAPE", armHandProp_human.type, hum_grasps_for_object );
+        ////get_grasp_list_for_object("GREY_TAPE", grasps_for_object);
+	CURRENT_CANDIDATE_GRASP_FOR_TASK=&hum_grasps_for_object;
+	show_hand_grasps_of_list(hum_hand,p3d_get_robot_by_name("GREY_TAPE"),CURRENT_CANDIDATE_GRASP_FOR_TASK);
+      }
+     */
+//       if(CANDIDATE_POINTS_FOR_TASK_FOUND==1)
+//       {
+//        
+// 	////gpHand_properties armHandProp;
+// 	////armHandProp.initialize(GP_GRIPPER);
+// 	if(SHOW_HOW_TO_PLACE_AT==1)
+// 	{
+//         /*
+// 	  std::list<gpPlacement> curr_placementList;
+//          get_placements_in_3D ( CURRENT_OBJECT_TO_MANIPULATE,  curr_placementList );
+//        CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+// 	
+//          ////AKP_record_movie_frames();
+// 	 show_all_how_to_placements_in_3D(CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0],1,1,1,CURRENT_CANDIDATE_PLACEMENT_LIST);
+// 	*/
+// 	  show_all_how_to_placements_in_3D(TO_SHOW_PLACEMENT_POINT,1,1,1,CURRENT_CANDIDATE_PLACEMENT_LIST);
+// 	}
+// 	 ////AKP_record_movie_frames();
+// 	////show_all_grasps_for_this_placement_list_at_place(hand, p3d_get_robot_by_name("GREY_TAPE"),  &grasps_for_object, CURRENT_CANDIDATE_PLACEMENT_LIST, CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0]);
+// 	 //gpPlacement cur_plac=CURRENT_CANDIDATE_PLACEMENT_LIST->front();
+// 	 
+//       ////hand=p3d_get_robot_by_name(GP_GRIPPER_ROBOT_NAME);
+//       
+// 	if(SHOW_GRASP_FOR_HOW_TO_PLACE_AT==1)
+// 	{
+// 	  
+// 	armHandProp.initialize(GP_GRIPPER);
+// 	p3d_rob *hand=p3d_get_robot_by_name("JIDO_GRIPPER");
+// 	if(hand!=NULL)
+//        {
+// 	 grasps_for_object.clear();
+// 	gpGet_grasp_list ( "GREY_TAPE", armHandProp.type, grasps_for_object );
+// 	if(grasps_for_object.size()>0)
+// 	{
+// 	  printf(" Calling show all %d grasps \n",grasps_for_object.size());
+// 	 show_all_grasps_for_this_placement_at_place(hand, p3d_get_robot_by_name("GREY_TAPE"),  &grasps_for_object, CURRENT_CANDIDATE_PLACEMENT_LIST->front(), CANDIDATE_POINTS_FOR_CURRENT_TASK->point[0]);
+// 	}
+// 	}
+// 	 /////AKP_record_movie_frames();
+//        }
+//       }
+	
+      ////return 1;
+     
+
+      ////get_horizontal_triangles(global_htris);
+      ////display_horizontal_triangles(global_htris);
+      ////display_horizontal_triangles_samples(global_htris);
+      ////return 1;
+      
+      ////store_OOM_before_task();
+      ////return 1;
+      
+      ////MM_RECORD_MOVIE_FRAMES=0;
+      // printf(" Inside Affordances_Found==1\n");
+      if(UPDATE_MIGHTABILITY_MAP_INFO==1)
+	{
+	 printf(" Inside UPDATE_MIGHTABILITY_MAP_INFO \n");
+	  ////g3d_drawDisc(mean_point.x,mean_point.y,mean_point.z,.2,Green,NULL); 
+           
+	   ////return 1;
+	       // 
+	  
+	   update_human_posture_state();
+	  update_robots_and_objects_status();
+	  update_horizontal_surfaces();
+	   //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( "IKEA_SHELF" ));
+	  ////show_exact_obs_cells_for_curr_vis_test();
+	  //////////update_Mightability_Maps();
+          ////printf(" **** Calling update_Mightability_Maps_new()\n");
+	
+	  update_Mightability_Maps_new();
+	  //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( "HRP2TABLE" ),1);
+	  ////show_exact_obs_cells_for_curr_vis_test();
+          /////printf(" **** After Calling update_Mightability_Maps_new()\n");
+
+	  //printf(" **** Calling find_symbolic_Mightability_Map_new()\n");
+	  ////find_symbolic_Mightability_Map();
+	  find_symbolic_Mightability_Map_new();
+  
+	  ////printf(" **** Calling get_object_mightabilities() \n");
+
+	  get_object_mightabilities();
+	  ////printf(" **** After Calling get_object_mightabilities() \n");
+          //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( CURRENT_OBJECT_TO_MANIPULATE ));
+	 
+	   
+	   /* test_inside(get_index_of_robot_by_name("SURPRISE_BOX" ), get_index_of_robot_by_name("TOYCUBE_YELLOW" ));
+            test_inside(get_index_of_robot_by_name("PINK_TRASHBIN" ), get_index_of_robot_by_name("TOYCUBE_YELLOW" ));
+              test_inside(get_index_of_robot_by_name("PINK_TRASHBIN" ), get_index_of_robot_by_name("SURPRISE_BOX" ));
+	      test_inside(get_index_of_robot_by_name("SURPRISE_BOX" ), get_index_of_robot_by_name("PINK_TRASHBIN" ));
+	    */
+	  /* show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
+	     show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
+	   show_agent_state_configs(PR2_MA, VIS_ABILITY, 2); 
+	   
+	   show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 2); 
+	     show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 6); 
+	     */
+	  /*
+          show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 0); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 1); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 2); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 4);
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 5);
+	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
+	  */
+	}
+
+//       if(SHOW_MIGHTABILITY_MAP_INFO==1)
+// 	{
+//           //printf(" **** Calling show_object_Mightabilities() \n");
+//            
+// 	  show_object_Mightabilities();
+// 
+//           //printf(" **** After show_object_Mightabilities() \n");
+// 	  ////////////////show_symbolic_Mightability_Map_Relations();
+// 	  if(NEED_TO_SHOW_OBJECT_MIGHTABILITY==1)
+// 	  {
+// 	    //////show_Object_Oriented_Mightabilities();
+// 	    int show_states=1;
+// 	    show_Object_Oriented_Mightabilities_new(show_states);
+// 	  }
+// 	  //printf(" **** after show_symbolic_Mightability_Map_Relations() \n");
+// 	  ////////////show_3d_grid_Bounding_box_for_HRP2_GIK();
+//    
+// 	  /////****AKP: Below is commented because it is creating Red color graphics lines which is not taken care into new hri visibility function and is increasing the %visibility calculation of the object
+// 	  ////////////show_3D_workspace_Bounding_Box();
+// 
+// 	  if(grid_3d_affordance_calculated==1)
+// 	    {
+//       
+// 	      if(CURRENT_SET_OPERATOR_ON_MM!=MM_SET_OPR_NONE)
+// 		{
+// 		  caculate_and_show_resultant_MM();
+// 		}
+// 	      else
+// 		{
+// 		  ////printf(" >>> Calling show_Mightability_Maps()\n");
+// 		  ////printf(" NEED_TO_SHOW_MIGHTABILITY_MAPS= %d\n", NEED_TO_SHOW_MIGHTABILITY_MAPS);
+// 		  if(NEED_TO_SHOW_MIGHTABILITY_MAPS==1)
+// 		  {
+// 		    int show_states_configs=1;
+// 		  show_Mightability_Maps(show_states_configs);
+// 		  
+// 		  show_agent_ability_effort_points();
+// 		  }
+// 		 
+// 		  ////printf(" >>> After Calling show_Mightability_Maps()\n");
+// 		  
+// 		  ////show_3d_grid_affordances_new();  
+// 		}
+// 	    } 
+//     
+// 	  /* 
+// 	////To show the obstacle cell belonging to an object, For debuging 
+// 	int index=get_index_of_robot_by_name("RED_BOTTLE");//("SPACENAVBOX");//("ACCESSKIT");//("YELLOW_BOTTLE");
+// 	show_obstacle_cells_belonging_to(index);
+// 	show_first_non_visible_cells(index);
+// 	  */
+// 	}
+
+      /////if(SHOW_OBSTACLE_CELLS==1)
+	/////show_exact_obstacles_for_HRP2_GIK_manip(grid_around_HRP2.GRID_SET,HRP2_GIK_MANIP);
+      ////show_3d_grid_for_HRP2_GIK();
+      //show_3d_grid_affordances();  
+      ////Affordances_Found=0;
+      /*
+	int ROBOTj_RSHOULDER=19;
+	double hum_R_shoulder_pos[3];
+	hum_R_shoulder_pos[0]= ACBTSET->robot->joints[ROBOTj_RSHOULDER]->abs_pos[0][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+	hum_R_shoulder_pos[1] = ACBTSET->robot->joints[ROBOTj_RSHOULDER]->abs_pos[1][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+	hum_R_shoulder_pos[2] = ACBTSET->robot->joints[ROBOTj_RSHOULDER]->abs_pos[2][3]; // AKP: In the abs_pos[4][4] matrix the x,y,z are stored at indices [0][3], [1][3], [2][3] respectively
+	g3d_drawDisc(hum_R_shoulder_pos[0], hum_R_shoulder_pos[1], hum_R_shoulder_pos[2], 0.05, 4, NULL);
+      */ 
+      ////g3d_drawDisc(point_to_look[0], point_to_look[1], point_to_look[2], 0.1, 4, NULL);
+////#if defined(WITH_XFORMS)
+//       if(MM_RECORD_MOVIE_FRAMES==1)
+// 	{printf(" MM_RECORD_MOVIE_FRAMES=1\n");
+// 	  AKP_record_movie_frames();
+// 	}
+//       if(AKP_RECORD_WINDOW_MOVEMENT==1)
+// 	{
+// 	  ////printf(" AKP_RECORD_WINDOW_MOVEMENT=1\n");
+// 	  AKP_record_movie_frames();
+// 	}
+////#endif
+    }
+   
+    
+//  
+// 
+//   if(CANDIDATE_POINTS_FOR_TASK_FOUND==1)
+//     {
+//       
+//       
+//       if(SHOW_CURRENT_TASK_CANDIDATE_POINTS==1)
+// 	{
+// 	  ////show_current_task_candidate_points(SHOW_WEIGHT_BY_COLOR_FOR_CANDIDATE_POINTS, SHOW_WEIGHT_BY_LENGTH_FOR_CANDIDATE_POINTS);
+// 	  show_candidate_points_for_current_task(SHOW_WEIGHT_BY_COLOR_FOR_CANDIDATE_POINTS, SHOW_WEIGHT_BY_LENGTH_FOR_CANDIDATE_POINTS);
+// 	  
+// 	}
+// 
+//       //Tmp to test
+//       ////show_this_agent_ability_effort_points(CURRENT_RESULTANT_PLACES);
+//       
+//   
+//  ////printf(" SHOW_TASKABILITIES=%d\n",SHOW_TASKABILITIES);
+//      if(SHOW_TASKABILITIES==1)
+//      {       
+//       
+//      /*  curr_res_smTrajs.clear();
+//   get_soft_motion_trajectories_for_plan_ID(0, curr_res_smTrajs);
+// 
+//   printf(" Number of soft motion trajectories = %d \n",curr_res_smTrajs.size());
+//   
+//   return 1;
+//        */
+//        
+//      //TODO: Make separate button for find_least_effort_state_for_agent_ability_for_obj
+//     ////   find_least_effort_state_for_agent_ability_for_obj(CURRENT_TASK_PERFORMED_BY, VIS_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
+// //       
+//    ////    show_Ag_Ab_Obj_least_effort_states(CURRENT_TASK_PERFORMED_BY, VIS_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
+//       
+//      
+//        //// find_least_effort_state_for_agent_ability_for_obj(CURRENT_TASK_PERFORMED_BY, REACH_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
+// //       
+//        ////show_Ag_Ab_Obj_least_effort_states(CURRENT_TASK_PERFORMED_BY, REACH_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
+//        
+//       print_this_taskability_params(curr_params_for_show_taskability);
+//       
+//       //Uncomment it to show manipulability graph
+//       ////show_taskabilities(curr_params_for_show_taskability, curr_manipulability_graph);
+//       
+//       //Uncomment it to show current visibility reachability graph
+//       show_taskabilities(curr_params_for_show_taskability, curr_vis_reach_aibility_graph);
+//       
+//      }
+//     
+//     } 
+//
+// 
+//     if(SHOW_OBJECT_FLOW_GRAPH==1)
+//     {
+//      if(done_object_flow_graph_init==1)
+//      {
+//      draw_this_graph(object_flow_graph);
+//      }
+//   
+//     }
+//     
+//     if(DRAW_CURR_AFFORDANCE_GRAPH==1)
+//     {
+//       draw_this_graph(curr_affordance_graph_to_draw);
+//     }
+//    
+//     if(SHOW_LEAST_EFFORTS==1)
+//     {
+//       show_Ag_Ab_Obj_least_effort_states(CURRENT_TASK_PERFORMED_BY, CURRENT_ABILITY_TYPE_TO_FIND, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
+//     }
+  /////Tmp for testing
+   /////////show_axis_of_FOV_from_mocap_eye_glass_data();
+
+    ////////pqp_print_colliding_pair();
+  
+  if(ENABLE_PUT_INTO_POINTS_ANALYSIS==1)
+  {
+//   if(SHOW_CONTAINER_ORIENTED_PUTINTO_POINTS==1)
+//    {
+//   show_put_into_points();
+//    }
+//   
+  update_put_into_points();
+  }
+  
+    return 1;
+}
+
+int MA_Display_Functions()
+{
+ if(Affordances_Found==1)
     {
       //G3D_Window *window = g3d_get_win_by_name((char*)"Move3D");
  //window->vs.displayJoints=0;
@@ -577,60 +948,7 @@ int execute_Mightability_Map_functions()
       
       ////MM_RECORD_MOVIE_FRAMES=0;
       // printf(" Inside Affordances_Found==1\n");
-      if(UPDATE_MIGHTABILITY_MAP_INFO==1)
-	{
-	 printf(" Inside UPDATE_MIGHTABILITY_MAP_INFO \n");
-	  ////g3d_drawDisc(mean_point.x,mean_point.y,mean_point.z,.2,Green,NULL); 
-           
-	   ////return 1;
-	       // 
-	  
-	   update_human_posture_state();
-	  update_robots_and_objects_status();
-	  update_horizontal_surfaces();
-	   //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( "IKEA_SHELF" ));
-	  ////show_exact_obs_cells_for_curr_vis_test();
-	  //////////update_Mightability_Maps();
-          ////printf(" **** Calling update_Mightability_Maps_new()\n");
-	
-	  update_Mightability_Maps_new();
-	  //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( "HRP2TABLE" ),1);
-	  ////show_exact_obs_cells_for_curr_vis_test();
-          /////printf(" **** After Calling update_Mightability_Maps_new()\n");
-
-	  //printf(" **** Calling find_symbolic_Mightability_Map_new()\n");
-	  ////find_symbolic_Mightability_Map();
-	  find_symbolic_Mightability_Map_new();
-  
-	  ////printf(" **** Calling get_object_mightabilities() \n");
-
-	  get_object_mightabilities();
-	  ////printf(" **** After Calling get_object_mightabilities() \n");
-          //show_obstacle_cells_belonging_to(get_index_of_robot_by_name( CURRENT_OBJECT_TO_MANIPULATE ));
-	 
-	   
-	   /* test_inside(get_index_of_robot_by_name("SURPRISE_BOX" ), get_index_of_robot_by_name("TOYCUBE_YELLOW" ));
-            test_inside(get_index_of_robot_by_name("PINK_TRASHBIN" ), get_index_of_robot_by_name("TOYCUBE_YELLOW" ));
-              test_inside(get_index_of_robot_by_name("PINK_TRASHBIN" ), get_index_of_robot_by_name("SURPRISE_BOX" ));
-	      test_inside(get_index_of_robot_by_name("SURPRISE_BOX" ), get_index_of_robot_by_name("PINK_TRASHBIN" ));
-	    */
-	  /* show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
-	     show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
-	   show_agent_state_configs(PR2_MA, VIS_ABILITY, 2); 
-	   
-	   show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 2); 
-	     show_agent_state_configs(HUMAN1_MA, REACH_ABILITY, 6); 
-	     */
-	  /*
-          show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 0); 
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 1); 
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 2); 
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 3); 
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 4);
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 5);
-	  show_agent_state_configs(HUMAN1_MA, VIS_ABILITY, 6); 
-	  */
-	}
+    
 
       if(SHOW_MIGHTABILITY_MAP_INFO==1)
 	{
@@ -752,13 +1070,13 @@ int execute_Mightability_Map_functions()
 //       
        ////show_Ag_Ab_Obj_least_effort_states(CURRENT_TASK_PERFORMED_BY, REACH_ABILITY, get_index_of_robot_by_name(CURRENT_OBJECT_TO_MANIPULATE));
        
-      print_this_taskability_params(curr_params_for_show_taskability);
+      ////////print_this_taskability_params(curr_params_for_show_taskability);
       
       //Uncomment it to show manipulability graph
-      ////show_taskabilities(curr_params_for_show_taskability, curr_manipulability_graph);
+      show_taskabilities(curr_params_for_show_taskability, curr_manipulability_graph);
       
       //Uncomment it to show current visibility reachability graph
-      show_taskabilities(curr_params_for_show_taskability, curr_vis_reach_aibility_graph);
+      ////show_taskabilities(curr_params_for_show_taskability, curr_vis_reach_aibility_graph);
       
      }
     
@@ -794,15 +1112,14 @@ int execute_Mightability_Map_functions()
   show_put_into_points();
    }
   
-  update_put_into_points();
+  ///////update_put_into_points();
   }
   
-    return 1;
 }
 
 int show_taskabilities(show_taskability_params &curr_params, std::vector<taskability_node> curr_manipulability_graph )
 {
-  printf(" **** Inside show_taskabilities \n");
+  ////printf(" **** Inside show_taskabilities \n");
   
   curr_params.show_TN_edge=1;
   curr_params.show_TN_candidates=1;
@@ -5280,6 +5597,8 @@ int Create_and_init_Mightability_Maps(char *around_object)
 	 //// return 1;
 	   
    update_human_posture_state();
+   update_agent_sitting_information();
+   
    printf(" HUMAN1_CURRENT_STATE_MM= %d\n",HUMAN1_CURRENT_STATE_MM);
 #ifdef HUMAN2_EXISTS_FOR_MA
       printf(" HUMAN2_CURRENT_STATE_MM= %d\n",HUMAN2_CURRENT_STATE_MM);
@@ -7884,8 +8203,6 @@ int MA_activate_collision_between_non_torso_parts_and_env(p3d_rob * for_human)
 
 int update_current_3d_grid_reachability_for_human_MM(HRI_TASK_AGENT for_agent) 
 {
-
-
   int hum_index;
   if(for_agent==HUMAN1_MA)
     {
@@ -7914,6 +8231,12 @@ free_state_configs(for_agent, CURR_REACH_STATE_INDEX_MA_AGENT[for_agent], REACH_
   p3d_col_deactivate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
   MA_deactivate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
 
+  if(indx_support_agent_sitting_on.at(for_agent)>=0)
+  {
+   printf(" Agent %s is sitting on support %s, so deactivating collision between both while finding maximum_possible_lean\n", envPt_MM->robot[hum_index]->name,envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)]->name); 
+   p3d_col_deactivate_rob_rob(envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)], envPt_MM->robot[hum_index]);
+  }
+  
   point_co_ordi shoulder_pos;
   ////point_co_ordi sphere_pt;
   
@@ -7939,6 +8262,11 @@ free_state_configs(for_agent, CURR_REACH_STATE_INDEX_MA_AGENT[for_agent], REACH_
 		    
 		    p3d_col_activate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
                     MA_activate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
+		    
+		    if(indx_support_agent_sitting_on.at(for_agent)>=0)
+                    {
+                    p3d_col_activate_rob_rob(envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)], envPt_MM->robot[hum_index]);
+                     }
                     return 0;
 //		  }
 	      }
@@ -7953,7 +8281,13 @@ free_state_configs(for_agent, CURR_REACH_STATE_INDEX_MA_AGENT[for_agent], REACH_
 	      
 	          p3d_col_activate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
                     MA_activate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
-		    return 1;
+		    
+		  if(indx_support_agent_sitting_on.at(for_agent)>=0)
+                  {
+                 p3d_col_deactivate_rob_rob(envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)], envPt_MM->robot[hum_index]);
+                  }
+		  
+		  return 1;
 }
 
 int get_maximum_possible_lean_angle_for_agent(HRI_TASK_AGENT for_agent, double &res_lean_forward_ang)
@@ -7984,7 +8318,13 @@ int get_maximum_possible_lean_angle_for_agent(HRI_TASK_AGENT for_agent, double &
 
   p3d_col_deactivate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
   MA_deactivate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
-
+  
+  if(indx_support_agent_sitting_on.at(for_agent)>=0)
+  {
+   printf(" Agent %s is sitting on support %s, so deactivating collision between both while finding maximum_possible_lean\n", envPt_MM->robot[hum_index]->name,envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)]->name); 
+   p3d_col_deactivate_rob_rob(envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)], envPt_MM->robot[hum_index]);
+  }
+  
   point_co_ordi shoulder_pos;
   ////point_co_ordi sphere_pt;
   configPt hum_tmp_pos=p3d_get_robot_config(envPt_MM->robot[hum_index]);
@@ -8054,7 +8394,12 @@ int get_maximum_possible_lean_angle_for_agent(HRI_TASK_AGENT for_agent, double &
 	      p3d_destroy_config(envPt_MM->robot[hum_index],hum_tmp_pos);
     p3d_col_activate_rob_rob(envPt_MM->robot[rob_indx.VISBALL_MIGHTABILITY],envPt_MM->robot[hum_index]);
     MA_activate_collision_between_non_torso_parts_and_env(envPt_MM->robot[hum_index]); 
-	      
+
+  if(indx_support_agent_sitting_on.at(for_agent)>=0)
+  {
+   ////printf(" Agent %s is sitting on support %s, so deactivating collision between both while finding maximum_possible_lean\n", envPt_MM->robot[hum_index]->name,envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)]->name); 
+   p3d_col_activate_rob_rob(envPt_MM->robot[indx_support_agent_sitting_on.at(for_agent)], envPt_MM->robot[hum_index]);
+  }
 	      return 1;
 }
 
@@ -11939,7 +12284,7 @@ free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   ////find_3D_grid_straight_visibility(jido_robot_MM,3);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[agent_type],agent_type,visibility_type);
 
-  yaw=M_PI/4.0;
+  yaw=M_PI/2.4; //75 degrees
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[PAN]]=yaw; // Human Yaw angle relative to the human body frame
   ////rob_cur_pos[ROBOTq_TILT]=pitch; // Human Yaw angle relative to the human body frame
 
@@ -11967,7 +12312,7 @@ free_state_configs(agent_type, visibility_type, VIS_ABILITY);
   ////find_3D_grid_turn_head_visibility(jido_robot_MM,3);
   find_3D_grid_visibility_for_MM(HRI_AGENTS_FOR_MA[agent_type],agent_type,visibility_type);
 
-  yaw=-M_PI/4.0;
+  yaw=-M_PI/2.4; //75 degrees
   HRI_AGENTS_FOR_MA_running_pos[agent_type][agents_for_MA_obj.for_agent[agent_type].head_params.Q_indices[PAN]]=yaw; // Human Yaw angle relative to the human body frame
   ////rob_cur_pos[ROBOTq_TILT]=pitch; // Human Yaw angle relative to the human body frame
 
