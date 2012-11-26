@@ -136,7 +136,7 @@ extern analysis_type_effort_level_group Analysis_type_Effort_level[MAXI_NUM_OF_A
 
 // Will be used at various places to check the manipulability of an object by the agent
 // NOTE IMPORTANT: Don't forget to add any new object for which the grasp has been calculated or the grasp file exists and increse the NUM_VALID_GRASPABLE_OBJ value
-char MANIPULABLE_OBJECTS[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][50]={"LOTR_TAPE","GREY_K7","GREY_TAPE","SURPRISE_BOX","TOYCUBE_WOOD"};//, "WALLE_TAPE"};
+char MANIPULABLE_OBJECTS[MAXI_NUM_OF_ALLOWED_OBJECTS_IN_ENV][50]={"LOTR_TAPE","GREY_K7","GREY_TAPE","WALLE_TAPE","TOYCUBE_WOOD"};//, "WALLE_TAPE" SURPRISE_BOX};
 int NUM_VALID_GRASPABLE_OBJ=5;//IMPORTANT NOTE: Adjust its value according to number of elements in MANIPULABLE_OBJECTS
 
 std::set<std::string> OBJECTS_TO_EXCLUDE_FROM_MA;
@@ -8878,7 +8878,7 @@ int check_grasp_feasibility(int performing_agent, int per_ag_hum, int obj_index)
 
     
     p3d_rob* hand_rob= ( p3d_rob* ) p3d_get_robot_by_name ( by_hand );
-    printf(" Total no. of initail grasps for agent %s = %d\n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, grasps_for_object.size());
+    printf(" Total no. of initail grasps for object = %s, for agent %s = %d\n", envPt_MM->robot[obj_index]->name, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name, grasps_for_object.size());
     int ctr=0;
     
      p3d_col_deactivate_rob_rob(hand_rob, envPt_MM->robot[obj_index]);
@@ -9021,7 +9021,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
      if(object_MM.object[obj_index].geo_MM.visible[performing_agent][curr_analysis_state]>0)
      {
 	
-	printf(" Object is visible by %d state of %s \n", curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+	printf(" Object %s is visible by %d state of %s \n", envPt_MM->robot[obj_index]->name, curr_analysis_state, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
 	res_node.performing_ag_effort[VIS_ABILITY]=agent_cur_effort[VIS_ABILITY];
 	is_visible=1;
 	break;	      
@@ -9030,7 +9030,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
    
    if(is_visible==0)
    {
-     printf(" Object is NOT visible by agent %s \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+     printf(" Object %s is NOT visible by agent %s \n", envPt_MM->robot[obj_index]->name, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
      
      if(agent_cur_effort[VIS_ABILITY]<agent_maxi_allowed_effort[VIS_ABILITY])
      {
@@ -9060,7 +9060,7 @@ int find_agent_object_affordance(HRI_task_desc curr_task, int obj_index, taskabi
    
    if(is_reachable==0)
    {
-     printf(" Object is NOT reachable by agent %s \n", envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
+     printf(" Object %s is NOT reachable by agent %s \n", envPt_MM->robot[obj_index]->name, envPt_MM->robot[indices_of_MA_agents[performing_agent]]->name);
      if(agent_cur_effort[REACH_ABILITY]<agent_maxi_allowed_effort[REACH_ABILITY])
      {
        agent_cur_effort[REACH_ABILITY]++;
@@ -9281,7 +9281,7 @@ int find_manipulability_graph(std::vector<taskability_node> &manipulability_grap
        
        if(res==-1)// -1 means No valid grasp, so skip displacement effort
        {
-	 
+	 printf(" No valid grasp, so not trying with displacement effort \n");
        }
        
        if(res==0)//valid grasp but not reachable so Try with displacement effort
@@ -9304,7 +9304,7 @@ int find_manipulability_graph(std::vector<taskability_node> &manipulability_grap
   manipulability_node_desc+=envPt_MM->robot[res_node.target_object]->name;
   
   manipulability_node_DESC_ID_map[manipulability_node_desc]=ctr;
-  printf(" Inserted into manipulability_node_DESC_ID_map key= %s \n",manipulability_node_desc.c_str());
+  printf(" **>><< Inserted into manipulability_node_DESC_ID_map key= %s \n",manipulability_node_desc.c_str());
   
   strcpy(res_node.desc,manipulability_node_desc.c_str());
   
@@ -9675,6 +9675,12 @@ if(tar_ag_hum==1)
       update_effort_levels_for_HRI_Tasks(curr_task, 1, agent_cur_effort[target_agent][REACH_ABILITY], agent_cur_effort[target_agent][VIS_ABILITY]);
       
   //set_accepted_effort_level_for_HRI_task(desired_level);
+    }
+    
+    if(task==HIDE_OBJECT||task==PICK_HIDE_OBJECT)
+    {
+      agent_cur_effort[target_agent][VIS_ABILITY]=MA_HEAD_EFFORT;//At least should not be visible by turning head
+      
     }
     
     
@@ -11176,6 +11182,7 @@ int integrate_this_manipulability_graph_into_affordance_graph(MY_GRAPH &affordan
    }    
 }
   
+//This should be also used to convert std::vector<taskability_node> graph into BGL graph
 int merge_taskability_graph_into_this_Affordance_graph(MY_GRAPH &curr_afford_graph, std::vector<taskability_node> &curr_taskability_graph)
 {
   printf(" >>>**** Inside merge_taskability_graph_into_this_Affordance_graph with taskability graph size = %d \n",curr_taskability_graph.size());
@@ -11762,6 +11769,24 @@ int assign_edge_weight_in_object_flow_graph(MY_GRAPH &G)
  }
 }
 
+//To find the agents who can directly perform the task for the target agent
+int get_performing_agents_for_this_task_for_this_target_agent(std::vector<taskability_node> &curr_taskability_graph, int target_agent, int task, std::vector<int> &performing_agents)
+{
+  performing_agents.clear();
+  printf(" Inside get_performing_agents_vertices_for_this_task_for_this_target_agent for target agent=%d, task =%d\n", target_agent, task);
+  
+  for(int i=0; i<curr_taskability_graph.size();i++)
+  {
+    if(curr_taskability_graph.at(i).target_agent==target_agent&&curr_taskability_graph.at(i).task==task)
+    {
+      performing_agents.push_back(curr_taskability_graph.at(i).performing_agent);
+    }
+  }
+ return 1;
+}
+
+
+//Assumes the source vertex is always for object
 int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ)
 {
      int vert_type=2;//for object
@@ -11942,6 +11967,27 @@ int modify_graph_for_agent_busy(MY_GRAPH &G,int for_agent_type, int agent_busy)
   else
   {
     printf(" **** HRI task WARNING : The agent to make busy is NOT present in the graph \n");
+    return 0;
+  }
+}
+
+int modify_graph_to_exclude_agent(MY_GRAPH &G,int for_agent_type)
+{
+  printf(" Inside modify_graph_to_exclude_agent for agent %d \n", for_agent_type);
+  
+  
+  MY_VERTEX_DESC v;
+  //MY_EDGE_DESC e;
+  
+  if(get_vertex_desc_by_ag_type(G, for_agent_type, v)==1)
+  {
+    clear_vertex(v,G);
+    ////remove_vertex(v, G);// As removing vertex would result into invalid references to some of the already stored vertex and edges pointers, for the time being from the planning point of view it is sufficient to just remove all the in and out edges of the vertex by clear_vertex. 
+    return 1;
+  }
+  else
+  {
+    printf(" **** HRI task WARNING : The agent vertex to make remove from the graph is NOT present. \n");
     return 0;
   }
 }
@@ -12676,7 +12722,7 @@ MY_VERTEX_DESC targ2;
 	  
 	 for(int ab_ctr=0;ab_ctr<MAXI_NUM_ABILITY_TYPE_FOR_EFFORT;ab_ctr++)
 	 {
-	   curr_sentence="For the pair[ ";
+	  curr_sentence="For the pair [ ";
 	  curr_sentence+=current_object.c_str();
 	  curr_sentence+=" , ";
 	  curr_sentence+=target_object.c_str();
@@ -12826,7 +12872,7 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
 int res=find_ability_graph_with_id(curr_manipulability_graphs, id_to_find, manip_graph);
  if(res==0)
  {
-   printf(" manipulability id %d cannot be found\n",id_to_find);
+   printf(" **** HRI Compare WS ERROR: manipulability graph corresponding to id %d cannot be found\n",id_to_find);
    //TODO: Write funcction to store the WS1 and create the manipulability graph
    return 0;
  }
@@ -12862,11 +12908,13 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
 res=find_ability_graph_with_id(curr_manipulability_graphs, id_to_find, manip_graph2);
  if(res==0)
  {
-   printf(" manipulability id %d cannot be found\n",id_to_find);
+   printf(" **** HRI Compare WS ERROR: manipulability graph with id %d cannot be found\n",id_to_find);
    //TODO: Write funcction to store the WS2 and create the manipulability graph
+   
+   
    return 0;
  }
-
+printf(" Manipulability graph with id = %d has been found \n", id_to_find);
 //just to convert the manip_graph2 into BGL graph
 integrate_this_manipulability_graph_into_affordance_graph(manipulability_graph2, manip_graph2.graph);
 printf(" After integrate_this_manipulability_graph_into_affordance_graph for manipulability_graph2.\n");
@@ -12895,6 +12943,12 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
      if(vert_res==0)
      {
       //TODO: The vertex does not exist. Either it is not perceived any more to the robot, which should be handles before reaching to this places. Or may be because the object has been thrown, dropped, etc. So, even if it is visible, it is not manipulable any more. Write code to handle such situations with throwability and so on   
+      
+      printf(">>**>> The vertex does not exist. Either it is not perceived any more to the robot, which should be handles before reaching to this places. Or may be because the object has been thrown, dropped, etc. So, even if it is visible, it is not manipulable any more. Write code to handle such situations with throwability and so on  \n");
+      
+      curr_manipulability_graph=manip_graph2.graph;
+      
+      
       continue;
      }
      
@@ -12903,6 +12957,7 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
      if(vert_res==0)
      {
       //TODO: The vertex does not exist in the affordance graph of the initial world state, which will be used to find the path. Write code to handle such situations.   
+      printf(" >>>>****>> The vertex does not exist in the affordance graph of the initial world state, which will be used to find the path. Write code to handle such situations.\n");
       continue;
      }
      
@@ -12965,6 +13020,7 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
 	DRAW_CURR_AFFORDANCE_GRAPH=1;
 	curr_affordance_graph_to_draw=affordance_graph1;
 	
+	modify_graph_to_exclude_agent(affordance_graph1, PR2_MA);//to exclude PR2 in the plan, as PR2 is assumned to be not present during the moment of changes 
 	std::string path_desc;
 	get_path_in_graph(affordance_graph1, src_in_WS1, sp_vtx, path_desc );
 	
@@ -12996,6 +13052,17 @@ for(int mv_obj_ctr=0; mv_obj_ctr<lost_objects.size();mv_obj_ctr++)
      {
       //TODO: The vertex does not exist. Either it is not perceived any more to the robot, which should be handles before reaching to this places. Or may be because the object has been thrown, dropped, etc. So, even if it is visible, it is not manipulable any more. Write code to handle such situations with throwability and so on   
       printf(" The object %s does not exist in the 2nd manipulability graph. It is not perceived any more to the robot. This may be because the object has been thrown, dropped, or someone has made it hidden from the robot, etc. \n", envPt_MM->robot[lost_objects[mv_obj_ctr]]->name);
+      
+      std::vector<int> performing_agents;
+      
+      get_performing_agents_for_this_task_for_this_target_agent(taskability_graph, PR2_MA, HIDE_OBJECT, performing_agents);
+      
+      for(int per_ag_ctr=0; per_ag_ctr<performing_agents.size();per_ag_ctr++)
+      {
+	printf(" >>**>> Agent %s can hide something from the robot \n", envPt_MM->robot[indices_of_MA_agents[performing_agents.at(per_ag_ctr)]]->name);
+	
+      }
+
       continue;
      }
      

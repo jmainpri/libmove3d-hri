@@ -286,6 +286,7 @@ extern int remove_this_object_out_of_scene_and_update_MA(char* obj_name, std::ve
 extern int put_this_object_here_and_update_MA(char* obj_name, std::vector<double> &act_pos);
 extern int get_sub_trajectory_names_for_plan_ID(int HRI_task_plan_id, std::vector<std::string> &traj_names);
 extern int delete_this_world_state(world_state_configs &curr_WS);
+extern int MA_Display_Functions();
 
 #endif /* __CEXTRACT__ */
 
