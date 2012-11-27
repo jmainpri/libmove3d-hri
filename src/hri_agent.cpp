@@ -339,8 +339,8 @@ HRI_PERSP * hri_create_agent_perspective(HRI_AGENT * agent, p3d_env *env)
         break;
     case HRI_PR2:
         persp->camjoint = agent->robotPt->joints[26];
-        persp->fov = 120; //TODO: put the correct value
-        persp->foa = 60; //TODO: put the correct value
+        persp->fov = 100;
+        persp->foa = 50;
         persp->tilt_jnt_idx = 4;
         persp->pan_jnt_idx  = 3;
         persp->pointjoint = agent->robotPt->joints[24];
