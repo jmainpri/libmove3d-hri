@@ -9277,6 +9277,8 @@ int find_manipulability_graph(std::vector<taskability_node> &manipulability_grap
        res_node.performing_agent=curr_task.by_agent;
        res_node.target_object=j;
       
+       printf(" Finding Agent Object affordance for %s, %s \n", envPt_MM->robot[indices_of_MA_agents[curr_task.by_agent]]->name, envPt_MM->robot[j]->name);
+       
        int res=find_agent_object_affordance(curr_task, j, res_node );//It will try until whole body effort at max
        
        if(res==-1)// -1 means No valid grasp, so skip displacement effort
@@ -9284,7 +9286,7 @@ int find_manipulability_graph(std::vector<taskability_node> &manipulability_grap
 	 printf(" No valid grasp, so not trying with displacement effort \n");
        }
        
-       if(res==0)//valid grasp but not reachable so Try with displacement effort
+       if(res==0||res==-2)//valid grasp but either not reachable or not visible so Try with displacement effort
        {
 	 printf("Actually the agent could not take with Whole Body Effort, so trying displacement effort\n"); 
 	 res=find_agent_object_affordance_displacement(curr_task, j, res_node );
@@ -11786,6 +11788,35 @@ int get_performing_agents_for_this_task_for_this_target_agent(std::vector<taskab
 }
 
 
+int get_candidate_for_this_task_for_this_agent_pair(std::vector<taskability_node> &curr_taskability_graph,int performing_agent, int target_agent, int task, std::set<point_co_ordi> &res_point)
+{
+  
+  printf(" Inside get_candidate_for_this_task_for_this_agent_pair for performing agent=%d, target agent=%d, task =%d\n", performing_agent, target_agent, task);
+  
+  //point_co_ordi curr_pt;
+  
+  
+  for(int i=0; i<curr_taskability_graph.size();i++)
+  {
+    if(curr_taskability_graph.at(i).performing_agent==performing_agent&&curr_taskability_graph.at(i).target_agent==target_agent&&curr_taskability_graph.at(i).task==task)
+    {
+      printf(" >> total no. of points = %d\n",curr_taskability_graph.at(i).candidate_points->no_points);
+      
+      for(int pt_ctr=0; pt_ctr<curr_taskability_graph.at(i).candidate_points->no_points; pt_ctr++)
+      {
+      //curr_pt.x=curr_taskability_graph.at(i).candidate_points->point[pt_ctr].x;
+      //curr_pt.x=curr_taskability_graph.at(i).candidate_points->point[pt_ctr].y;
+      
+      res_point.insert(curr_taskability_graph.at(i).candidate_points->point[pt_ctr]);
+      
+      }
+      
+    }
+  }
+ return 1;
+}
+
+
 //Assumes the source vertex is always for object
 int get_src_targ_vertex_pair_for_task(HRI_task_desc for_task, MY_GRAPH G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ)
 {
@@ -12841,6 +12872,152 @@ int get_path_in_graph(MY_GRAPH &G, MY_VERTEX_DESC &src, MY_VERTEX_DESC &targ, st
 	}*/
    
 }
+
+/*int find_candidate_object_placement_for_this_task(std::set<point_co_ordi> &curr_point_to_hide, p3d_rob *object, std::vector<configPt> &res_configs)
+{
+  if(object==NULL)
+  {
+    printf(" object==NULL\n");
+    return 0;
+  }
+  point_co_ordi goal_pos;
+  std::list<gpPlacement> curr_placementList;
+    std::list<gpPlacement> placementList;
+
+   std::list<gpPlacement> general_stable_configuration_list; 
+                        std::list<gpPlacement> tmp_placement_list; 
+    
+  std::set<point_co_ordi>::iterator it;
+  
+  if(placement_on_support==1)
+  {
+  gpCompute_stable_placements (object, placementList );  
+  }
+  else
+  {
+    get_placements_in_3D ( object,  placementList );
+  }
+  
+  for (it=curr_places.begin(); it!=curr_places.end(); ++it)
+  {
+    goal_pos=*it;
+    
+                        curr_placementList.clear();
+                        get_placements_at_position(  object, goal_pos, placementList, 10, curr_placementList );
+        //printf("stable_placements_list.size()=%d, curr_placementListOut.size = %d \n", stable_placements_list.size(), curr_placementListOut.size());
+                        printf("curr_placementList.size = %d \n",  curr_placementList.size());
+                        if(curr_placementList.size()==0)
+                          {
+			    printf(" So trying for next point \n");
+                         continue;
+        ////return 0;
+                          }
+                          
+                          //// show_all_how_to_placements_in_3D(point_to_give,0,10,0,&curr_placementList);
+			    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+			    TO_SHOW_PLACEMENT_POINT=goal_pos;
+			    
+			    SHOW_HOW_TO_PLACE_AT=1;
+			    g3d_draw_allwin_active();
+                            SHOW_HOW_TO_PLACE_AT=0;
+			    g3d_draw_allwin_active();
+			    
+//                          tmp_placement_list.clear();
+//                          tmp_placement_list= curr_placementList;
+// 			 support_to_place = envPt_MM->robot[curr_candidate_points->horizontal_surface_of[i1]];
+// 			 
+// 			  printf(" Support name for placement =%s\n",support_to_place->name);
+// 			  
+// 			  if(filter_contact_polygon_inside_support==1)// To further filter that the contact polygon of the placement is actually inside the support polygon
+// 			  {
+// 	                 gpPlacement_on_support_filter ( object, support_to_place,tmp_placement_list,curr_placementList); 
+// 			  printf("After gpPlacement_on_support_filter(), curr_placementList.size = %d \n",  curr_placementList.size());
+// 			  }
+// 			  
+//                          
+//                           if(curr_placementList.size()==0)
+//                           {
+//                           printf(" ** So trying for next point \n");
+//                          continue;
+//         ////return 0;
+//                           }
+                         }
+                         
+                          
+    printf(" Found a valid stable placement list for the current point\n");                     
+            grasp_ctr=0;            
+   	    CURRENT_CANDIDATE_PLACEMENT_LIST=&curr_placementList;
+			    TO_SHOW_PLACEMENT_POINT=goal_pos;
+			    
+			    SHOW_HOW_TO_PLACE_AT=1;
+			    g3d_draw_allwin_active();
+                            SHOW_HOW_TO_PLACE_AT=0;
+			    g3d_draw_allwin_active();
+			    
+			for ( std::list<gpPlacement>::iterator iplacement=curr_placementList.begin(); iplacement!=curr_placementList.end(); ++iplacement )
+                        {
+			   elapsedTime= ( clock()-clock0 ) /CLOCKS_PER_SEC;
+                                   //printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			  if(elapsedTime>=HRI_TASK_PLANNER_TIME_OUT)
+			  {
+			    printf("Computation time: %2.1fs= %dmin%ds\n",elapsedTime, ( int ) ( elapsedTime/60.0 ), ( int ) ( elapsedTime - 60* ( ( int ) ( elapsedTime/60.0 ) ) ) );
+			    printf(" This is exceeding the HRI_TASK_PLANNER_TIME_OUT=%lf, so stopping and returning fail. \n", HRI_TASK_PLANNER_TIME_OUT);
+			    
+			    STOP_HRI_TASK_PLANNING=true;
+			    break;
+			  }
+				   
+			  printf(" >> Testing for placement configuration %d \n", plac_ctr);
+                           plac_ctr++;
+                           ////iter->draw(0.05);
+			   if(MAINTAIN_OBJ_FRONT_VIS_CONSTRAINT==1)
+			   {
+                           if(task!=HIDE_OBJECT&&task!=PICK_HIDE_OBJECT)
+                            {
+                           if ( iplacement->stability<=0 ) //As the placement list is sorted based on the visibility range. NOTE: This stability is based on the visibility range of the front
+                             { 
+			      printf(" **** Break testing for next placement configurations for this point as the visibility of the front constraints will not be maintained \n");
+                              break;
+                             }
+                            }
+			   }
+			   
+                           p3d_mat4Copy ( Tplacement0, T );
+
+                           iplacement->position[0]= point_to_give.x;
+                           iplacement->position[1]= point_to_give.y;
+                           iplacement->position[2]= point_to_give.z;
+
+                           //////////p3d_matrix4 Tplacement;
+                           iplacement->computePoseMatrix ( Tplacement );
+                           p3d_set_freeflyer_pose ( object, Tplacement );
+			   
+			   int kcd_with_report=0;
+                           int res = p3d_col_test_robot(object,kcd_with_report);
+                           if(res>0)
+			   {
+			     printf(" Placement is in Collision \n");
+			     continue;
+			     
+			   }
+                           ///window->vs.enableLogo=0;
+			   g3d_draw_allwin_active();
+			   g3d_is_object_visible_from_viewpoint ( HRI_AGENTS_FOR_MA[for_agent]->perspective->camjoint->abs_pos, HRI_AGENTS_FOR_MA[for_agent]->perspective->fov, object, &visibility, 0 );
+			   //// window->vs.enableLogo=1;
+                                printf ( " mini_visibility_threshold_for_task[task]= %lf, maxi_visibility_threshold_for_task[task]=%lf, visibility=%lf\n",mini_visibility_threshold_for_task[task], maxi_visibility_threshold_for_task[task],visibility );
+
+                                if(mini_visibility_threshold_for_task[task]>visibility||maxi_visibility_threshold_for_task[task]<visibility) 
+                                {
+                                printf(" Visibility NOT OK \n");
+                                //////////p3d_set_and_update_this_robot_conf ( manipulation->robot(), refConf );
+				////g3d_draw_allwin_active();
+				
+                                continue;
+                                } 
+                                 printf(" The object's visibility %lf is good\n",visibility); 
+			}
+}
+*/
 //NOTE: Currently it assumes that the Manipulability and Taskability Graphs are already created and stored with the same id as of the environment is. //TODO: Create them in the function if not already created
 int find_potential_actions_for_this_source_target_env_pair(world_state_configs &WS1,world_state_configs &WS2, std::vector<World_state_change_explanation> &explanations)
 {
@@ -13034,7 +13211,7 @@ for(int mv_obj_ctr=0; mv_obj_ctr<moved_objects.size();mv_obj_ctr++)
 	explanations.push_back(curr_explanation);
 	printf(" Pushed the explanation for %s \n",curr_explanation.object_name.c_str());
 	
-     space_vertex_ctr++;
+        space_vertex_ctr++;
         
  }
 
@@ -13057,12 +13234,18 @@ for(int mv_obj_ctr=0; mv_obj_ctr<lost_objects.size();mv_obj_ctr++)
       
       get_performing_agents_for_this_task_for_this_target_agent(taskability_graph, PR2_MA, HIDE_OBJECT, performing_agents);
       
+      /*std::set<point_co_ordi> curr_point_to_hide; 
+      curr_point_to_hide.clear();
+      
       for(int per_ag_ctr=0; per_ag_ctr<performing_agents.size();per_ag_ctr++)
       {
 	printf(" >>**>> Agent %s can hide something from the robot \n", envPt_MM->robot[indices_of_MA_agents[performing_agents.at(per_ag_ctr)]]->name);
-	
+	get_candidate_for_this_task_for_this_agent_pair(taskability_graph, performing_agents.at(per_ag_ctr), PR2_MA, HIDE_OBJECT, curr_point_to_hide);
       }
-
+      
+      printf(" >>>*** total no. of current points to hide = %d\n",curr_point_to_hide.size());
+      ////find_candidate_object_placement_for_this_task(curr_point_to_hide, );
+      */
       continue;
      }
      
