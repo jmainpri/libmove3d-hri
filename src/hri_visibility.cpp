@@ -1247,7 +1247,7 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
     //First case: object in field of attention
     case HRI_FOA:
 
-        if (ABS(theta) - hysteresis_h_angle > Hfoa/2 &&
+        if (ABS(theta) - hysteresis_h_angle > Hfoa/2 ||
             ABS(phi) - hysteresis_v_angle > Vfoa/2) {
             // out of FOA -> FOV
             *result = HRI_FOV;
@@ -1267,7 +1267,7 @@ int g3d_object_visibility_placement(p3d_matrix4 camera_frame,
             *result = HRI_FOA;
         }
         else {
-            if (ABS(theta) - hysteresis_h_angle > Hfov/2 &&
+            if (ABS(theta) - hysteresis_h_angle > Hfov/2 ||
                 ABS(phi) - hysteresis_v_angle > Vfov/2) {
                 // out of FOV -> out of field of view
                 *result = HRI_OOF;
