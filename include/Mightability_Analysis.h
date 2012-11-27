@@ -63,6 +63,38 @@ typedef struct point_co_ordi
  double y;
  double z;
  double theta;
+ 
+ bool operator<(const point_co_ordi &a) const 
+ { 
+   if(x<a.x) 
+     return true;
+   
+   if(x>a.x) 
+     return false;
+   
+   if(y<a.y) 
+     return true;
+   
+   if(y>a.y) 
+     return false;
+   
+   if(z<a.z) 
+     return true;
+   
+   return false;
+   
+ }
+ 
+ //overload operator== for the std:set to work, i.e. to be able to find correctly, as it need to compare the values to sort while inserting
+ bool operator==(const point_co_ordi &a) const 
+ { 
+   if(x==a.x && y==a.y && z==a.z) 
+     return true;
+   
+   return false;
+   
+ }
+ 
 }point_co_ordi;
 
 //To store the indices to identify a particular cell in the 3D grid
