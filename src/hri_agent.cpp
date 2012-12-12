@@ -1937,7 +1937,7 @@ void hri_agent_print_config_for_softmotion(HRI_AGENT* agent)
     return;
   }
   
-  configPt q = p3d_alloc_config( agent->robotPt );
+  configPt q = p3d_get_robot_config( agent->robotPt );
   
   p3d_jnt* jnt = p3d_get_robot_jnt_by_name(agent->robotPt,(char*)"platformJoint");
   double base_tx = q[jnt->index_dof+0];
