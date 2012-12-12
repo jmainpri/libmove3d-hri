@@ -48,25 +48,25 @@ bool hri_activate_coll_between_robot_and_one_human_arms( HRI_AGENT* robot, HRI_A
     }
 
   std::vector<p3d_jnt*> ArmJoints;
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rShoulderX" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rShoulderY" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rShoulderZ" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rArmTrans" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rElbowZ" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rPoint" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristX" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristY" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "rWristZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rShoulderX" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rShoulderY" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rShoulderZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rArmTrans" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rElbowZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rPoint" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rWristX" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rWristY" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"rWristZ" ) );
 
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lShoulderX" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lShoulderY" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lShoulderZ" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lArmTrans" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lElbowZ" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lPoint" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lWristX" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lWristY" ) );
-  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, "lWristZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lShoulderX" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lShoulderY" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lShoulderZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lArmTrans" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lElbowZ" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lPoint" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lWristX" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lWristY" ) );
+  ArmJoints.push_back( p3d_get_robot_jnt_by_name( human->robotPt, (const char*)"lWristZ" ) );
 
   for(int i=0;i<robot->robotPt->no;i++)
     {
