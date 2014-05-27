@@ -106,7 +106,6 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
         p3d_set_and_update_this_robot_conf( robot, q );
         joint = p3d_get_robot_jnt_by_name(robot, (char*) "Pelvis");
 
-
         p3d_mat4Copy( joint->abs_pos , Tpelv );
         p3d_mat4Copy( joint->abs_pos , m_absPos );
         p3d_matInvertXform( Tpelv , Tinv  );
@@ -116,7 +115,6 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
         index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoX")->index_dof;
         q[index_dof] = TorsoX;
 
-
         p3d_mat4TransRot( TrotX , 0 , 0 , 0 , Xaxis , TorsoX  );
         p3d_matMultXform( Tpelv , TrotX , TrotXtmp );
         p3d_matInvertXform( TrotXtmp , Tinv  );
@@ -125,7 +123,6 @@ configPt hri_get_configuration_from_kinect_data( p3d_rob* robot, kinectData& dat
         double TorsoY = atan2( pos[0] , pos[2] );
         index_dof = p3d_get_robot_jnt_by_name(robot, (char*) "TorsoY")->index_dof;
         q[index_dof] = TorsoY;
-
 
         p3d_mat4TransRot( TrotY , 0 , 0 , 0 , Yaxis , TorsoY  );
         p3d_matMultXform( TrotXtmp , TrotY , TrotYtmp );

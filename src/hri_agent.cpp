@@ -1455,9 +1455,9 @@ int hri_agent_set_human_t_shirt_color(HRI_AGENT * agent,int color)
             if(poly->color_vect == NULL)
                 continue;
 
-            if ((poly->color_vect[0] == 0.9921569 )
-                && poly->color_vect[1] == 0.4666667
-                        && poly->color_vect[2] == 0.4666667) {
+            if (      (poly->color_vect[0] == 0.9921569 )
+                    && poly->color_vect[1] == 0.4666667
+                    && poly->color_vect[2] == 0.4666667) {
 
                 double color_vect[4];
 
