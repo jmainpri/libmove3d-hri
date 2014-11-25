@@ -1286,15 +1286,20 @@ int hri_create_fill_agent_default_manip_tasks(HRI_MANIP * manip, GIK_TASK ** tas
         (*tasklist)[1].default_joints_no = 9;
 
         (*tasklist)[2].type = GIK_RAREACH;
-        (*tasklist)[2].default_joints[0] = 8;
-        (*tasklist)[2].default_joints[1] = 9;
-        (*tasklist)[2].default_joints[2] = 10;
-        (*tasklist)[2].default_joints[3] = 12;
-        (*tasklist)[2].default_joints[4] = 14;
-        (*tasklist)[2].default_joints[5] = 15;
-        (*tasklist)[2].default_joints[6] = 16;
-        (*tasklist)[2].active_joint = 40; /* active joint */
-        (*tasklist)[2].default_joints_no = 7;
+        (*tasklist)[2].default_joints[0] = 11; // Shoulder
+        (*tasklist)[2].default_joints[1] = 12;
+        (*tasklist)[2].default_joints[2] = 13;
+        (*tasklist)[2].default_joints[3] = 15; // Elbow
+        (*tasklist)[2].default_joints[4] = 16;
+        (*tasklist)[2].default_joints[5] = 17;
+        (*tasklist)[2].default_joints[6] = 15; // Elbow
+        (*tasklist)[2].default_joints[7] = 16;
+        (*tasklist)[2].default_joints[8] = 17;
+        (*tasklist)[2].default_joints[9] = 19; // Wrist
+        (*tasklist)[2].default_joints[10] = 20;
+        (*tasklist)[2].default_joints[11] = 21;
+        (*tasklist)[2].active_joint = 45; /* active joint */
+        (*tasklist)[2].default_joints_no = 12;
 
         (*tasklist)[3].type = GIK_LAREACH;
         (*tasklist)[3].default_joints[0] = 17;
